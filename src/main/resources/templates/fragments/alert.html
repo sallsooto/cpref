@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8"/>
+<title>Insert title here</title>
+</head>
+<body>
+	<!-- ========================= ALert falsh warning -->
+	<div class="alert alert-warning alert-dismissible fade show" role="alert" th:fragment="flash-warning">
+	  <strong>
+	  		<i class="fas fa-exclamation-triangle" th:text="${title} ? ${'&nbsp;&nbsp;' +title} : '&nbsp;&nbsp;Attention : '"></i>
+	  	</strong><span th:text="${body}"></span>
+	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+	    <span aria-hidden="true">&times;</span>
+	  </button>
+	</div>
+	<!-- ================================= alert falsh-danger ======================================= -->
+	<div class="alert alert-danger alert-dismissible fade show" role="alert" th:fragment="flash-danger">
+	  <strong>
+	  		<i class="fas fa-times" th:text="${title} ? ${'&nbsp;&nbsp;' +title} : '&nbsp;&nbsp;Erreur : '"></i>
+	  	</strong><span th:text="${body}"></span>
+	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+	    <span aria-hidden="true">&times;</span>
+	  </button>
+	</div>
+	<!-- ======================================== Alert flash info ============================= -->
+	<div class="alert alert-info alert-dismissible fade show" role="alert" th:fragment="flash-info">
+	  <strong>
+	  		<i class="fas fa-info-circle" th:text="${title} ? ${'&nbsp;&nbsp;' +title} : '&nbsp;&nbsp;Info : '"></i>
+	  	</strong><span th:text="${body}"></span>
+	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+	    <span aria-hidden="true">&times;</span>
+	  </button>
+	</div>
+	<!-- ======================================== Alert flash success =============================== -->
+	<div class="alert alert-success alert-dismissible fade show" role="alert" th:fragment="flash-success">
+	  <strong>
+	  		<i class="fas fa-check-circle" th:text="${title} ? ${'&nbsp;&nbsp;' +title} : '&nbsp;&nbsp;Succès : '"></i>
+	  	</strong><span th:text="${body}"></span>
+	  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+	    <span aria-hidden="true">&times;</span>
+	  </button>
+	</div>
+</body>
+</html>
