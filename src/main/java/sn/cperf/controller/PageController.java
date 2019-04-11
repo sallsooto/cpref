@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import sn.cperf.dao.PasswordRepository;
 import sn.cperf.dao.UserRepository;
@@ -22,6 +23,7 @@ import sn.cperf.form.PasswordForm;
 import sn.cperf.form.UserForm;
 import sn.cperf.model.Password;
 import sn.cperf.model.User;
+import sn.cperf.service.CperfService;
 import sn.cperf.service.MailService;
 import sn.cperf.service.StorageService;
 
@@ -31,6 +33,7 @@ public class PageController {
 	@Autowired StorageService storageService;
 	@Autowired PasswordRepository passwordRepository;
 	@Autowired MailService mailService;
+	@Autowired CperfService cperfService;
 	
 	@GetMapping("/")
 	public String index() {
@@ -175,5 +178,11 @@ public class PageController {
 			e.printStackTrace();
 		}
 		return "password";
+	}
+	
+	@GetMapping("/getLoged/")
+	@ResponseBody
+	public User getLoged() {
+		return cperfService.getLoged();
 	}
 }

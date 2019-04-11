@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -27,6 +28,7 @@ import sn.cperf.util.Organigramme;
 
 @Controller
 @RequestMapping("/Organigramme")
+@Secured("ROLE_admin")
 public class OrganigrammeController {
 	@Autowired
 	UserRepository userRepository;

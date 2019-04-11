@@ -35,9 +35,9 @@
       </div>
 
       <!-- Nav Item - Pages Collapse Menu -->
-     <li class="nav-item">
+     <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
-          <i class="fas fa-fw fa-cog"></i>
+          <i class="fas fa-users"></i>
           <span>Organigramme</span>
         </a>
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
@@ -45,6 +45,35 @@
            <!--  <h6 class="collapse-header">Custom Components:</h6> -->
            <a class="collapse-item" th:href="@{/Organigramme/}">Exploration</a>
             <a class="collapse-item" th:href="@{/Organigramme/Others/}">Autres utilisateurs</a>
+          </div>
+        </div>
+      </li>
+     <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapselogigramme" aria-expanded="true" aria-controls="collapselogigramme">
+          <i class="fas fa-sitemap"></i>
+          <span>Logigramme</span>
+        </a>
+        <div id="collapselogigramme" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+           <!--  <h6 class="collapse-header">Custom Components:</h6> -->
+           <a class="collapse-item" th:href="@{/Process/Edit/}">Créer un process</a>
+           <a class="collapse-item" th:href="@{/Process/List/}">Lister les process</a>
+          <!--  <a class="collapse-item" th:href="@{/Process/Logigramme/}">Afficher</a> -->
+            <!-- <a class="collapse-item" th:href="@{/Organigramme/Others/}">Autres utilisateurs</a>-->
+          </div>
+        </div>
+      </li>
+     <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collpaseAdmin" aria-expanded="true" aria-controls="collpaseAdmin">
+          <i class="fas fa-fw fa-cog"></i>
+          <span>Administration</span>
+        </a>
+        <div id="collpaseAdmin" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+           <!--  <h6 class="collapse-header">Custom Components:</h6> -->
+           <a class="collapse-item" th:href="@{/Admin/Role/}">Géstion des profiles</a>
+           <a class="collapse-item" th:href="@{/Admin/Group/}">Géstion des groupes</a>
+           <a class="collapse-item" th:href="@{/Admin/User/}">Géstion des utilisateurs</a>
           </div>
         </div>
       </li>

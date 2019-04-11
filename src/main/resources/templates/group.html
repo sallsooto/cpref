@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/martial.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Profile</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Gestion des groupes')"></div>
+		<!-- row content -->
+		<div class="row">
+			<div class="col-sm-12 col-md-12">
+				<div class="card">
+					<div class="card-body">
+						<div class="row">
+							<!-- col form -->
+							<div class="col-sm-12 col-md-4">
+								<form th:object="${form}" th:action="@{/Admin/Group}" method="POST" class="row mshz-form-validate">
+									<div class="form-group col-sm-12 text-right" th:if="${form.id}">
+										<a th:href="@{/Admin/Group}" title="Actualiser"><i class="fas fa-sync-alt"></i></a>
+									</div>
+									<input type="hidden" th:field="*{id}"/>
+									<div th:if="${errorMsg}" class="col-sm-12">
+										<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+									</div>
+									<div th:if="${successMsg}" class="col-sm-12"> 
+										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+									</div>
+									<div class="form-group col-sm-12 col s12">
+										<label>Libellé :</label>
+										<input type="text" id="name" th:field="*{name}" th:if="!${form.id}"
+										 placeholder="Entrez le nom du groupe ici.." class="form-control form-control-sm" data-mshz-required="true" />
+										<input type="text" id="name" th:field="*{name}" th:if="${form.id}" readOnly
+										 placeholder="Entrez le nom du groupe ici.." class="form-control form-control-sm" data-mshz-required="true"/>
+										 <div class="invalid-feedback">Ce champs est obligatoire!</div>
+									</div>
+									<div th:if="${users.size()>0}" class="form-group col col-sm-12 s12 input-field">
+										<select class="icons" name="users" th:field="*{users}" id="users" multiple>
+											<option th:each="user : ${users}" th:value="${user.id}" 
+												th:text="${user.firstname + ' '+user.lastname}" th:data-icon="@{/images/avatars/{photo}(photo=${user.photo})}"></option>
+										</select>
+										<label>Séléctionner les utilisateurs du groupe</label>
+									</div>
+									<div th:if="${roles.size()>0}" class="form-group col col-sm-12 s12 input-field">
+										<select class="icons" name="role" th:field="*{role}" id="role">
+											<option th:each="r : ${roles}" th:value="${r.id}" 
+												th:text="${r.role}"></option>
+										</select>
+										<label>Choisissez un profile pour les utilisateurs de ce groupe (Facultatif)</label>
+									</div>
+									<div class="form-group col-sm-12" th:if="!${form.id}">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm">Enregistrer</button>
+									</div>
+									<div class="form-group col-sm-12" th:if="${form.id}">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm">Mofidier</button>
+									</div>
+								</form>
+							</div>
+							<!-- col table list -->
+							<div class="col-sm-12 col-md-8 border-left border-info">
+								<table class="table table-bordered text-center" th:if="${groups.size()>0}">
+									<thead>
+										<tr><th>Nom</th><th>Utilisateurs</th><th>Profile</th><th>Action</th></tr>
+									</thead>
+									<tbody>
+										<tr th:each="gp : ${groups}">
+											<td th:text="${gp.name}"></td>
+											<td th:if="${gp.users.size()>0}" class="text-center">
+												<span th:each="u : ${gp.users}" th:text="${u.firstname + ' '+u.lastname+' ; '}"></span>
+											</td>
+											<td th:text="${gp.role != null ? gp.role.role : 'Aucun'}"></td>
+											<td><a th:href="@{/Admin/Group/(id=${gp.id})}">Modifer</a></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<!-- end col table -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript" th:src="@{/js/profile.js}"></script>
+	</div>
+</body>
+</html>

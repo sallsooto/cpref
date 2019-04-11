@@ -1,3 +1,4 @@
+<!-- template for matialize css template using -->
 <!-- =============== APP ADMIN LAYOUT ==================== -->
 <!DOCTYPE html>
 <html lang="fr" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -13,6 +14,10 @@
   <!-- Custom fonts for this template-->
   <link th:href="@{/lib/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css"/>
   <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+  
+    <!-- Compiled and minified CSS martialize-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
   <!-- Custom styles for this template-->
   <link th:href="@{/css/sb-admin-2.min.css}" type="text/css" rel="stylesheet">
@@ -31,9 +36,12 @@
   <!-- Core plugin JavaScript-->
   <script th:src="@{/lib/jquery-easing/jquery.easing.min.js}"></script>
 
+    <!-- Compiled and minified JavaScript martialize-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
   <!-- Custom scripts for all pages-->
   <script th:src="@{/js/sb-admin-2.min.js}"></script>
-  <script th:src="@{/lib/js/mshz.form_validator.js}"></script>
+	<script th:src="@{/lib/js/mshz.form_validator.js}"></script>
   <script th:src="@{/js/app_ng.js}"></script>
 </head>
 
@@ -105,6 +113,7 @@
       </div>
     </div>
   </div>
+  <script th:src="@{/js/martial_initializer.js}"></script>
   <script th:src="@{/js/main.js}"></script>
   <div layout:fragment="addon-scripts-content"></div>
 </body>

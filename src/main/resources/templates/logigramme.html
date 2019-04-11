@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>logigramme</title>
+	<script type="text/javascript" th:src="@{/js/plugins/jquery.js}"></script>
+	<script type="text/javascript" th:src="@{/js/plugins/svg.js}"></script>
+	<script type="text/javascript" th:src="@{/js/plugins/mshz-chart.js}"></script>
+	<script type="text/javascript" th:src="@{/js/logigramme.js}"></script>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div
+			th:replace="fragments/main_content_heading::heading(heading_text='Logigramme')"></div>
+		<!--<h1 style="margin-top:150px; text-align:center"></h1>-->
+		<!-- <div class="text-center" th:if="${pocess}">
+			<input type="hidden" th:value="${pId}" id="pid_content"/>
+			<div id="drawing" style="margin: 30px auto; width: 900px;" class=""></div>
+		</div> -->
+		<!-- end static table -->
+		<div class="text-center" th:if="${process}" id="drawing">
+			<table class="table table-sm table-bordered bg-white">
+				<thead>
+					<tr>
+						<th colspan="2" class="p-1 text-center">
+							<div class="row">
+								<div class="col-sm-12 d-block d-md-none text-center">
+									<span class="d-inline-block chrono_span"></span>
+								</div>
+								<div class="col-sm-12 col-md-9 text-center">
+									<h5 th:text="${process.label}"></h5>
+									<small><span th:if="${process.description}" th:text="${'( '+process.description+' )'}"></span></small>
+								</div>
+								<div class="d-none d-md-block col-md-3 text-center">
+									<span class="d-inline-block chrono_span"></span>
+								</div>
+							</div>
+							<input type="hidden" th:value="${#dates.format(process.previewStartDate, 'yyyy-MM-dd HH:mm')}" id="startDateContainer"/>
+							<input type="hidden" th:value="${#dates.format(process.previewFinishDate, 'yyyy-MM-dd HH:mm')}" id="endDateContainer"/>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="section : ${process.sections}">
+						<!-- uses td -->
+						<td th:if="${section.tasks.size()>0}" style="width:15%;" class="pt-5">
+							<div class="w-100 text-center">
+								<svg th:each="user: ${section.intervenants}" height="30" width="200" class="mt-1 text-danger" style="font-size:13px;">
+									 <text x="0" y="10" th:fill="${'grey'}" th:text="${user.firstname + '' +user.lastname}">I love SVG!</text>
+								</svg>
+							</div>
+						</td>
+						<td class="pt-5">
+							<div th:if="${section.tasks.size()>0}" th:each="task : ${section.tasks}" class="d-inline-block w-25 text-center">
+							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
+							 th:if="${#strings.equalsIgnoreCase(task.type, 'start')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
+								<rect width="150" height="50" 
+								 th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : '#f77467'}"
+								 stroke-width="2" th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : 'red'}" rx="20" ry="20"/>
+							</svg>
+							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
+							 th:if="${#strings.equalsIgnoreCase(task.type, 'process')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
+							<rect width="150" height="50" fill="transparent" 
+								th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : '#f77467'}"
+								 stroke-width="4" stroke="black" th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : 'red'}"/>
+							</svg>
+							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
+							 th:if="${#strings.equalsIgnoreCase(task.type, 'sub_process')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
+							 <polyline points="0,0 0,50 10,50 10,0 0,0 140,0 140,50 0,50 150,50 150,0 140,0" style="fill:none;stroke:black;stroke-width:4" 
+								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
+							</svg>
+							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
+							 th:if="${#strings.equalsIgnoreCase(task.type, 'decision')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
+							 <polyline points="0,25 75,0 150,25 75,50 0,25" style="fill:none;stroke:black;stroke-width:3" 
+								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
+							</svg>
+							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
+							 th:if="${#strings.equalsIgnoreCase(task.type, 'doc')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
+								 <polyline points="0,0 8,25 0,50 150,50 142,25 150,0, 0,0" style="fill:none;stroke:black;stroke-width:3"
+								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
+							</svg>
+							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
+							 th:if="${#strings.equalsIgnoreCase(task.type, 'finish')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
+								<rect width="150" height="50" fill="transparent"
+									th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : '#f77467'}"
+								 stroke-width="4" stroke="black" rx="20" ry="20"
+								 th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : 'red'}"/>
+							</svg>
+							<!-- labels -->
+							<svg width="200" height="60" th:if="${task.name}">
+								<text x="10" y="10" th:class="${'task_label'+task.id}" th:text="${task.name}">le voilà<text>
+							</svg>
+							</div>
+						</td>
+						<!-- end task td -->
+					</tr>
+				</tbody>
+			</table>
+			<div class="" th:each="section :${process.sections}">
+				<div th:each="task :${section.tasks}">
+					<!-- line and pointer -->
+					<div th:if="${task.chirlds.size()>0}">
+						<div th:each="t :${task.chirlds}" th:id="${'drawing_task_lin'+t.id}" class="svgPointerLink" 
+						th:data-svgSrcSelector="${'#task'+task.id}" 
+						th:data-svgTargetSelector="${'#task'+t.id}"></div>
+					</div>
+				</div>
+			</div>
+		<!--</div>-->
+		<h5 class="text-center text-info" th:if="!${process}">Process introuvable</h5>
+	</div>
+	</div>
+	<div layout:fragment="addon-scripts-content">
+	</div>
+</body>
+</html>

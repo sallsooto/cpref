@@ -101,11 +101,11 @@ public class StorageServiceImpl implements StorageService {
 		try {
 			if (file != null) {
 				String addon_name = cperfService.getLoged() != null ? cperfService.getLoged().getFirstname() : "";
-				Date dt = new Date();
-				Calendar calander = Calendar.getInstance();
-				addon_name = addon_name + "_" + calander.DAY_OF_MONTH + "_" + calander.MONTH + "_" + calander.YEAR + "_"
-						+ calander.YEAR + "_" + file.getOriginalFilename();
-				return addon_name;
+//				Date dt = new Date();
+//				Calendar calander = Calendar.getInstance();
+//				addon_name = addon_name + "_" + calander.DAY_OF_MONTH + "_" + calander.MONTH + "_" + calander.YEAR + "_"
+//						+ calander.YEAR + "_" + file.getOriginalFilename();
+				return (addon_name + file.getOriginalFilename()).toLowerCase();
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

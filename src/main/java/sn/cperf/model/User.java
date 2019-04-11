@@ -77,16 +77,22 @@ public class User implements Serializable,UserDetails{
 	@JoinTable(name = "users_roles", 
 		joinColumns = { @JoinColumn(name = "user_id") },
 		inverseJoinColumns = {@JoinColumn(name = "role_id") })
+	@JsonManagedReference
 	private List<Role> roles;
+	@ManyToMany(mappedBy="users")
+	private List<Group> groupes;
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		Collection<GrantedAuthority> autorities = new ArrayList<>();
 		this.getRoles().forEach(role ->{
 			autorities.add(new SimpleGrantedAuthority(role.getRole().toUpperCase()));
 		});
+		this.getGroupes().forEach(g->{
+			autorities.add(new SimpleGrantedAuthority(g.getRole().getRole().toUpperCase()));
+		});
 		// set default autority for all users
-		autorities.add(new SimpleGrantedAuthority("ALL_USERS"));
-		return null;
+		autorities.add(new SimpleGrantedAuthority("user"));
+		return autorities;
 	}
 	@Override
 	public String getPassword() {
@@ -214,5 +220,27 @@ public class User implements Serializable,UserDetails{
 	}
 	public void setOrganigramme(boolean organigramme) {
 		this.organigramme = organigramme;
+	}
+	
+	public boolean hasRole(String role) {
+		for(Role r : this.getRoles()) {
+			if(r.getRole().equals(role) || r.getRole().equals(role.toUpperCase()) ||
+			   r.getRole().equals("ROLE_"+role) || r.getRole().equals(("ROLE_"+role).toUpperCase()))
+				return true;
+		}
+		if(this.getAuthorities() != null) {
+			for(GrantedAuthority auth : this.getAuthorities()) {
+				if(auth.getAuthority().equals(role) || auth.getAuthority().equals(role.toUpperCase()) ||
+				   auth.getAuthority().equals("ROLE_"+role) || auth.getAuthority().equals(("ROLE_"+role).toUpperCase()))
+					return true;
+			}
+		}
+		return false;
+	}
+	public List<Group> getGroupes() {
+		return groupes;
+	}
+	public void setGroupes(List<Group> groupes) {
+		this.groupes = groupes;
 	}
 }

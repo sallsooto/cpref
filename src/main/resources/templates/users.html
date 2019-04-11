@@ -10,14 +10,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="">
 <meta name="author" content="">
-<title>Organigrame autres utilisateurs</title>
+<title>Gestion des utilisateurs</title>
+<script th:src="@{/js/app_ng.js}"></script>
 </head>
-<body>
-	<div class="container-fluid" layout:fragment="content">
+<body data-ng-app="Cperf" data-ng-controller="AdminCtrl">
+	<div class="container-fluid" layout:fragment="content" data-ng-init="getUsers();">
 		<!-- Page Heading -->
-		<div th:replace="fragments/main_content_heading::heading(heading_text='Organigramme : Uitlisateurs rétirés')"></div>
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Gestion des comptes utilisateurs')"></div>
 		<!-- content -->
-			<div class="class row" data-ng-controller="OrganigrammeCtrl" data-ng-init="getUsers();">
+			<div class="class row">
 				<div class="col-sm-12">
 					<div class="card border-0 p-0 bg-transparent">
 						<div class="card-body p-0 bg-info">
@@ -41,6 +42,9 @@
 										<option value="firstname">Prénom</option>
 										<option value="lastname">Nom</option>
 										<option value="fonction">Fonction</option>
+										<option value="group">Groupe</option>
+										<option value="role">Profile</option>
+										<option value="valid">Status</option>
 									</select>
 								</div>
 								<div class="d-none d-md-block col-md-2 form-group">
@@ -79,7 +83,8 @@
 										<th>Prénom & Nom</th>
 										<th>Fonction</th>
 										<th>Superieur hierachique</th>
-										<th class="text-center">Action</th>
+										<th>Groupe</th><th>Profile</th>
+										<th class="text-center">Status</th>
 									</tr>
 								</thead>
 								<tbody class="text-center">
@@ -90,10 +95,37 @@
 										<td>{{reoplaceWithNullOrBlank(user.fonction,"Sans fonction")}}</td>
 										<td data-ng-if="user.userSup != null">{{reoplaceWithNullOrBlank(user.userSup.lastname,"Sans Prénom") + ' '+reoplaceWithNullOrBlank(user.userSup.lastname,"Sans nom")}}</td>
 										<td data-ng-if="user.userSup == null">Sans supérieur hierarchique</td>
-										<td class="text-center">
-											<a href="#" title="Ajouter dans le diagramme" data-userId="{{user.id}}" data-ng-click="addInDiagramme($event)"
-											class="text-decoration-none mr-3"> <i
-												class="fas fa-users fa_table_link text-info p-1" data-userId="{{user.id}}" data-ng-click="addInDiagramme($event)"></i>
+										<td>
+											<small data-ng-repeat="group in user.groupes">{{group.name}}
+											<small data-ng-if="group.role != null" class="text-info font-weight-bold">({{group.role.role}})</small>&nbsp;;&nbsp;</small>
+											<span data-ng-if="user.groupes.length<=0">Sans groupe</span>
+										</td>
+										<td>
+											<small data-ng-repeat="role in user.roles">{{role.role}}&nbsp;;&nbsp;</small>
+											<span data-ng-if="user.roles.length<=0">Sans role</span>
+											<a th:href="@{/Admin/User/Edit/?uid={{user.id}}}" title="Modifier" class="float-right">
+												<i class="fas fa-pen-alt" style="font-size:13px;"></i>
+											</a>
+										</td>
+										<td class="text-center"><a href="#"
+											class="text-decoration-none mr-3" title="Débloquer"
+											data-ng-if="!user.valid" data-userId="{{user.id}}"
+											data-status="true" data-ng-click="chageUserStatus($event)">
+												<small class="mr-1 pr-1 border-right text-danger">Bloqué</small>
+												<i
+												class="fas fa-key fa_table_link text-success p-1"
+												data-userId="{{user.id}}" data-status="true"
+												data-ng-click="chageUserStatus($event)"></i>
+										</a>
+										 <a href="#" class="text-decoration-none mr-3"
+											data-ng-if="user.valid" title="bloquer"
+											data-userId="{{user.id}}" data-status="false"
+											data-ng-click="chageUserStatus($event)">
+												<small class="mr-1 pr-1 border-right text-success">Active</small>
+												 <i
+												class="fas fa-user-lock fa_table_link text-danger p-1"
+												data-userId="{{user.id}}" data-status="false"
+												data-ng-click="chageUserStatus($event)"></i>
 										</a>
 										</td>
 									</tr>

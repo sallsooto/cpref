@@ -24,7 +24,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.usersByUsernameQuery("select username as principal,password as credentials, true from users where username=?")
 		.authoritiesByUsernameQuery("select users.username as principal ,roles.role as role from users"
 				+ " left join users_roles on users.id = users_roles.user_id"
-				+ " left join roles on roles.id=users_roles.role_id where users.username=?").passwordEncoder(new BCryptPasswordEncoder());
+				+ " left join roles on roles.id=users_roles.role_id where users.username=?").rolePrefix("ROLE_").passwordEncoder(new BCryptPasswordEncoder());
 	}
 	
 	@Override

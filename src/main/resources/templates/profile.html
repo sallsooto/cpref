@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Profile</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Details Profile')"></div>
+		<!-- row content -->
+			<div class="row">
+				<div class="col-sm-12 col-md-8 offset-md-2">
+					<div class="card" th:if="${user}">
+						<div class="card-body">
+							<div class="row">
+								<div class="col-sm-12 col-md-4 border-right text-left user_img">
+									<img alt="" th:src="@{/images/avatars/{photo}(photo=${user.photo})}" class="w-75 circle"/>
+									<h5 th:text="${user.firstname + ' '+user.lastname}"></h5>
+									<div class="">
+										Fonction : <span th:text="${user.fonction}"></span>
+										<div th:if="${user.userSup}">Superieur Hierarchique : <span th:text="${user.userSup.firstname + ' '+user.userSup.lastname}"></span></div>
+									</div>
+								</div>
+								<div class="col-sm-12 col-md-8">
+									<form th:action="@{/User/Profile(isAdmin=${isAdmin})}" th:object="${user}" method="post" 
+										  enctype="multipart/form-data" class="mshz-form-validate row">
+										 <div class="col-sm-12 form-group">
+										 	<a href="#" class="btn btn-sm btn-info float-right enable-edition d-none">Réactiver les modifications</a>
+										 	<a href="#" class="btn btn-sm btn-primary float-right disable-edition">Désactiver les modifications</a>
+										 </div>
+										<div th:if="${errorMsg}" class="col-sm-12">
+											<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+										</div>
+										<div th:if="${successMsg}" class="col-sm-12"> 
+											<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+										</div>
+										<input type="hidden" th:field="*{id}"/>
+										<div class="form-group col-sm-12 col-md-6">
+											<label>Prénom :&nbsp;&nbsp; <span th:text="${user.firstname}" class="in_out_edition d-none"></span></label>
+											<input type="text" th:field="*{firstname}" class="form-control form-control-sm in_edition"
+											placeholder="Entrez le nouveau prénom.." data-mshz-required="true"/>
+											<div class="invalid-feedback">Le prénom est obligatoire !</div>
+										</div>
+										<div class="form-group col-sm-12 col-md-6">
+											<label>Nom :&nbsp;&nbsp; <span th:text="${user.lastname}" class="in_out_edition d-none"></span></label>
+											<input type="text" th:field="*{lastname}" class="form-control form-control-sm in_edition"
+											placeholder="Entrez le nouveau nom.." data-mshz-required="true"/>
+											<div class="invalid-feedback">Le nom est obligatoire !</div>
+										</div>
+										<div class="form-group col-sm-12 col-md-6">
+											<label>Télephone :&nbsp;&nbsp; <span th:text="${user.phone}" class="in_out_edition d-none"></span></label>
+											<input type="text" th:field="*{phone}" class="form-control form-control-sm in_edition"
+											placeholder="Entrez le nouveau numéro.."/>
+											<div class="invalid-feedback">Ce champs n'est pas valide !</div>
+										</div>
+										<div class="form-group col-sm-12 col-md-6">
+											<label>Email :&nbsp;&nbsp; <span th:text="${user.email}" class="in_out_edition d-none"></span></label>
+											<input type="email" th:field="*{email}" class="form-control form-control-sm in_edition"
+											placeholder="Entrez le nouveau adresse email.." data-mshz-email="true" data-mshz-required="true"/>
+											<div class="invalid-feedback">Entrez une adresse email valide !</div>
+										</div>
+										<div class="form-group col-sm-12 col-md-6">
+											<label>Photo :&nbsp;&nbsp; <span th:text="${user.photo}" class="in_out_edition d-none"></span></label>
+											<input type="hidden" th:field="*{photo}" id="photo"/>
+											<input type="file" id="file" th:field="*{file}" accept="image/*" class="form-control form-control-sm  d-none"/>
+											<a href="#" class="border form-control form-control-sm btn btn-sm in_edition file_filed_trigger">
+												<span class="photo-loader-label" th:text="${user.photo}">Charger une nouvelle photo </span>
+												<i class="fas fa-camera float-right mt-1 text-primary"  style="font-size:15px;"></i>
+											</a>
+											<div class="invalid-feedback">La photo n'est pas valide!</div>
+										</div>
+										<div class="form-group col-sm-12 col-md-6" th:if="${isAdmin}">
+											<label>Fonction :&nbsp;&nbsp; <span th:text="${user.fonction}" class="in_out_edition d-none"></span></label>
+											<input type="text" th:field="*{fonction}" class="form-control form-control-sm in_edition"
+											placeholder="Entrez la nouvelle fonction.."/>
+											<div class="invalid-feedback">Entrez une fonction !</div>
+										</div>
+										<div class="form-group col-sm-12 col-md-6" th:if="${isAdmin}">
+											<label>Objectif :&nbsp;&nbsp; <span th:text="${user.objectif}" class="in_out_edition d-none"></span></label>
+											<input type="text" th:field="*{objectif}" class="form-control form-control-sm in_edition"
+											placeholder="Entrez le nouvel objectif.."/>
+											<div class="invalid-feedback">Entrez l'objectif!</div>
+										</div>
+										<div class="form-group col-sm-12 col-md-6" th:if="${isAdmin}">
+											<label>Activité :&nbsp;&nbsp; <span th:text="${user.activite}" class="in_out_edition d-none"></span></label>
+											<input type="text" th:field="*{objectif}" class="form-control form-control-sm in_edition"
+											placeholder="Entrez le nouvel activité..."/>
+											<div class="invalid-feedback">Entrez l'activité!</div>
+										</div>
+										<div class="form-group col-sm-12">
+											<button type="submit" class="btn btn-sm float-right btn-outline-success in_edition">Valider</button>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+					<h4 class="text-center text-info" th:if="!${user}">Utilisateur introuvable !</h4>
+				</div>
+			</div>
+		<!-- end row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript" th:src="@{/js/profile.js}"></script>
+	</div>
+</body>
+</html>

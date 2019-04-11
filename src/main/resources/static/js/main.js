@@ -1,7 +1,8 @@
-
 (function ($) {
 	/*=============================== MY SCRIPT ============================*/
-	$('.mshz-form-validate').mshzJqueryAjaxFormValidator(); // validation des formulaires assynchrone
+	var formValidate = $('.mshz-form-validate');
+	if(formValidate.length>0)
+		formValidate.mshzJqueryAjaxFormValidator(); // validation des formulaires assynchrone
     $('.trigger').on('click',function(){
         hindler = $(this).attr('data-trigger-hindler');
         $(hindler).trigger('click');
@@ -11,6 +12,9 @@
         img_field_trigger_value = $(this).val();
         show_uploaded_img($(this),".insc_avatar",true);
     });
+    $(window).resize(function(){
+    	manageTableResponsivity();
+     });
 	/*============================ END MY SCRIPT ===========================*/
     "use strict";
 
@@ -138,4 +142,28 @@ var show_uploaded_img = function(element_this,div_contenaiteur_img,choix_resizes
      image_preview.find('img').width(width);
      image_preview.fadeIn();
     }
+};
+
+var showLoadFileAbsolutePathFormSBCustumFileInput = function(fileSelector,label_content){
+	$(fileSelector).change(function () {
+		  var fieldVal = $(this).val();
+		  if (fieldVal != undefined || fieldVal != "") {
+			  $(label_content).text(fieldVal);
+		  }
+		});
+};
+
+var showLoadFileNameFormSBCustumFileInput = function(fileSelector,label_content){
+	$(fileSelector).on("change", function() {
+		  var fileName = $(this).val().split("\\").pop();
+		  $(label_content).text(fileName);
+		});
+};
+
+var  manageTableResponsivity = function(){
+    var screenWidth =  window.innerWidth || document.documentElement.clientWidth;
+    if(screenWidth <= 768)
+        $('table').addClass('table table-responsive');
+    else
+        $('table').removeClass('table-responsive');
 }
