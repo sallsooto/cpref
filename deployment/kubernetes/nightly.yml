@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cperf
+  namespace: lab
+  labels:
+    app: cperf
+spec:
+  selector:
+    app: cperf
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cperf
+  namespace: lab
+  labels:
+    app: cperf
+spec:
+  selector:
+    matchLabels:
+      app: cperf
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cperf
+    spec:
+      containers:
+        - resources:
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+            requests:
+              memory: "1Gi"
+              cpu: "0.5"
+          name: cperf
+          image: registry.devops.svc.cluster.local:5000/cperf-nightly
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: cperf
+                  key: db.host
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: cperf
+                  key: db.port
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: cperf
+                  key: db.name
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cperf
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cperf
+                  key: password
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always
