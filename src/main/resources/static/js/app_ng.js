@@ -126,3 +126,46 @@ cperfModule.controller("OrganigrammeCtrl", function($scope, $http, $timeout) {
 		return current_value;
 	};
 });
+
+// procedure controller
+cperfModule.controller("ProcedureCtrl", function($scope, $http, $timeout) {
+	$scope.page = 0;
+	$scope.size = 7;
+	$scope.procedures = null;
+	$scope.totalPage = 0;
+	$scope.pages = [];
+	$scope.orderField = "storeAt";
+	$scope.orderFieldReverse ="-";
+	$scope.getProcedures = function(){
+
+		$http({
+			url : '/Procedure/getProceduresJson/',
+			method : 'get',
+			params : {
+				page : $scope.page,
+				size : $scope.size,
+				name : $scope.searchField
+			}
+		}).then(function(response) {
+			$scope.procedures = response.data;
+			if (response.data != null && response.data.content.length > 0) {
+				$scope.pages = [];
+				for (var i = 0; i < response.data.totalPages; i++)
+					$scope.pages[i] = i;
+			}
+		});
+	};
+	$scope.replaceWithNullOrBlank = function(current_value,repalce_value){
+		if(current_value == null || current_value == "")
+			return repalce_value;
+		return current_value;
+	};
+
+	$scope.changePage = function($event) {
+		var element = angular.element($event.target)
+		var selectedPageIndex = element[0].attributes['data-pageIndex'].value;
+		if ($scope.page != selectedPageIndex)
+			$scope.page = selectedPageIndex;
+		$scope.getProcedures();
+	};
+});

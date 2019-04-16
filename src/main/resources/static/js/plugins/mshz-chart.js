@@ -67,7 +67,7 @@
 				svgContainer.css({
 					//'border' : '1px solid red',
 					'position' : 'absolute',
-					'z-index' : params.zIndex,
+					'z-index' : params.zIndex-(params.zIndex-3),
 					'height' : maxTop-(minTop+(minHeight))+"px",
 					'left' : minLeft+'px',
 					'top' : minTop+minHeight+'px',
@@ -199,9 +199,9 @@
 					$(labelSector).each(function(){
 						$(this).parent().css({
 							"position" : "absolute",
-							"z-index" : params.zIndex+100,
+							"z-index" : params.zIndex+300,
 							"left" : eLeft+"px",
-							"top" : (eTop+i)+"px",
+							"top" : (eTop)+"px",
 							"margin-top" : labelMarginTop,
 							"margin-left" : params.labelMarginLeft,
 							"font-size" : fontSize+"px",

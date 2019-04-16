@@ -101,7 +101,7 @@ public class UserController {
 							user.setObjectif(userForm.getObjectif());
 					}
 					if(userForm.getFile() != null) {
-						try {user.setPhoto(storageService.storeAvatar(userForm.getFile()));} catch (Exception e1) {e1.printStackTrace();}
+						try {user.setPhoto(storageService.storeAvatar(userForm.getFile(),new String[] { "jpg", "jpeg", "png", "gif", "svg","ico" }));} catch (Exception e1) {e1.printStackTrace();}
 						if(user.getPhoto()== null || user.getPhoto().equals("")){
 							if(userForm.getPhoto() == null || userForm.getPhoto().equals(""))
 								user.setPhoto("user.png");

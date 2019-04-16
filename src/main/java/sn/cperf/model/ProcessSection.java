@@ -1,6 +1,7 @@
 package sn.cperf.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -40,14 +41,42 @@ public class ProcessSection implements Serializable{
 	@ManyToOne
 	@JoinColumn(name="group_id")
 	private Group group;
-	@ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
-	@JoinTable(name="process_sections_users",
-		joinColumns = {@JoinColumn(name="section_id")},
-		inverseJoinColumns = {@JoinColumn(name="user_id")}
-	)
-	@JsonManagedReference
-	private List<User> intervenants;
+//	@ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+//	@JoinTable(name="process_sections_users",
+//		joinColumns = {@JoinColumn(name="section_id")},
+//		inverseJoinColumns = {@JoinColumn(name="user_id")}
+//	)
+//	@JsonManagedReference
+//	private List<User> intervenants;
 	@OneToMany(mappedBy="section")
 	@JsonBackReference
 	private List<Task> tasks;
+	
+	public List<User> users(){
+		List<User> users = new ArrayList<>();
+		if(this.getTasks() != null) {
+			for(Task task : this.getTasks()) {
+				List<User> taskUsers = task.getUsers();
+				//getting users 
+				if(taskUsers != null) {
+					for(User taskuser : taskUsers) {
+						if(!users.contains(taskuser))
+							users.add(taskuser);
+					}
+				}
+				//gettings uses in task group
+
+				if(task.getGroup() != null) {
+					List<User> groupTasksUsers = task.getGroup().getUsers();
+					if(groupTasksUsers !=null) {
+						for(User groutakuser : groupTasksUsers) {
+							if(!users.contains(groutakuser))
+								users.add(groutakuser);
+						}
+					}
+				}
+			}
+		}
+		return users;
+	}
 }

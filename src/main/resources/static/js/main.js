@@ -15,6 +15,8 @@
     $(window).resize(function(){
     	manageTableResponsivity();
      });
+    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="popover"]').popover();
 	/*============================ END MY SCRIPT ===========================*/
     "use strict";
 

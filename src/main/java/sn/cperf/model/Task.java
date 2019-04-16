@@ -11,6 +11,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -34,6 +37,8 @@ public class Task implements Serializable{
 	private String type;
 	@Column(length=100)
 	private String status;
+	private String description;
+	private String fileDescriptionPath;
 	@ManyToOne
 	@JoinColumn(name="parent_id")
 	@JsonManagedReference
@@ -45,4 +50,14 @@ public class Task implements Serializable{
 	@JoinColumn(name="section_id")
 	@JsonManagedReference
 	private ProcessSection section;
+	@ManyToOne
+	@JoinColumn(name="group_id")
+	private Group group;
+	@ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
+	@JoinTable(name="users_tasks",
+		joinColumns = {@JoinColumn(name="task_id")},
+		inverseJoinColumns = {@JoinColumn(name="user_id")}
+	)
+	@JsonManagedReference
+	private List<User> users;
 }

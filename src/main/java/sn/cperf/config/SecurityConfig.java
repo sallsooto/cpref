@@ -16,7 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled=true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig extends WebSecurityConfigurerAdapter  {
 	
 	@Autowired
 	public void globalConfig(AuthenticationManagerBuilder auth, DataSource dataSource) throws Exception {
@@ -39,6 +39,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.antMatchers("/fonts/**").permitAll()
 			.antMatchers("/dist/**").permitAll()
 			.antMatchers("/lib/**").permitAll()
+			.antMatchers("/uploads/**").permitAll()
 			.antMatchers("/email/**").permitAll()
 			.antMatchers("/login").permitAll()
 			.antMatchers("/logout").permitAll()

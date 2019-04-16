@@ -29,9 +29,9 @@
     <script th:src="@{/getorgchart/getorgchart.js}"></script>
     <!-- angular -->
   <script th:src="@{/js/plugins/angular.min.js}"></script>
+  <script th:src="@{/js/app_ng.js}"></script>
   <!-- Bootstrap core JavaScript-->
   <script th:src="@{/lib/jquery/jquery.min.js}"></script>
-  <script th:src="@{/lib/bootstrap/js/bootstrap.bundle.min.js}"></script>
 
   <!-- Core plugin JavaScript-->
   <script th:src="@{/lib/jquery-easing/jquery.easing.min.js}"></script>
@@ -41,8 +41,6 @@
 
   <!-- Custom scripts for all pages-->
   <script th:src="@{/js/sb-admin-2.min.js}"></script>
-	<script th:src="@{/lib/js/mshz.form_validator.js}"></script>
-  <script th:src="@{/js/app_ng.js}"></script>
 </head>
 
 <body id="page-top" data-ng-app="Cperf">
@@ -113,6 +111,9 @@
       </div>
     </div>
   </div>
+  <script th:src="@{/js/plugins/popper.min.js}"></script>
+  <script th:src="@{/js/plugins/bootstrap.min.js}"></script>
+	<script th:src="@{/lib/js/mshz.form_validator.js}"></script>
   <script th:src="@{/js/martial_initializer.js}"></script>
   <script th:src="@{/js/main.js}"></script>
   <div layout:fragment="addon-scripts-content"></div>

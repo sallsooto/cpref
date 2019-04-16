@@ -10,8 +10,8 @@
 	<div class="d-sm-flex align-items-center justify-content-between mb-4" th:fragment="heading">
 		<h1 class="h3 mb-0 text-gray-800 text-uppercase" th:if="${heading_text}" th:text="${heading_text}"></h1>
 		<a th:href="@{${heading_link}}" th:if="${heading_link}"
-			class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-			th:class="${heading_ico +' text-white-50'}" th:text="${heading_link_text}"></i></a>
+			class="d-inline-block shadow-sm p-1 border border-info" style="text-decoration:none"><i
+			th:class="${heading_ico +' text-info'}" th:text="${heading_link_text}"></i></a>
 	</div>
 </body>
 </html>

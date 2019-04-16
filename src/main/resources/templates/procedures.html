@@ -10,14 +10,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="">
 <meta name="author" content="">
-<title>Organigrame autres utilisateurs</title>
+<title>Liste procedures</title>
 </head>
 <body>
 	<div class="container-fluid" layout:fragment="content">
 		<!-- Page Heading -->
-		<div th:replace="fragments/main_content_heading::heading(heading_text='Organigramme : Uitlisateurs rétirés',heading_link='/Organigramme/',heading_link_text='Organigramme',heading_ico='fas fa-sitemap')"></div>
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Procedures',heading_link='/Procedure/',heading_link_text='Actualiser',heading_ico='fas fa-sync')"></div>
 		<!-- content -->
-			<div class="class row" data-ng-controller="OrganigrammeCtrl" data-ng-init="getUsers();">
+			<div class="class row" data-ng-controller="ProcedureCtrl" data-ng-init="getProcedures();">
 				<div class="col-sm-12">
 					<div class="card border-0 p-0 bg-transparent">
 						<div class="card-body p-0 bg-info">
@@ -32,15 +32,14 @@
 									<label class="control-label"><small>Max lignes/page :</small></label> <input type="number" min="1"
 										data-ng-model="size"
 										class="form-control form-control-sm"
-										data-ng-change="getUsers();"/>
+										data-ng-change="getProcedures();"/>
 								</div>
 								<div class="d-none d-md-block col-md-2 form-group">
 									<label class="control-label"><small>Trier par :</small></label>
 									<select data-ng-model="orderField"
 										class="form-control form-control-sm">
-										<option value="firstname">Prénom</option>
-										<option value="lastname">Nom</option>
-										<option value="fonction">Fonction</option>
+										<option value="storeAt">Date Intégration</option>
+										<option value="name">Nom</option>
 									</select>
 								</div>
 								<div class="d-none d-md-block col-md-2 form-group">
@@ -51,45 +50,36 @@
 										<option value="+">Ascendant</option>
 									</select>
 								</div>
-								<!-- <div class="col-sm-6 col-md-3 form-group">
-									<label class="control-label"><small>Rubrique de
-											recherche :</small></label> <select data-ng-model="$parent.searchRubField"
-										class="form-control form-control-sm">
-										<option value="num" selected="selected">Numéro de
-											dossier</option>
-										<option value="client">Client</option>
-										<option value="numBl">Numéro BL</option>
-										<option value="navire">Navire ou vol</option>
-										<option value="declaration">Numéro déclaration</option>
-									</select>
-								</div> -->
 								<div class="col-sm-6 col-md-3  form-group">
 									<label class="control-label"><small>Rechercher :</small></label> <input type="text"
 										data-ng-model="$parent.searchField"
 										class="form-control form-control-sm"
 										placeholder="Rechercher par nom ou prénom..."
-										data-ng-change="getUsers();" />
+										data-ng-change="getProcedures();" />
+								</div>
+								<div class="d-none d-md-block col-md-2"></div>
+								<div class="col-sm-6 col-md-1 form-group pt-2">
+									<label class="control-label"></label>
+									<a th:href="@{/Procedure/Edit/}" class="btn btn-outline-info btn-sm mt-4" title="Intégrer un procedure">
+										<i class="fas fa-plus"></i>
+									</a>
 								</div>
 							</div>
 							<!-- ========== end row de control =====-->
 									</td>
 								</tr>
 									<tr>
-										<th>Photo</th>
-										<th>Prénom & Nom</th>
-										<th>Fonction</th>
-										<th>Superieur hierachique</th>
+										<th class="text-left pl-3">Nom du procédure</th>
+										<th>Fichier assosié</th>
 										<th class="text-center">Action</th>
 									</tr>
 								</thead>
 								<tbody class="text-center">
-									<tr data-ng-if="users.content.length>0"
-										data-ng-repeat="user in users.content | orderBy:orderFieldReverse+orderField">
-										<td><img alt="" th:src="@{/images/avatars/{{reoplaceWithNullOrBlank(user.photo,'user.png')}}}" class="circle" style="max-height:50px;max-height:50px;"></td>
-										<td>{{reoplaceWithNullOrBlank(user.lastname,"Sans prénom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
-										<td>{{reoplaceWithNullOrBlank(user.fonction,"Sans fonction")}}</td>
-										<td data-ng-if="user.userSup != null">{{reoplaceWithNullOrBlank(user.userSup.lastname,"Sans Prénom") + ' '+reoplaceWithNullOrBlank(user.userSup.lastname,"Sans nom")}}</td>
-										<td data-ng-if="user.userSup == null">Sans supérieur hierarchique</td>
+									<tr data-ng-if="procedures.content.length>0"
+										data-ng-repeat="procedure in procedures.content | orderBy:orderFieldReverse+orderField">
+										<td class="text-left pl-3">{{replaceWithNullOrBlank(procedure.name,"Sans nom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
+										<td data-ng-if="procedure.filePath != null"><a th:href="@{/Procedure/Show/{{procedure.id}}/}" target="_blank" title="Lire fichier"> {{replaceWithNullOrBlank(procedure.filePath,"Sans fichier")}}</a></td>
+										<td data-ng-if="procedure.filePath == null">Sans fichier</td>
 										<td class="text-center">
 											<a href="#" title="Ajouter dans le diagramme" data-userId="{{user.id}}" data-ng-click="addInDiagramme($event)"
 											class="text-decoration-none mr-3"> <i
@@ -97,7 +87,7 @@
 										</a>
 										</td>
 									</tr>
-									<tr data-ng-if="users.content.length<=0">
+									<tr data-ng-if="procedures.content.length<=0">
 										<td colspan="30"  class="text-center">
 											<h5>Zéro utilisateur trouvé !</h5>
 										</td>

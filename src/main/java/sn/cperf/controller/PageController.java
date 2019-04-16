@@ -76,7 +76,7 @@ public class PageController {
 					user.setPhone(form.getPhone());
 					user.setPassword(new BCryptPasswordEncoder().encode(form.getPassword()));
 					if(form.getPhoto() != null) {
-						try {user.setPhoto(storageService.storeAvatar(form.getPhoto()));} catch (Exception e1) {e1.printStackTrace();}
+						try {user.setPhoto(storageService.storeAvatar(form.getPhoto(),new String[] { "jpg", "jpeg", "png", "gif", "svg","ico" }));} catch (Exception e1) {e1.printStackTrace();}
 						if(user.getPhoto()== null || user.getPhoto().equals(""))
 							user.setPhoto("user.png");
 					}

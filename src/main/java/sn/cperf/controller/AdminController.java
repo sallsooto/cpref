@@ -132,7 +132,7 @@ public class AdminController {
 			model.addAttribute("errorMsg", "Opération échouée !");
 			e.printStackTrace();
 		}
-		model.addAttribute("users", userRepository.findAll());
+		model.addAttribute("users", userRepository.findByValid(true));
 		model.addAttribute("roles", roleRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		return "group";

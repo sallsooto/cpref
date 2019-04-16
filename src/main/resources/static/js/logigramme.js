@@ -1,8 +1,8 @@
 $(document).ready(function(){
  $(".svgPointerLink").mshzSvgLineLinkAndPointerDrawing({
 	 labelFontSize : 13,
-	 labelMarginTop :10,
-	 labelMarginLeft:10,
+	 labelMarginTop :0,
+	 labelMarginLeft:0,
  });
  $(window).resize(function(){
 	 //$(".svgPointerLink").mshzSvgLineLinkAndPointerDrawing();
@@ -12,14 +12,17 @@ $(document).ready(function(){
  var start_actual_time =$("#startDateContainer").val();
  var end_actual_time=$("#endDateContainer").val();
  if(typeof end_actual_time != typeof undefined && end_actual_time.length>0){
-	 showChronos(new Date(),new Date(end_actual_time),'.chrono_span');
+	 showChronos(new Date(start_actual_time),new Date(end_actual_time),'.chrono_span');
 	 setInterval(() => {
-		 showChronos(new Date(),new Date(end_actual_time),'.chrono_span');
+		 showChronos(new Date(start_actual_time),new Date(end_actual_time),'.chrono_span');
 	}, 60000);
  }
+// $('[data-toggle="tooltip"]').tooltip(
+//	        {container:'body', trigger: 'hover', placement:"bottom"});
 });
 
 function showChronos(start_actual_time,end_actual_time,chronoContainerSelector){
+	    var start_actual_time = (start_actual_time-new Date() >0) ? new Date() : start_actual_time;
 		var diff = end_actual_time - start_actual_time;
 		var expiredDate = (diff > 0) ? false : true;
 		var diffSeconds = diff/1000;
@@ -27,7 +30,7 @@ function showChronos(start_actual_time,end_actual_time,chronoContainerSelector){
 		var MM = Math.floor(diffSeconds%3600)/60;
 		HH = (HH<0)? (HH*(-1)) : HH;
 		MM = MM.toFixed(0);
-		var formatted = ((HH < 10)?("0" + HH):HH) + "h et " + ((MM < 10)?("0" + MM+"mm"):MM + "mm")
+		var formatted = ((Math.abs(HH) < 10)?("0" + Math.abs(HH)):Math.abs(HH)) + "h et " + ((Math.abs(MM) < 10)?("0" + Math.abs(MM)+"mm"):Math.abs(MM) + "mm")
 		var chono_text = (!expiredDate) ? formatted + " retante(s)" : formatted + " dépassée(s)";
 		var chronoContainer = $(chronoContainerSelector);
 		if(typeof chronoContainer != typeof undefined && chronoContainer.length>0){

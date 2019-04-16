@@ -82,25 +82,12 @@
 										<table class="table">
 											<thead>
 												<tr>
-													<th>Libellé de la section</th><th>Utilisateuirs associé</th>
-													<th>Groupe associé</th><th>Taches</th><th>Action</th>
+													<th>Libellé de la section</th><th>Taches</th><th>Action</th>
 												</tr>
 											</thead>
 											<tbody th:each="section : ${p.sections}">
 												<tr>
 													<td th:text="${section.name}"></td>
-													<td>
-														<div th:if="${section.group}">
-															<span  th:each="user : ${group.users}" th:text="${user.firstname + ' '+user.lastname+' ;  '}"></span>
-														</div>
-														<div th:if="${section.intervenants.size()>0}">
-															<span th:each="user : ${section.intervenants}" th:text="${user.firstname + ' '+user.lastname + ' ;  '}"></span>
-														</div>
-													</td>
-													<td>
-														<span th:if="${section.group}" th:text="${section.group.name}"></span>
-														<span th:if="!${section.group}">Pas de groupe associé</span>
-													</td>
 													<td>
 														<small th:text="${section.tasks.size() + ' tache(s)'}"></small>
 														<small th:if="${section.tasks.size()>0}">
@@ -117,7 +104,8 @@
 														<table class="table text-center">
 															<thead>
 																<tr class="bg-info text-light pt-0 pb-0">
-																	<th>Nom de la tâche</th><th>Status</th><th>Tâche parente</th><th>Action</th>
+																	<th>Nom de la tâche</th><th>Status</th><th>Tâche parente</th>
+																	<th>Utilisateurs assosiés</th><th>Groupe assosié</th><th>Action</th>
 																</tr>
 															</thead>
 															<tbody>
@@ -125,6 +113,18 @@
 																	<td th:text="${task.name}"></td>
 																	<td th:text="${(task.status == 'valid') ? 'En état de traitement' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}"></td>
 																	<td th:text="${task.parent != null ? task.parent.name : 'Aucne'}"></td>
+																	<td>
+																		<div th:if="${task.group}">
+																			<span  th:each="user : ${task.group.users}" th:text="${user.firstname + ' '+user.lastname+' ;  '}"></span>
+																		</div>
+																		<div th:if="${task.users.size()>0}">
+																			<span th:each="user : ${task.users}" th:text="${user.firstname + ' '+user.lastname + ' ;  '}"></span>
+																		</div>
+																	</td>
+																	<td>
+																		<span th:if="${task.group}" th:text="${task.group.name}"></span>
+																		<span th:if="!${task.group}">Pas de groupe associé</span>
+																	</td>
 																	<td class="text-center">
 																		<small><a th:href="@{/Process/Task/Edit(sid=${section.id},tid=${task.id})}">Modfier</a></small>
 																	</td>

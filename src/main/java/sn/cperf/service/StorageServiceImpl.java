@@ -2,6 +2,7 @@ package sn.cperf.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +13,7 @@ import java.util.GregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,15 +33,15 @@ public class StorageServiceImpl implements StorageService {
 	CperfService cperfService;
 
 	@Override
-	public String storeFile(MultipartFile file) {
+	public String storeFile(MultipartFile file,String extensions[]) {
 		// Normalize file name
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
 		try {
 			// check extensions
-			if (!checkExtensions(fileName, new String[] { "xls", "xlsx" })) {
+			if (!checkExtensions(fileName, extensions)) {
 				throw new StorageException("Désolé! le fichier " + fileName
-						+ " n'est prise en charge, chargez un ficher avec l'extension xls, XLS,xlsx ou XLSX");
+						+ " n'est prise en charge");
 			}
 			// Check if the file's name contains invalid characters
 			if (fileName.contains("..")) {
@@ -48,27 +50,21 @@ public class StorageServiceImpl implements StorageService {
 			}
 
 			// Copy file to the target location (Replacing existing file with the same name)
-			Path targetLocation = this.getDefaultDir().resolve(normalizeTargetFileName(file));
-			Files.copy(file.getInputStream(), targetLocation);
+			//Path targetLocation = this.getDefaultDir("/static/uploads/").resolve(normalizeTargetFileName(file));
+			Path targetLocation = Paths.get(env.getProperty("spring.file.upload-dir")).resolve(fileName);
+			Files.copy(file.getInputStream(), targetLocation,StandardCopyOption.REPLACE_EXISTING);
 
-			return targetLocation.toString();
+			return fileName;
 		} catch (IOException ex) {
 			throw new StorageException("Impossible de stocker le fichier " + fileName + ". Veuillez réessayer!", ex);
 		}
 	}
 
 	@Override
-	public Path getDefaultDir() {
+	public Path getDefaultDir(String path_name) {
 		try {
-			try {
-				Parametre param = paramRepository.findBySlug("avatar_dir");
-				if (param != null && !param.getParam().equals(""))
-					return Paths.get(param.getParam()).toAbsolutePath().normalize();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			return Paths.get(env.getProperty("spring.file.avatar-dir")).toAbsolutePath().normalize();
+			//spring.file.upload-dir
+			return Paths.get(URI.create(getClass().getResource(path_name).toString())).toAbsolutePath().normalize();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -100,12 +96,13 @@ public class StorageServiceImpl implements StorageService {
 	public String normalizeTargetFileName(MultipartFile file) {
 		try {
 			if (file != null) {
-				String addon_name = cperfService.getLoged() != null ? cperfService.getLoged().getFirstname() : "";
-//				Date dt = new Date();
-//				Calendar calander = Calendar.getInstance();
-//				addon_name = addon_name + "_" + calander.DAY_OF_MONTH + "_" + calander.MONTH + "_" + calander.YEAR + "_"
-//						+ calander.YEAR + "_" + file.getOriginalFilename();
-				return (addon_name + file.getOriginalFilename()).toLowerCase();
+				//String addon_name = cperfService.getLoged() != null ? cperfService.getLoged().getFirstname() : "";
+				// Date dt = new Date();
+				// Calendar calander = Calendar.getInstance();
+				// addon_name = addon_name + "_" + calander.DAY_OF_MONTH + "_" + calander.MONTH
+				// + "_" + calander.YEAR + "_"
+				// + calander.YEAR + "_" + file.getOriginalFilename();
+				return (file.getOriginalFilename()).toLowerCase();
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -129,12 +126,12 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public String storeAvatar(MultipartFile file) {// Normalize file name
+	public String storeAvatar(MultipartFile file,String[] extensions) {// Normalize file name
 		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
 		try {
-			// check extensions
-			if (!checkExtensions(fileName, new String[] { "jpg", "jpeg", "png", "gif", "svg" })) {
+			// check extensions : new String[] { "jpg", "jpeg", "png", "gif", "svg","ico" }
+			if (!checkExtensions(fileName, extensions)) {
 				throw new StorageException("Désolé! le fichier " + fileName + " n'est pas prise en charge");
 			}
 			// Check if the file's name contains invalid characters
@@ -144,13 +141,41 @@ public class StorageServiceImpl implements StorageService {
 			}
 
 			// Copy file to the target location (Replacing existing file with the same name)
-			Path targetLocation = this.getDefaultDir().resolve(normalizeTargetFileName(file));
+			Path targetLocation = this.getDefaultDir("/static/images/avatars/").resolve(normalizeTargetFileName(file));
 			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-			return normalizeTargetFileName(file).toString();
+			return fileName;
 		} catch (IOException ex) {
 			throw new StorageException("Impossible de stocker la photo " + fileName + ". Veuillez réessayer!", ex);
 		}
+	}
+
+	@Override
+	public boolean ckeckValidePath(MultipartFile file) {
+		String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+
+		try {
+			// Check if the file's name contains invalid characters
+			if (fileName != null && fileName.contains("..")) {
+				throw new StorageException(
+						"Désolé! le nom du fchier contient une séquence de chemin invalide" + fileName);
+			}else {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	@Override
+	public Path getFilePathInUploadDir(String fileName) {
+		try {
+			return Paths.get(env.getProperty("spring.file.upload-dir")).resolve(fileName);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

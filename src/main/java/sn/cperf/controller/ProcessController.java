@@ -1,5 +1,7 @@
 package sn.cperf.controller;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -7,17 +9,25 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.ProcessRepository;
@@ -25,13 +35,16 @@ import sn.cperf.dao.ProcessSectionRepository;
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.form.SectionForm;
+import sn.cperf.form.TaskForm;
 import sn.cperf.model.Group;
 import sn.cperf.model.Notification;
+import sn.cperf.model.Procedure;
 import sn.cperf.model.ProcessSection;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
+import sn.cperf.service.StorageService;
 import sn.cperf.util.NotificationType;
 
 @Controller
@@ -47,6 +60,7 @@ public class ProcessController {
 	@Autowired GroupRepository groupRepository;
 	@Autowired ProcessSectionRepository processSectionRepository;
 	@Autowired TaskRepository taskRepository;
+	@Autowired StorageService storageService;
 
 	@GetMapping("/Edit")
 	public String process(@RequestParam(name="pid",defaultValue="0") Long processId, Model model) {
@@ -164,13 +178,8 @@ public class ProcessController {
 				form.setGroupId(section.getGroup() != null ? section.getGroup().getId() : null);
 				form.setProcessId(p.getId());
 				form.setName(section.getName());
-				form.setIntervenants(section.getIntervenants());
-				if(section.getIntervenants() != null && !section.getIntervenants().isEmpty())
-					form.setWithGroup(false);
 				form.setTasks(section.getTasks());
 				model.addAttribute("process", p);
-				model.addAttribute("users", userRepository.findAll());
-				model.addAttribute("groups", groupRepository.findAll());
 				model.addAttribute("sectionForm", form);
 			}
 		} catch (Exception e) {
@@ -181,8 +190,6 @@ public class ProcessController {
 	
 	@PostMapping("/Section/Edit")
 	public String editSection(@RequestParam("pid") Long pid,@Valid @ModelAttribute("sectionForm") SectionForm form, BindingResult bind, Model model) {
-		List<User> users = userRepository.findAll();
-		List<Group> groups = groupRepository.findAll();
 		Processus p = new Processus();
 		try {
 			p.setId(form.getProcessId());
@@ -200,7 +207,6 @@ public class ProcessController {
 						section.setGroup(og.get());
 				}
 				section.setId(form.getId());
-				section.setIntervenants(form.getIntervenants());
 				section.setName(form.getName());
 				section.setProcess(p);
 				if(processSectionRepository.save(section) != null) {
@@ -235,8 +241,6 @@ public class ProcessController {
 			e.printStackTrace();
 		}
 		model.addAttribute("process", p);
-		model.addAttribute("users", users);
-		model.addAttribute("groupes", groups);
 		return "section";
 	}
 	
@@ -261,8 +265,6 @@ public class ProcessController {
 				Optional<Task> opTask = taskRepository.findById(taskId);
 				if(opTask.isPresent()) {
 					task = opTask.get();
-					if(task.getSection() != null && task.getSection().getProcess() != null)
-						tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), task.getSection().getProcess().getId());
 				}
 			}
 		} catch (Exception e) {
@@ -271,11 +273,14 @@ public class ProcessController {
 		}
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
+		model.addAttribute("users", userRepository.findAll());
+		model.addAttribute("groups", groupRepository.findAll());
 		model.addAttribute("task", task);
 		return "task";
 	}
 	@PostMapping("/Task/Edit")
-	public String editTask(@RequestParam("sid") Long sectionId, @Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
+	public String editTask(@RequestParam("sid") Long sectionId,@RequestParam("fileDescription") MultipartFile fileDescription,
+							@RequestParam("grouprodio") int withGroup,@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
 		boolean isUpdateOperation = false;
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
@@ -291,11 +296,28 @@ public class ProcessController {
 						isUpdateOperation = true;
 						tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), task.getSection().getProcess().getId());
 					}
+					if(withGroup==3)
+						task.setGroup(null);
+					// traitement du fichier
+					if(fileDescription != null) {
+						try {
+							task.setFileDescriptionPath(storageService.storeFile(fileDescription, new String[] {"pdf"}));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					//end file filedescription traitements
 					if(taskRepository.save(task) != null) {
+						String successMsg = "";
 						if(isUpdateOperation)
-							model.addAttribute("successMsg", "Tâche modifiée!");
+							successMsg = "Tâche modifiée";
 						else
-							model.addAttribute("successMsg", "Tâche enregistrée!");
+							successMsg = "Tâche enregistrée";
+						if(fileDescription != null && task.getFileDescriptionPath()==null)
+							successMsg = successMsg + " sans le fichier de description(extension autorisée : pdf) !";
+						else
+							successMsg = successMsg+" !";
+						model.addAttribute("successMsg", successMsg);
 					}else {
 						model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 					}
@@ -307,6 +329,8 @@ public class ProcessController {
 		}
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
+		model.addAttribute("users", userRepository.findAll());
+		model.addAttribute("groups", groupRepository.findAll());
 		return "task";
 	}
 	
@@ -346,7 +370,7 @@ public class ProcessController {
 										listProcess.add(process);
 								}
 							}
-							for(User user : section.getIntervenants()) {
+							for(User user : section.users()) {
 								if(user.getId() == loged.getId() && !processInList(listProcess,process))
 									listProcess.add(process);
 							}
@@ -369,91 +393,28 @@ public class ProcessController {
 		}
 		return false;
 	}
-//	
-//	@GetMapping("/LogigrammeJson/{id}")
-//	@ResponseBody
-//	public List<Logigramme> logigrammeJson(@PathVariable("id") Long processId){
-//		List<Logigramme> datas = new ArrayList<>();
-//		Optional<Processus> op = processRepository.findById(processId);
-//		if(op.isPresent()) {
-//			Processus p = new Processus();
-//			loadDatas(datas,op.get());
-//		}
-//		return datas;
-//	}
-//
-//
-//	private List<Logigramme> loadDatas(List<Logigramme> datas,Processus processus) {
-//		try {
-//			if (processus != null) {
-//				Logigramme lg = new Logigramme();
-//				lg.setId(processus.getId());
-//				lg.setLabel(processus.getId()+":"+processus.getLabel());
-//				List<String> texts = new ArrayList<>();
-//				texts.add(processus.getLabel());
-////				texts.add("Nom : " + processus.getLabel());
-////				texts.add("Description : " + processus.getDescription());
-////				texts.add("Employées interevenants");
-////				for(User user : processus.getUsers()) {
-////					texts.add(user.getFirstname() + " "+user.getLastname());
-////				}
-//				Map<String, Object> tipMap = new HashMap<>();
-//				tipMap.put("title", "Utilisateurs :");
-//				List<String> emps = new ArrayList<>();
-//				for(User user : processus.getUsers()) {
-//					emps.add(user.getFirstname() + " "+user.getLastname());
-//				}
-//				tipMap.put("text", emps);
-//				lg.setTip(tipMap);
-//				lg.setText(texts);
-//				if(isTheFirstInDatas(datas,processus)) {
-//					lg.setType("finish");
-//				}else {
-//					if(processus.getYesProcess() != null && processus.getNoProcess() != null) {
-//						if(processus.getYesProcess().getId() == processus.getNoProcess().getId())
-//							lg.setType("finish");
-//						else
-//							lg.setType("finish");
-//					}else if(processus.getYesProcess() != null || processus.getNoProcess() != null)
-//							lg.setType("finish");
-//					else if(processus.getYesProcess() == null && processus.getNoProcess() == null)
-//							lg.setType("finish");
-//				}
-//				if(processus.getYesProcess() != null)
-//					lg.setYes(processus.getYesProcess().getId()+":"+processus.getYesProcess().getLabel());
-//				if(processus.getNoProcess() != null)
-//					lg.setNo(processus.getNoProcess().getId()+":"+processus.getNoProcess().getLabel());
-//				List<String> employes = new ArrayList<>();
-//				for(User user : processus.getUsers()) {
-//					employes.add(user.getFirstname() + " "+user.getLastname());
-//				}
-//				lg.setEmployes(employes);
-//				if(!logigrammeLoaded(datas, processus)) {
-//					datas.add(lg);
-//				}
-//				if(processus.getParent() != null && !logigrammeLoaded(datas, processus.getParent())) {
-//						loadDatas(datas,processus.getParent());
-//				}
-//				if(processus.getYesProcess() != null && !logigrammeLoaded(datas, processus.getYesProcess()))
-//					loadDatas(datas, processus.getYesProcess());
-//				if(processus.getNoProcess() != null && !logigrammeLoaded(datas, processus.getNoProcess()))
-//					loadDatas(datas, processus.getNoProcess());
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//		return datas;
-//	}
-//	private boolean logigrammeLoaded(List<Logigramme> datas, Processus process) {
-//		for(Logigramme lg : datas) {
-//			if(lg.getId() == process.getId())
-//				return true;
-//		}
-//		return false;
-//	}
-//	private boolean isTheFirstInDatas(List<Logigramme> datas, Processus process) {
-//		if(datas.isEmpty() && process != null)
-//			return true;
-//		return false;
-//	}
+	
+    @RequestMapping(value = "/Task/File/Description/Show/{id}", method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_PDF_VALUE)
+    @ResponseBody
+    public ResponseEntity<InputStreamResource> showProceduresPDf(@PathVariable(name = "id") Long taskId) {
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Disposition", "inline; filename=procedure.pdf");
+    	try {
+			Task task = taskRepository.getOne(taskId);
+			InputStream is = new FileInputStream(storageService.getFilePathInUploadDir(task.getFileDescriptionPath()).toFile());
+
+			return ResponseEntity
+			        .ok()
+			        .headers(headers)
+			        .contentType(MediaType.APPLICATION_PDF)
+			        .body(new InputStreamResource(is));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+		}
+    	System.out.println("Fichier introuvable");
+    	return null;
+    }
 }

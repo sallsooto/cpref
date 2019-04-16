@@ -20,7 +20,7 @@
 	<div class="container-fluid" layout:fragment="content">
 		<!-- Page Heading -->
 		<div
-			th:replace="fragments/main_content_heading::heading(heading_text='Logigramme')"></div>
+			th:replace="fragments/main_content_heading::heading(heading_text='Logigramme',heading_link='/Process/List/',heading_link_text='Liste des process',heading_ico='fas fa-arrow-alt-circle-left')"></div>
 		<!--<h1 style="margin-top:150px; text-align:center"></h1>-->
 		<!-- <div class="text-center" th:if="${pocess}">
 			<input type="hidden" th:value="${pId}" id="pid_content"/>
@@ -54,8 +54,8 @@
 						<!-- uses td -->
 						<td th:if="${section.tasks.size()>0}" style="width:15%;" class="pt-5">
 							<div class="w-100 text-center">
-								<svg th:each="user: ${section.intervenants}" height="30" width="200" class="mt-1 text-danger" style="font-size:13px;">
-									 <text x="0" y="10" th:fill="${'grey'}" th:text="${user.firstname + '' +user.lastname}">I love SVG!</text>
+								<svg th:each="user: ${section.users()}" height="30" width="200" class="mt-1 text-danger" style="font-size:13px;">
+									 <text x="0" y="10" th:fill="${'grey'}" th:text="${user.firstname + ' ' +user.lastname}">I love SVG!</text>
 								</svg>
 							</div>
 						</td>
@@ -96,9 +96,13 @@
 								 th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : 'red'}"/>
 							</svg>
 							<!-- labels -->
-							<svg width="200" height="60" th:if="${task.name}">
-								<text x="10" y="10" th:class="${'task_label'+task.id}" th:text="${task.name}">le voilà<text>
-							</svg>
+							<div style="width:150px;height:50px;overflow: auto; scroll:auto;cursor:pointer" class="d-inline-block p-1" 
+								data-toggle="popover" data-trigger="hover" data-placement="bottom" 
+								 th:title="Description" th:data-content="${task.description !=null ? task.description : ''}">
+								<a th:if="${task.fileDescriptionPath != null}" th:href="@{/Process/Task/File/Description/Show/{id}(id=${task.id})}" target="_blank" 
+									th:class="${'task_label'+task.id+' align-text-middle'}"  th:text="${task.name}"></a>
+								<span th:if="${task.fileDescriptionPath == null}"  th:class="${'task_label'+task.id+' align-text-middle'}" th:text="${task.name}"></span>
+							</div>
 							</div>
 						</td>
 						<!-- end task td -->
