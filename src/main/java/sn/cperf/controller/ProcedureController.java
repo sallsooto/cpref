@@ -134,4 +134,14 @@ public class ProcedureController {
     	System.out.println("Fichier introuvable");
     	return null;
     }
+    
+    @GetMapping("/{id}/del")
+    public String delProcedure(@PathVariable("id") Long id) {
+    	try {
+			Procedure p = procedureRepository.getOne(id);
+			procedureRepository.delete(p);
+		} catch (Exception e) {
+		}
+    	return "redirect:/Procedure/";
+    }
 }

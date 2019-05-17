@@ -4,7 +4,8 @@ public enum NotificationType {
 	ALERT("alert"),
 	INFO("info"),
 	DANGER("danger"),
-	SUCCESS("success");
+	SUCCESS("success"),
+	MESSAGE("message");
 	
 	private String type="";
 	NotificationType(String type){

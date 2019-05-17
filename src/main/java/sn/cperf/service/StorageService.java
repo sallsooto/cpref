@@ -13,4 +13,6 @@ public interface StorageService {
 	public boolean checkFileExists(String path);
 	public boolean ckeckValidePath(MultipartFile file);
 	public Path getFilePathInUploadDir(String fileName);
+	public Path getResolveFilePathWithEnDirConfig(String envConfigDirPropertyName,String fileName);
+	public boolean createDirectoryByEnvironnementConfig(String envDirKey);
 }

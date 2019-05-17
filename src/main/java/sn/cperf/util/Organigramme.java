@@ -16,7 +16,6 @@ public class Organigramme {
 	private String Telephone;
 	private String Email;
 	private String Adresse;
-	private String Activite;
-	private String Objectifs;
 	private String image;
+	private String objectif;
 }

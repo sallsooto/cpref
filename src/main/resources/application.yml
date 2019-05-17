@@ -48,6 +48,8 @@ spring:
   
   file:
     upload-dir: ./uploads/
+    img-dir: ./uploads//images/
+    avatar-dir: ./uploads/images/avatars/
         
         
         

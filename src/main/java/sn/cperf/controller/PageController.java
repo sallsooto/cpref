@@ -37,6 +37,11 @@ public class PageController {
 	
 	@GetMapping("/")
 	public String index() {
+		try {
+			cperfService.doAllNecessaryOperationsAfterLunchApplication();
+		} catch (Exception e) {
+			
+		}
 		return "index";
 	}
 	@GetMapping("/403")
@@ -46,6 +51,10 @@ public class PageController {
 
 	@GetMapping("/login")
 	public String login() {
+		try {
+			cperfService.doAllNecessaryOperationsAfterLunchApplication();
+		} catch (Exception e) {
+		}
 		return "login";
 	}
 	

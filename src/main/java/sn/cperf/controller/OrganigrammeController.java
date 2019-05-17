@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +23,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Option;
 
+import sn.cperf.dao.FonctionRepository;
 import sn.cperf.dao.UserRepository;
+import sn.cperf.model.Fonction;
+import sn.cperf.model.Indicateur;
+import sn.cperf.model.Objectif;
 import sn.cperf.model.User;
 import sn.cperf.service.StorageService;
 import sn.cperf.util.Organigramme;
@@ -34,6 +40,7 @@ public class OrganigrammeController {
 	UserRepository userRepository;
 	@Autowired
 	StorageService storageService;
+	@Autowired FonctionRepository fonctionRepository;
 
 	@GetMapping("/")
 	public String organigramme() {
@@ -43,12 +50,12 @@ public class OrganigrammeController {
 	// getting hierarchy
 	@GetMapping("/Hierarchy")
 	@ResponseBody
-	public List<Organigramme> getHierachy() {
+	public List<Organigramme> getHierachy(HttpServletRequest request) {
 		List<Organigramme> datas = new ArrayList<>();
 		try {
 			List<User> users = userRepository.findByUserSupIsNullAndOrganigrammeTrue();
 			users.forEach(user -> {
-				loadDatas(datas, user);
+				loadDatas(datas, user,request);
 			});
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -60,7 +67,7 @@ public class OrganigrammeController {
 	// isert hierarchy node
 	@GetMapping("/Hierarchy/insert")
 	@ResponseBody
-	public Long updateHierarch(@RequestParam("pid") Long parentId) {
+	public Long updateHierarch(@RequestParam("pid") Long parentId, HttpServletRequest request) {
 		ObjectMapper om = new ObjectMapper();
 		try {
 			User parentUser = null;
@@ -112,7 +119,6 @@ public class OrganigrammeController {
 			if (org.getId() != null) {
 				optionalUser = userRepository.findById(org.getId());
 			}
-			System.out.println("je suis là");
 			if (optionalUser == null || !optionalUser.isPresent()) {
 				user = new User();
 				String username = "1";
@@ -131,29 +137,37 @@ public class OrganigrammeController {
 				parentUser = userRepository.getOne(org.getParentId());
 			} catch (Exception e) {
 			}
-			System.out.println("Activite " + org.getActivite());
-			user.setActivite(org.getActivite());
 			user.setLastname(org.getNom());
 			user.setFirstname(org.getPrenom());
-			System.out.println("Adresse " + org.getAdresse());
 			user.setAdresse(org.getAdresse());
-			System.out.println("prent_id " + org.getParentId());
 			user.setUserSup(parentUser);
-			System.out.println("Fonction " + org.getFonction());
 			user.setPhone(org.getTelephone());
-			System.out.println("Telephone " + org.getTelephone());
 			user.setEmail(org.getEmail());
-			System.out.println("Email " + org.getEmail());
-			user.setFonction(org.getFonction());
-			System.out.println("Fonction " + org.getFonction());
-			user.setObjectif(org.getObjectifs());
-			System.out.println(org.getImage());
-			try {
-				user.setPhoto(org.getImage());
-				user.setPhoto((org.getImage().substring(org.getImage().lastIndexOf("/") + 1, org.getImage().length())));
-			} catch (Exception e) {
-				// e.printStackTrace();
+			if(org.getFonction() != null && !org.getFonction().equals("") && !org.getFonction().equals("null")
+					&& !org.getFonction().toLowerCase().trim().equals("sans fonction")
+					&& !org.getFonction().toLowerCase().trim().equals("fonction")){
+				Fonction fonction = null;
+				try {
+					 fonction = fonctionRepository.findByNameIgnoreCase(org.getFonction());
+				} catch (Exception e) {
+				}
+				if(fonction == null) {
+					fonction = new Fonction();
+					fonction.setName(org.getFonction());
+				}
+				try {
+					user.setFonction(fonctionRepository.save(fonction));
+				} catch (Exception e) {
+					System.out.println("la la foncton");
+				}
 			}
+			System.out.println("Fonction " + org.getFonction());
+//			try {
+//				user.setPhoto(org.getImage());
+//				user.setPhoto((org.getImage().substring(org.getImage().lastIndexOf("/") + 1, org.getImage().length())));
+//			} catch (Exception e) {
+//				// e.printStackTrace();
+//			}
 			try {
 				userRepository.save(user);
 			} catch (Exception e) {
@@ -170,7 +184,7 @@ public class OrganigrammeController {
 	@GetMapping("/ChangeOrgValue/")
 	@ResponseBody
 	public void changerUserOrgannigrammeValue(@RequestParam("uid") Long userId,
-			@RequestParam(name = "stat", defaultValue = "false") boolean orgstatus) {
+			@RequestParam(name = "stat", defaultValue = "false") boolean orgstatus, HttpServletRequest request) {
 		try {
 			List<Organigramme> orgs = new ArrayList<>();
 			Optional<User> optInitUser = userRepository.findById(userId);
@@ -185,7 +199,7 @@ public class OrganigrammeController {
 						    System.err.println(otherParentUser.getId());
 						}
 						// findin all chirlds if existings
-						loadDatas(orgs, initUser);
+						loadDatas(orgs, initUser,request);
 						for (Organigramme org : orgs) {
 							Optional<User> optUser = userRepository.findById(org.getId());
 							if (optUser.isPresent()) {
@@ -230,20 +244,20 @@ public class OrganigrammeController {
 	@GetMapping("/OthersJson/")
 	@ResponseBody
 	public Page<User> othersJson(@RequestParam(name="searchKey",defaultValue="") String searchKey,
-			@RequestParam(name="page",defaultValue="0") int page,@RequestParam(name="size",defaultValue="10") int size) {
+			@RequestParam(name="page",defaultValue="0") int page,@RequestParam(name="size",defaultValue="10") int size, HttpServletRequest request) {
 		if(searchKey != null && !searchKey.equals(""))
 			return userRepository.searchOthersForOrganigramme(searchKey, new PageRequest(page, size));
 		return userRepository.searchOthersForOrganigramme(new PageRequest(page, size));
 	}
 
-	private List<Organigramme> loadDatas(List<Organigramme> datas, User user) {
+	private List<Organigramme> loadDatas(List<Organigramme> datas, User user, HttpServletRequest request) {
 		try {
 			if (user != null && user.isOrganigramme()) {
-				datas.add(formateOraganigrammeData(user));
+				datas.add(formateOraganigrammeData(user,request));
 				if (!user.getUsers().isEmpty()) {
 					user.getUsers().forEach(u -> {
 						// datas.add(formateOraganigrammeData(u));
-						loadDatas(datas, u);
+						loadDatas(datas, u,request);
 					});
 				}
 			}
@@ -253,20 +267,47 @@ public class OrganigrammeController {
 		return datas;
 	}
 
-	private Organigramme formateOraganigrammeData(User user) {
+	private Organigramme formateOraganigrammeData(User user, HttpServletRequest request) {
 		Organigramme org = new Organigramme();
-		org.setActivite(user.getActivite());
 		org.setAdresse(user.getAdresse());
 		org.setEmail(ralaceWhenNullOrBlank(user.getEmail(), "Sans Email", ""));
 		org.setTelephone(ralaceWhenNullOrBlank(user.getPhone(), "Sans téléphone", ""));
 		org.setId(user.getId());
-		org.setObjectifs(user.getObjectif());
 		org.setParentId((user.getUserSup() != null) ? user.getUserSup().getId() : null);
 		org.setPrenom(ralaceWhenNullOrBlank(user.getFirstname(), "Prenom", ""));
 		org.setNom(ralaceWhenNullOrBlank(user.getLastname(), "Nom", ""));
-		org.setImage(StringUtils.cleanPath("/images/avatars/" + user.getPhoto()));
-		org.setFonction(ralaceWhenNullOrBlank(user.getFonction(), "Sans fonction", ""));
+		String photoUri = "http://" + request.getServerName() + ":"
+				+ request.getServerPort() + request.getContextPath() + "/User/getUserPhoto/?uid="+user.getId();
+		//org.setImage(StringUtils.cleanPath("/images/avatars/" + user.getPhoto()));
+		org.setImage(photoUri);
+		if(user.getFonction() != null) {
+			org.setFonction(ralaceWhenNullOrBlank(user.getFonction().getName(), "Sans fonction", ""));
+			List<Objectif> objectifs = user.getFonction().getObjectis();
+			if(!objectifs.isEmpty()) {
+				String objectifString = "";
+				for(Objectif obj : objectifs) {
+					String objString = obj.getName();
+					if(!obj.getIndicators().isEmpty()) {
+						objString = objString + " (";
+						for(Indicateur indicator : obj.getIndicators()) {
+							objString = objString + " "+indicator.getLabel() + " , ";
+						}
+						objString = objString + ")";
+					}
+					objString = objString + " ; ";
+					objectifString = objectifString +objString;
+				}
+				org.setObjectif(objectifString);
+			}else {
+				org.setObjectif("Aucun objectif définit");
+			}
+		}
+		else {
+			org.setFonction(ralaceWhenNullOrBlank(null, "Sans fonction", ""));
+			org.setObjectif("Sans objectif : définis d'abord sa fonction avant tout !");
+		}
 		// "/"+storageService.getDefaultDir()
+		
 		return org;
 	}
 
@@ -284,12 +325,10 @@ public class OrganigrammeController {
 			List<User> chirlds_users = userRepository.findByUserSupIsNotNullAndOrganigrammeTrue();
 			if (!parent_users.isEmpty() && chirlds_users.isEmpty()) {
 				Organigramme org = new Organigramme();
-				org.setActivite(null);
 				org.setAdresse(null);
 				org.setEmail("Email");
 				org.setTelephone("Téléphone");
 				org.setId(parent_users.get(parent_users.size() - 1).getId() + 1);
-				org.setObjectifs(null);
 				org.setParentId(parent_users.get(0).getId());
 				org.setPrenom("Prenom");
 				org.setNom("Nom");
@@ -300,5 +339,17 @@ public class OrganigrammeController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	@GetMapping("/getFonctionIdJson")
+	@ResponseBody
+	public Long getFonctionIdJson(@RequestParam(name="uid") Long userId) {
+		try {
+			User user = userRepository.getOne(userId);
+			if(user != null && user.getFonction() != null)
+				return user.getFonction().getId();
+		} catch (Exception e) {
+		}
+		return null;
 	}
 }

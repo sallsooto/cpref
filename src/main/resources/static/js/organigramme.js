@@ -1,6 +1,27 @@
+//$(document).ready(function(){
+//	var hierarchy_link = "/Organigramme/Hierarchy";
+//	loadDatas("/Organigramme/Hierarchy"); 
+
+//});
 $(document).ready(function(){
-	var hierarchy_link = $(".hierarchy_link").attr("href");
-	loadDatas(hierarchy_link); 
+	loadDatas("/Organigramme/Hierarchy");
+	$("#people").on('click','.btn_objectif',function(e){
+		e.preventDefault();
+		var userId = $(".id_input").val();//getFonctionIdJson
+		$.ajax({
+			url : '/Organigramme/getFonctionIdJson?uid='+userId,
+			method : 'get',
+			contentType : 'json',
+			success : function(res){
+				if(res != null){
+					window.location = "/Objectif/?fid="+res;
+				}
+			},
+			error : function(e){
+				console.log(e);
+			}
+		});
+	});
 });
 
 var loadDatas = function(hierarchy_link){
@@ -13,9 +34,9 @@ var loadDatas = function(hierarchy_link){
         	var datas = [];
         	for(var i=0; i< data.length; i++){
         		datas[i] = {
-        				id: data[i].id, parentId: data[i].parentId,Prenom:data[i].prenom, Nom:data[i].nom,Fonction: data[i].fonction, 
-        				Telephone: data[i].telephone, Email: data[i].email, Adresse: data[i].adresse,
-        				Activite :data[i].activite, Objectifs:data[i].objectifs,image: data[i].image 
+        				id: data[i].id, parentId: data[i].parentId,Prenom:data[i].prenom, Nom:data[i].nom,
+        				Fonction: data[i].fonction,Objectifs:data[i].objectif,
+        				Telephone: data[i].telephone, Email: data[i].email, Adresse: data[i].adresse,image: data[i].image 
         		};
         	}
 
@@ -84,17 +105,15 @@ function updateNodeEvent(sender,args){
 	var my_object = {};
 	console.log(sender);
 	my_object.nom = args.data.Nom;
+	my_object.prenom=args.data.Prenom;
 	my_object.id=args.node.id;
 	my_object.fonction=args.data.Fonction;
 	my_object.telephone=args.data.Telephone;
 	my_object.email = args.data.Email;
 	my_object.adresse=args.data.Adresse;
-	my_object.activite=args.data.Activite;
-	my_object.prenom=args.data.Prenom;
-	my_object.nom=args.data.Nom;
-	my_object.objectifs=args.data.Objectifs;
 	my_object.image = args.data.image;
 	my_object.parentId = args.pid;
+	my_object.objectif = args.data.Objectifs;
 	$.ajax({
 		url : "/Organigramme/Hierarchy/update",
         type : 'POST',
@@ -154,3 +173,4 @@ static_datas = function(){
 
     ];
 }
+

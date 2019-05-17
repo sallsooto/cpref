@@ -174,6 +174,17 @@
  		background:url(graphics.png) -156px 0;
  		margin:11px 3px 0 17px;
  		display:inherit}
+	.get-org-chart .get-oc-tb a.btn_objectif{
+		margin:11px 3px 0 17px;
+		display:inherit;
+		min-width:200px;
+		border:2px solid white;
+		text-align:center;
+		float:right;
+	}
+	.get-org-chart .get-oc-tb a.btn_objectif:hover{
+		background-color:white;
+	}
  	.get-org-chart .get-oc-v{
  		overflow-y:scroll;
  		width:100%;

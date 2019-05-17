@@ -71,7 +71,7 @@ public class MailServiceImpl implements MailService{
 	@Override
 	public void sendUserMailWheneHirAcountIsActived(String appCtxUri,String userName, String userEmail) {
 		String text="Bonjour " + userName + ", vôtre compte est activé <a href='"+appCtxUri +"'> cliquez ici pour vous connecter</a>";
-		this.sendHtmlTextMail(userEmail, "Getrans compte activation", text);
+		this.sendHtmlTextMail(userEmail, "C'perf compte activation", text);
 	}
 
 	@Override

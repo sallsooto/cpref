@@ -17,6 +17,30 @@
      });
     $('[data-toggle="tooltip"]').tooltip();
     $('[data-toggle="popover"]').popover();
+    
+    //set all user notifications on seen
+    $('#notificationDropdown').on('hidden.bs.dropdown', function () {
+    	seenAllUsersNotifications("/Notification/setSeenNotesJson");
+    });
+     // set all user notification on seen
+    $('#messagesDropdown').on('hidden.bs.dropdown', function () {
+    	seenAllUsersNotifications("/Notification/setSeenMessagesJson");
+    });
+    // cnahge task manager
+	$(".task_status_changer, .status_task_changer").on('click',function(e){
+		e.preventDefault();
+		alert("c'est quoi");
+	});
+	
+	$("body").on('click','.btn_danger_actionner',function(e){
+		e.preventDefault(e);
+//		danger_action_link = $(this).attr('data-link');
+//		console.log(danger_action_link);
+	});
+	$(".btn_modal_danger_yes").on('click',function(e){
+		e.preventDefault();
+		console.log("continuer");
+	});
 	/*============================ END MY SCRIPT ===========================*/
     "use strict";
 
@@ -104,6 +128,18 @@
 
 })(jQuery);
 
+function seenAllUsersNotifications(url){
+	  $.ajax({
+		 url : url,
+		 method : 'get',
+		 success : function(res){
+			 console.log(url);
+		 },
+		 error : function(e){
+			console.log(e); 
+		 },
+	  });
+};
 function triggable_img_manage(img_avatar_class,default_value,triggable_values){
     avatar = $('.'+img_avatar_class);
     if(avatar != undefined && avatar.length > 0) {
@@ -168,4 +204,22 @@ var  manageTableResponsivity = function(){
         $('table').addClass('table table-responsive');
     else
         $('table').removeClass('table-responsive');
-}
+};
+function changeTaskStatus(taskId, status, callback){
+	$.ajax({
+		url :  '/Task/'+taskId+'/Status/?st='+status,
+		method : 'get',
+		dataType : 'json',
+		success : function(res){
+			callback(res);
+			console.log(res);
+		},
+		error : function(e){
+			console.log(e);
+		}
+	});
+};
+
+function showAlertModal(){
+	console.log("ok");
+};

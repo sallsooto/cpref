@@ -1,16 +1,20 @@
 package sn.cperf;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.core.env.Environment;
+import org.springframework.context.ApplicationContext;
+
+import sn.cperf.service.CperfService;
 
 @SpringBootApplication
 public class CperfApplication {
-	@Autowired static Environment env;
-	
 	public static void main(String[] args) {
-		SpringApplication.run(CperfApplication.class, args);
+		ApplicationContext ctx = SpringApplication.run(CperfApplication.class, args);
+		try {
+			CperfService cperfService = ctx.getBean(CperfService.class);
+			cperfService.doAllNecessaryOperationsAfterLunchApplication();
+		} catch (Exception e) {
+		}
 	}
 
 }

@@ -14,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,6 +27,7 @@ import sn.cperf.dao.UserRepository;
 import sn.cperf.model.Group;
 import sn.cperf.model.Role;
 import sn.cperf.model.User;
+import sn.cperf.service.MailService;
 
 @Controller
 @RequestMapping("/Admin")
@@ -35,6 +37,7 @@ public class AdminController {
 	@Autowired GroupRepository groupRepository;
 	@Autowired UserRepository userRepository;
 	@Autowired NotificationRepository notificationRepository;
+	@Autowired MailService mailService;
 	
 	@GetMapping("/Role")
 	public String getRoleView(@RequestParam(name="id", defaultValue="0") Long id, Model model) {
@@ -81,7 +84,8 @@ public class AdminController {
 						if(form.getId() != null)
 							model.addAttribute("successMsg", "Profile modifié!");
 						else
-							model.addAttribute("successMsg", "Profile enregistré!");	
+							model.addAttribute("successMsg", "Profile enregistré!");
+						model.addAttribute("form", new Role());
 					}else {
 						model.addAttribute("errorMsg", "profile non édité, veuillez recommencer!");
 					}
@@ -110,6 +114,23 @@ public class AdminController {
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		return "group";
+	}
+
+	
+	@GetMapping("/Group/{id}/del")
+	public String deleteGroupe(@PathVariable(name="id") Long id) {
+//		Group group = new Group();
+//		if(id != null && id >0) {
+//			Optional<Group> optgroup = groupRepository.findById(id);
+//			if(optgroup.isPresent()) {
+//				group = optgroup.get();
+//				group.setRole(null);
+//				group.setUsers(null);
+//				groupRepository.save(group);
+//				groupRepository.delete(group);
+//			}
+//		}
+		return "redirect:/Admin/Group";
 	}
 	
 	@PostMapping("/Group")
@@ -163,14 +184,14 @@ public class AdminController {
 				user.setValid(status);
 			}
 			if (userRepository.save(user) != null) {
-//				String history_event = "";
-//				if (status) {
-//					final String appLoginUri = "http://" + request.getServerName() + ":" + request.getServerPort()
-//							+ request.getContextPath() + "/login";
-//					mailService.sendUserMailWheneHirAcountIsActived(appLoginUri, user.getNomComplet(),
-//							user.getUsername());
+				String history_event = "";
+				if (status) {
+					final String appLoginUri = "http://" + request.getServerName() + ":" + request.getServerPort()
+							+ request.getContextPath() + "/login";
+					mailService.sendUserMailWheneHirAcountIsActived(appLoginUri, user.getFirstname() + " "+user.getLastname(),user.getEmail());
 //					 history_event = "Activation du compte de l'utilisateur : "+user.getNomComplet();
-//				}else {
+				}
+//				else {
 //					 history_event = "Désactivation du compte de l'utilisateur : "+user.getNomComplet();
 //				}
 //				getransService.storeHistory(history_event, "/Admin/User");

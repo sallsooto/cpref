@@ -77,8 +77,11 @@
 											<td th:if="${gp.users.size()>0}" class="text-center">
 												<span th:each="u : ${gp.users}" th:text="${u.firstname + ' '+u.lastname+' ; '}"></span>
 											</td>
-											<td th:text="${gp.role != null ? gp.role.role : 'Aucun'}"></td>
-											<td><a th:href="@{/Admin/Group/(id=${gp.id})}">Modifer</a></td>
+											<td th:text="${gp.role != null ? gp.role.role : 'Aucun'}" class="text-center"></td>
+											<td class="text-center">
+												<a th:href="@{/Admin/Group/(id=${gp.id})}">Modifer</a><!-- &nbsp; | &nbsp;
+												<a th:href="@{/Admin/Group/{id}/del(id=${gp.id})}" class="text-danger" title="Vous êtes sûr ?">Supprimer</a> -->
+											</td>
 										</tr>
 									</tbody>
 								</table>

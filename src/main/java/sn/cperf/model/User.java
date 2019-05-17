@@ -41,11 +41,15 @@ public class User implements Serializable,UserDetails{
 	private String email;
 	private String adresse;
 	private String phone;
-	private String fonction;
-	private String objectif;
 	private String activite;
 	@Column(columnDefinition="boolean default true")
 	private boolean organigramme = true;
+	
+	@ManyToOne(cascade=CascadeType.PERSIST)
+	@JoinColumn(name="fonction_id")
+	@JsonManagedReference
+	private Fonction fonction;
+	
 	public String getActivite() {
 		return activite;
 	}
@@ -192,7 +196,14 @@ public class User implements Serializable,UserDetails{
 		this.valid = valid;
 	}
 	public List<Role> getRoles() {
-		return roles;
+		List<Role> distinctsRoles = new ArrayList<>();
+		if(!roles.isEmpty()) {
+			for(Role role : roles) {
+				if(!distinctsRoles.contains(role))
+					distinctsRoles.add(role);
+			}
+		}
+		return distinctsRoles;
 	}
 	public void setRoles(List<Role> roles) {
 		this.roles = roles;
@@ -203,17 +214,12 @@ public class User implements Serializable,UserDetails{
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getFonction() {
+	
+	public Fonction getFonction() {
 		return fonction;
 	}
-	public void setFonction(String fonction) {
+	public void setFonction(Fonction fonction) {
 		this.fonction = fonction;
-	}
-	public String getObjectif() {
-		return objectif;
-	}
-	public void setObjectif(String objectif) {
-		this.objectif = objectif;
 	}
 	public boolean isOrganigramme() {
 		return organigramme;

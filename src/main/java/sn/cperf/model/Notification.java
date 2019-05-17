@@ -35,11 +35,12 @@ public class Notification implements Serializable{
 	private String note;
 	private String type;
 	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm")
-	@Temporal(TemporalType.TIME)
-	private Date storeAs;
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date storeAt;
 	@Column(columnDefinition="boolean default false")
 	private boolean seen=false;
-	private String link;
+	@Column(columnDefinition="varchar(255) default '#'")
+	private String link="#";
 	@ManyToOne
 	@JoinColumn(name="target_id")
 	@JsonManagedReference

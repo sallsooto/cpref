@@ -37,17 +37,11 @@ public class ProcessSection implements Serializable{
 	private String name;
 	@ManyToOne
 	@JoinColumn(name="process_id")
+	@JsonBackReference
 	private Processus process;
 	@ManyToOne
 	@JoinColumn(name="group_id")
 	private Group group;
-//	@ManyToMany(cascade=CascadeType.ALL, fetch=FetchType.LAZY)
-//	@JoinTable(name="process_sections_users",
-//		joinColumns = {@JoinColumn(name="section_id")},
-//		inverseJoinColumns = {@JoinColumn(name="user_id")}
-//	)
-//	@JsonManagedReference
-//	private List<User> intervenants;
 	@OneToMany(mappedBy="section")
 	@JsonBackReference
 	private List<Task> tasks;
@@ -56,23 +50,12 @@ public class ProcessSection implements Serializable{
 		List<User> users = new ArrayList<>();
 		if(this.getTasks() != null) {
 			for(Task task : this.getTasks()) {
-				List<User> taskUsers = task.getUsers();
+				List<User> taskUsers = task.getAllUsers();
 				//getting users 
 				if(taskUsers != null) {
 					for(User taskuser : taskUsers) {
 						if(!users.contains(taskuser))
 							users.add(taskuser);
-					}
-				}
-				//gettings uses in task group
-
-				if(task.getGroup() != null) {
-					List<User> groupTasksUsers = task.getGroup().getUsers();
-					if(groupTasksUsers !=null) {
-						for(User groutakuser : groupTasksUsers) {
-							if(!users.contains(groutakuser))
-								users.add(groutakuser);
-						}
 					}
 				}
 			}

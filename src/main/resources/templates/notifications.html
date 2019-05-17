@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Notifications et messages</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Toutes vos notifications et messages',heading_link='/Notification/',heading_link_text='Actualiser',heading_ico='fas fa-sync')"></div>
+		<!-- content -->
+			<div class="class row" data-ng-controller="CperfCtrl">
+				<span th:if="${param.type}" data-ng-init="setDefaultNotifTypeOneMessage();getUserNotificationOrMessages();"></span>
+				<span th:if="!${param.type}" data-ng-init="getUserNotificationOrMessages();"></span>
+				<div class="col-sm-12">
+					<div class="card border-0 p-0 bg-transparent">
+						<div class="card-body p-0 bg-info">
+							<ul class="list-group ml-1 mr-1 mt-3">
+							<!--=========== row de control ================-->
+							<li class="list-group-item bg-light text-info text-uppercase font-weight-bold border-info">
+								<div class="row">
+									<div class="d-none d-md-block col-md-2 form-group">
+										<label class="control-label"><small>Max lignes/page :</small></label> <input type="number" min="1"
+											data-ng-model="noteSize"
+											class="form-control form-control-sm"
+											data-ng-change="getUserNotificationOrMessages();"/>
+									</div>
+									<div class="d-none d-md-block col-md-2 form-group">
+										<label class="control-label"><small>Type affiché :</small></label>
+										<select data-ng-model="noteType" data-ng-change="getUserNotificationOrMessages();"
+											class="form-control form-control-sm">
+											<option value="info">Info</option>
+											<option value="message">Message</option>
+											<option value="alert">Alert</option>
+											<option value="danger">Danger</option>
+										</select>
+									</div>
+									<div class="d-none d-md-block col-md-2 form-group">
+										<label class="control-label"><small>Status de lecture :</small></label>
+										<select data-ng-model="noteSeen" data-ng-change="getUserNotificationOrMessages();"
+											class="form-control form-control-sm">
+											<option value="false">Non Lu</option>
+											<option value="true">Lu</option>
+										</select>
+									</div>
+									<div class="d-none d-md-block col-md-2 form-group">
+										<label class="control-label"><small>Trier par :</small></label>
+										<select data-ng-model="orderNoteField"
+											class="form-control form-control-sm">
+											<option value="storeAt">Date d'enregistrement</option>
+											<option value="note">Note</option>
+										</select>
+									</div>
+									<div class="d-none d-md-block col-md-2 form-group">
+										<label class="control-label"><small>Ordre :</small></label> <select
+											data-ng-model="orderNoteFieldReverse"
+											class="form-control form-control-sm">
+											<option value="-" selected="selected">Déscendant</option>
+											<option value="+">Ascendant</option>
+										</select>
+									</div>
+								</div>
+							</li>
+							<!-- ========== end row de control =====-->
+							<li class="list-group-item list-group-item-action" data-ng-repeat="notif in notifs.content | orderBy:orderFieldReverse+orderField">
+								<a th:href="@{{{notif.link}}}" class="d-inline-block text-decoration-none fa_table_link">
+									<div class="row">
+										<div class="col-sm-3 col-md-1">
+										<span class="icon-circle {{getNotifFaIconClass(notif.type)}} float-left">
+											<i class="{{getNotifFaIconClass(notif.type)}} text-white"></i>
+										</span>
+										</div>
+										<div class="col-sm-9 col-md-11">
+										<div class="small text-gray-500">{{notif.title}} le {{notif.storeAt | date : 'dd/MM/yyyy à HH:mm'}}</div>
+										 {{notif.note}}
+										</div>
+									</div>
+								</a>
+							</li>
+							<li class="list-group-item" data-ng-if="notifs.content.length<=0">
+								<h5 class="text-center mt-3 mb-3">Zéro notifications trouvé !</h5>
+							</li>
+							<li>	
+								<!-- =========== PAGINATION ============= -->
+								<nav aria-label="..." data-ng-if="notePages.length>0" class="">
+									<ul class="pagination float-right" style="margin:-12px 1px 3px 1px;">
+										<!--<li class="page-item" data-ng-if="{pages.length-$parent.page>1}">
+											<a class="page-link" href="#" tabindex="-1">Previous</a>
+										</li> -->
+									   <li data-ng-repeat="p in notePages" class="page-item" 
+									   	     data-ng-class="{'active': $parent.notePage==p}">
+									   		<button  type="button" class="page-link" data-pageIndex="{{p}}" 
+									   		data-ng-click="changePage($event)">{{p+1}}</button>
+									   </li>
+									   <!-- <li class="page-item"><a class="page-link" data-ng-if="false">Next</a></li> -->
+									</ul>
+								</nav>
+								<!-- ================ AND PAGINATION -->
+							</li>
+						 </ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		<!-- content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+	</div>
+</body>
+</html>

@@ -63,18 +63,63 @@
           </div>
         </div>
       </li>
-      <li class="nav-item">
+      <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
         <a class="nav-link" th:href="@{/Procedure/}">
           <i class="fas fa-procedures"></i>
           <span>Procedures</span>
         </a>
+      </li>
+      <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
+        <a class="nav-link" th:href="@{/Organigramme/}">
+          <i class="fas fa-mars-stroke"></i>
+          <span>Objectifs / Indicateurs</span>
+        </a>
+      </li> 
+      <li class="nav-item">
+        <a class="nav-link" th:href="@{/Task/}">
+          <i class="fas fa-thumbtack"></i>
+          <span>Vos tâches</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" th:href="@{/Performance/}">
+          <i class="fab fa-accusoft"></i>
+          <span sec:authorize="hasRole('ROLE_admin')">Perfomances / Evalutaion</span>
+          <span sec:authorize="!hasRole('ROLE_admin')">Vos Objectifs et indicateurs</span>
+        </a>
+      </li>
+     <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseImpact" aria-expanded="true" aria-controls="collapseImpact">
+          <i class="fas fa-map-signs"></i>
+          <span>Impact</span>
+        </a>
+        <div id="collapseImpact" class="collapse" aria-labelledby="collapseImpact">
+          <div class="bg-white py-2 collapse-inner rounded">
+           <!--  <h6 class="collapse-header">Custom Components:</h6> -->
+           <a class="collapse-item" th:href="@{/Impact/History}">Historique</a>
+            <a class="collapse-item" th:href="@{/Organigramme/Others/}">Process encours</a>
+          </div>
+        </div>
       </li> 
      <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collpaseAdmin" aria-expanded="true" aria-controls="collpaseAdmin">
           <i class="fas fa-fw fa-cog"></i>
-          <span>Administration</span>
+          <span>Paramêtres</span>
         </a>
         <div id="collpaseAdmin" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+           <!--  <h6 class="collapse-header">Custom Components:</h6> -->
+           <a class="collapse-item" th:href="@{/Objectif/Type/}">Types d'objectifs</a>
+           <a class="collapse-item" th:href="@{/Objectif/Indicator/Type}">Types des indicateurs</a>
+          </div>
+        </div>
+      </li>
+     <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collpaseSettings" aria-expanded="true" aria-controls="collpaseSettings">
+         <i class="fas fa-users-cog"></i>
+          <span>Administration</span>
+        </a>
+        <div id="collpaseSettings" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
            <!--  <h6 class="collapse-header">Custom Components:</h6> -->
            <a class="collapse-item" th:href="@{/Admin/Role/}">Géstion des profiles</a>

@@ -19,5 +19,4 @@ public class BeanConfig {
 		bean.setTemplateLoaderPath("/templates/");
 		return bean;
 	}
-      
 }

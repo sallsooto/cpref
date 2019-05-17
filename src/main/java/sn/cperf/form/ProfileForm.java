@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import sn.cperf.model.Fonction;
 import sn.cperf.model.User;
 
 @NoArgsConstructor @AllArgsConstructor
@@ -19,9 +20,7 @@ public class ProfileForm {
 	private String email;
 	private String adresse;
 	private String phone;
-	private String fonction;
-	private String objectif;
-	private String activite;
+	private Fonction fonction;
 	private String photo;
 	private User userSup;
 	private MultipartFile file;

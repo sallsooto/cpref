@@ -1,21 +1,37 @@
 package sn.cperf.controller;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import sn.cperf.dao.FonctionRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.form.ProfileForm;
+import sn.cperf.model.Task;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
 import sn.cperf.service.StorageService;
@@ -26,6 +42,7 @@ public class UserController {
 	@Autowired UserRepository userRepository;
 	@Autowired CperfService cperfService;
 	@Autowired StorageService storageService;
+	@Autowired FonctionRepository fonctionRepository;
 	
 	@GetMapping("/Profile")
 	public String getProfileView(@RequestParam(name="uid", defaultValue="0") Long userId, Model model) {
@@ -40,10 +57,8 @@ public class UserController {
 					userForm.setId(user.getId());
 					userForm.setLastname(user.getLastname());
 					userForm.setFirstname(user.getFirstname());
-					userForm.setActivite(user.getActivite());
 					userForm.setFonction(user.getFonction());
 					userForm.setPhoto(user.getPhoto());
-					userForm.setObjectif(user.getObjectif());
 					userForm.setEmail(user.getEmail());
 					userForm.setPhone(user.getPhone());
 					userForm.setUserSup(user.getUserSup());
@@ -52,10 +67,8 @@ public class UserController {
 				userForm.setId(loged.getId());
 				userForm.setLastname(loged.getLastname());
 				userForm.setFirstname(loged.getFirstname());
-				userForm.setActivite(loged.getActivite());
 				userForm.setFonction(loged.getFonction());
 				userForm.setPhoto(loged.getPhoto());
-				userForm.setObjectif(loged.getObjectif());
 				userForm.setEmail(loged.getEmail());
 				userForm.setPhone(loged.getPhone());
 				userForm.setUserSup(loged.getUserSup());
@@ -68,6 +81,7 @@ public class UserController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		model.addAttribute("fonctions", fonctionRepository.findAll(Sort.by(Order.desc("id"))));
 		return "profile";
 	}
 	
@@ -95,10 +109,6 @@ public class UserController {
 					if(isAdmin) {
 						if(userForm.getFonction() != null)
 							user.setFonction(userForm.getFonction());
-						if(userForm.getActivite() != null)
-							user.setActivite(userForm.getActivite());
-						if(userForm.getObjectif() != null)
-							user.setObjectif(userForm.getObjectif());
 					}
 					if(userForm.getFile() != null) {
 						try {user.setPhoto(storageService.storeAvatar(userForm.getFile(),new String[] { "jpg", "jpeg", "png", "gif", "svg","ico" }));} catch (Exception e1) {e1.printStackTrace();}
@@ -122,6 +132,39 @@ public class UserController {
 			model.addAttribute("errorMsg", "Opération échouée !");
 			e.printStackTrace();
 		}
+		model.addAttribute("fonctions", fonctionRepository.findAll(Sort.by(Order.desc("id"))));
 		return "profile";
+	}
+
+
+	@RequestMapping(value = "/getUserPhoto", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<Resource> showProceduresPDf(@RequestParam(name="uid", defaultValue="0") Long userId) {
+		try {
+			User user = new User();
+			try {
+				if(userId != null && userId>0) {
+					Optional<User> opU = userRepository.findById(userId);
+					if(opU.isPresent())
+						user = opU.get();
+				}else {
+					user = cperfService.getLoged();
+				}
+			} catch (Exception e) {
+			}
+			String fileName = (user != null && user.getPhoto() != null) ? user.getPhoto() : "user.png";
+            Path file = storageService.getResolveFilePathWithEnDirConfig("spring.file.avatar-dir", fileName);
+            System.out.println(file);
+            Resource resource = new UrlResource(file.toUri());
+            if(resource.exists() || resource.isReadable()) {
+            	return ResponseEntity.ok().body(resource);
+            }
+            else {
+                System.out.println("no file");
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+		return null;
 	}
 }

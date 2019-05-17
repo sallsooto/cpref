@@ -34,18 +34,21 @@
 						<th colspan="2" class="p-1 text-center">
 							<div class="row">
 								<div class="col-sm-12 d-block d-md-none text-center">
-									<span class="d-inline-block chrono_span"></span>
+									<span class="d-inline-block badge badge-info chrono_span"></span><br/>
+									<small class="chrono_span_text"></small>
 								</div>
 								<div class="col-sm-12 col-md-9 text-center">
-									<h5 th:text="${process.label}"></h5>
+									<h5 th:text="${process.label}" class="text-info"></h5>
 									<small><span th:if="${process.description}" th:text="${'( '+process.description+' )'}"></span></small>
 								</div>
 								<div class="d-none d-md-block col-md-3 text-center">
-									<span class="d-inline-block chrono_span"></span>
+									<div class="badge chrono_span w-50 mt-1"></div><br/>
+										<small class="chrono_span_text"></small>
 								</div>
 							</div>
-							<input type="hidden" th:value="${#dates.format(process.previewStartDate, 'yyyy-MM-dd HH:mm')}" id="startDateContainer"/>
-							<input type="hidden" th:value="${#dates.format(process.previewFinishDate, 'yyyy-MM-dd HH:mm')}" id="endDateContainer"/>
+							<input type="hidden" th:value="${#dates.format(process.startAt, 'yyyy-MM-dd HH:mm')}" id="startDateContainer"/>
+							<input type="hidden" th:value="${#dates.format(process.maxDate, 'yyyy-MM-dd HH:mm')}" id="endDateContainer"/>
+							<input type="hidden" th:value="${process.isFinished}" id="isfinishContent"/>
 						</th>
 					</tr>
 				</thead>
@@ -99,7 +102,7 @@
 							<div style="width:150px;height:50px;overflow: auto; scroll:auto;cursor:pointer" class="d-inline-block p-1" 
 								data-toggle="popover" data-trigger="hover" data-placement="bottom" 
 								 th:title="Description" th:data-content="${task.description !=null ? task.description : ''}">
-								<a th:if="${task.fileDescriptionPath != null}" th:href="@{/Process/Task/File/Description/Show/{id}(id=${task.id})}" target="_blank" 
+								<a th:if="${task.fileDescriptionPath != null}" th:href="@{/Task/File/Description/Show/{id}(id=${task.id})}" target="_blank" 
 									th:class="${'task_label'+task.id+' align-text-middle'}"  th:text="${task.name}"></a>
 								<span th:if="${task.fileDescriptionPath == null}"  th:class="${'task_label'+task.id+' align-text-middle'}" th:text="${task.name}"></span>
 							</div>

@@ -9,37 +9,64 @@ $(document).ready(function(){
 	 location.reload();
  });
  // showing chrono
- var start_actual_time =$("#startDateContainer").val();
- var end_actual_time=$("#endDateContainer").val();
- if(typeof end_actual_time != typeof undefined && end_actual_time.length>0){
-	 showChronos(new Date(start_actual_time),new Date(end_actual_time),'.chrono_span');
-	 setInterval(() => {
-		 showChronos(new Date(start_actual_time),new Date(end_actual_time),'.chrono_span');
-	}, 60000);
- }
+ var start_actual_time_text =$("#startDateContainer").val();
+ var end_actual_time_text=$("#endDateContainer").val();
+ showChronos(start_actual_time_text,end_actual_time_text,'.chrono_span');
+ setInterval(() => {
+	 showChronos(start_actual_time_text,end_actual_time_text,'.chrono_span');
+}, 1000);
 // $('[data-toggle="tooltip"]').tooltip(
 //	        {container:'body', trigger: 'hover', placement:"bottom"});
 });
 
-function showChronos(start_actual_time,end_actual_time,chronoContainerSelector){
-	    var start_actual_time = (start_actual_time-new Date() >0) ? new Date() : start_actual_time;
+function showChronos(start_actual_time_text,end_actual_time_text,chronoContainerSelector){
+	var chronoContainer = $(chronoContainerSelector);
+	if(typeof start_actual_time_text != typeof undefined && end_actual_time_text.length>0){
+		var start_actual_time = new Date(start_actual_time_text);
+		var end_actual_time = new Date(end_actual_time_text);
+		var current_time = new Date();
+		var current_seondes = current_time.getSeconds();
+		var isFinish = $("#isfinishContent").val();
+		var expiredDate = false;
+		if(end_actual_time - current_time <0){
+			start_actual_time = end_actual_time;
+			end_actual_time = current_time;
+			expiredDate = true;
+		}else{
+			start_actual_time = current_time;
+		}
+	   // var start_actual_time = (start_actual_time-new Date() >0) ? new Date() : start_actual_time;
+		var finalText = "";
 		var diff = end_actual_time - start_actual_time;
-		var expiredDate = (diff > 0) ? false : true;
 		var diffSeconds = diff/1000;
+		var JJ = Math.floor(diffSeconds/86400);
+		console.log(JJ);
 		var HH = Math.floor(diffSeconds/3600);
 		var MM = Math.floor(diffSeconds%3600)/60;
 		HH = (HH<0)? (HH*(-1)) : HH;
 		MM = MM.toFixed(0);
-		var formatted = ((Math.abs(HH) < 10)?("0" + Math.abs(HH)):Math.abs(HH)) + "h et " + ((Math.abs(MM) < 10)?("0" + Math.abs(MM)+"mm"):Math.abs(MM) + "mm")
-		var chono_text = (!expiredDate) ? formatted + " retante(s)" : formatted + " dépassée(s)";
-		var chronoContainer = $(chronoContainerSelector);
+		var formatted = ((Math.abs(HH) < 10)?("0" + Math.abs(HH)):Math.abs(HH)) + "h et " + ((Math.abs(MM) < 10)?("0" + Math.abs(MM)+"mm"):Math.abs(MM) + "mm");
+		formatted = formatted + " et " + current_seondes + " S";
+		var chono_text = (!expiredDate) ?  "Retante(s)" :  " dépassée(s)";
 		if(typeof chronoContainer != typeof undefined && chronoContainer.length>0){
-			chronoContainer.text(chono_text);
-			if(expiredDate)
-				chronoContainer.removeClass('text-success').addClass('text-danger');
-			else
-				chronoContainer.removeClass('text-danger').addClass('text-success');
+			if(isFinish == true || isFinish=='true'){
+				chronoContainer.addClass('badge-dafault').html("<i class='fas fa-check-circle fa-lg text-success'><i/>");
+				$(".chrono_span_text").addClass('text-secndary font-weight-bold').text("Traité");
+			}else{
+				chronoContainer.text(formatted);
+				if(expiredDate){
+					chronoContainer.removeClass('badge-success').removeClass("badge-info").addClass('badge-danger');
+					$(".chrono_span_text").removeClass('text-success').removeClass("text-info").addClass('text-danger').text(chono_text);
+				}else{
+					chronoContainer.removeClass('badge-danger').removeClass("badge-info").addClass('badge-success');
+					$(".chrono_span_text").removeClass('text-danger').removeClass("text-info").addClass('text-success').text(chono_text);
+				}
+			}
 		}
+	}else{
+		chronoContainer.addClass('badge-dafault').html("<i class='fas fa-stop fa-lg text-danger'><i/>");
+		$(".chrono_span_text").addClass('text-secndary font-weight-bold').text("Non démmaré");
+	}
 }
 
 function drawLogigramme(data){

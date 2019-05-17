@@ -58,6 +58,36 @@
 												 <option th:each="sect : ${sections}" th:value="${sect.id}" th:text="${sect.name}"></option>
 											    </select>
 											</div>
+											<div class="form-group col-sm-12">
+												<label class="font-weight-bold" style="font-size:15px;">Renseignez la durée effective de la tâche :</label>
+												<div class="row">
+													<div class="col-sm-6 col-md-3">
+															<label>Nombre d'année(s) :</label>
+															<input type="number" min="0" step="1" name="nbYears" th:field="*{nbYears}" placeholder="Entrez le nombre d'années.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-2">
+															<label>Mois(s) :</label>
+															<input type="number" min="0" step="1" name="nbMonths" th:field="*{nbMonths}" placeholder="Entrez le nombre de mois.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-2">
+															<label>Jour(s) :</label>
+															<input type="number" min="0" step="1" name="nbDays" th:field="*{nbDays}" placeholder="Entrez le nombre de jours.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-2">
+															<label>Heure(s) :</label>
+															<input type="number" min="0" step="1" name="nbHours" th:field="*{nbHours}" placeholder="Entrez le nombre d'heures.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-3">
+															<label>Nombre de Minutes(s) :</label>
+															<input type="number" min="0" step="1" name="nbMinuites" th:field="*{nbMinuites}" placeholder="Entrez le nombre des minutes.."
+															class="form-control form-control-sm"/>
+													</div>
+												</div>
+											</div>
 											<!--  description content manager -->
 											<div class="form-group col-sm-12 col-md-4"> 
 												Type de description : 
@@ -146,7 +176,7 @@
 													 <select th:field="*{group}" class="from-control form-control-sm">
 												      <option th:each="group : ${groups}" th:value="${group.id}" th:text="${group.name}"></option>
 												    </select>
-												     <label value="">Séléctionnez le groupe des utilisateurs associé</label>
+												     <label>Séléctionnez le groupe des utilisateurs associé</label>
 												</div>
 											<!-- end users integration -->
 											<div class="form-group col-sm-12 col-md-12 input-field col s12" th:if="${tasks.size()>0}"> 

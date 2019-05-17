@@ -7,10 +7,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Set;
 
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
@@ -141,7 +146,7 @@ public class StorageServiceImpl implements StorageService {
 			}
 
 			// Copy file to the target location (Replacing existing file with the same name)
-			Path targetLocation = this.getDefaultDir("/static/images/avatars/").resolve(normalizeTargetFileName(file));
+			Path targetLocation = Paths.get(env.getProperty("spring.file.avatar-dir")).resolve(fileName);
 			Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 			return fileName;
 		} catch (IOException ex) {
@@ -178,4 +183,28 @@ public class StorageServiceImpl implements StorageService {
 		return null;
 	}
 
+	@Override
+	public Path getResolveFilePathWithEnDirConfig(String envConfigDirPropertyName, String fileName) {
+		try {
+			return Paths.get(env.getProperty(envConfigDirPropertyName)).resolve(fileName);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	public boolean createDirectoryByEnvironnementConfig(String envDirKey) {
+		Set<PosixFilePermission> permissions = PosixFilePermissions.fromString("rwxr--r--");
+        FileAttribute<Set<PosixFilePermission>> fileAttributes = PosixFilePermissions.asFileAttribute(permissions);
+		try {
+			Files.createDirectory(Paths.get(env.getProperty(envDirKey)));
+			return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+		}
+		return false;
+	}
 }
