@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/martial.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Process edition</title>
+<script th:src="@{/js/jquery.scrollTo.min.js}"></script>
+<link href="http://www.jqueryscript.net/css/jquerysctipttop.css"
+	rel="stylesheet" type="text/css">
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/1.0.1/svg.min.js"
+	th:src="@{/js/svg.js}"></script>
+<script th:src="@{/js/flowsvg.js}"></script>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Edition d\'un process',heading_link='/Process/List/',heading_link_text='Liste des process',heading_ico='fas fa-arrow-alt-circle-left')"></div>
+		<!-- row content -->
+			<div class="row">
+				<div class="col-sm-12 col-md-6 offset-md-3">
+					<div class="card">
+						<div class="card-header bg-info text-white">
+							<h5>
+								<span th:if="${process.id}" th:text="${' Mise à jour du process : '+process.label}">Mise à jour du process</span> 
+								<span th:if="!${process.id}">Nouveau process</span>
+								<a th:href="@{/Process/Edit}" th:if="${process.id}" class="btn-floating waves-effect waves-light d-inline-block float-right"><i class="material-icons">+</i></a>
+							</h5>
+						</div>
+						<div class="card-body pb-0">
+							<form th:action="@{/Process/Edit}" th:object="${process}" method="post" class="mshz-form-validate pb-0">
+								<input type="hidden" th:field="*{id}"/>
+								<div class="row p-0">
+									<div class="col-sm-12 col-md-12 p-0">
+										<div class="row">
+											<div th:if="${errorMsg}" class="col-sm-12">
+												<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+											</div>
+											<div th:if="${successMsg}" class="col-sm-12"> 
+												<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+											</div>
+											<div class="form-group col-sm-12">
+												<input type="text" name="label" th:field="*{label}" placeholder="Entrez le libellé ou le nom du process..."
+												class="form-control form-control-sm" data-mshz-required="true"/>
+												<div class="invalid-feedback">Donnez un nom au process !</div>
+											</div>
+											<!-- <div class="form-group col-sm-12 col-md-6">
+												<input type="text" name="previewStartDate" th:field="*{previewStartDate}"
+												 class="form-control form-control-sm datepicker" placeholder="Date prévue de démarrage..."/>
+											</div>
+											<div class="form-group col-sm-12 col-md-6">
+												<input type="text" name="previewFinishDate" th:field="*{previewFinishDate}" 
+												class="form-control form-control-sm datepicker" placeholder="Date prévu de fin du process..."/>
+											</div>
+											<div class="form-group col-sm-12 col-md-6" th:if="${process.id}">
+											  <input type="text" name="startDate" th:field="*{startDate}"
+											   class="form-control form-control-sm datepicker" placeholder="Date effective démarré.."/>
+											</div>
+											<div class="form-group col-sm-12 col-md-6" th:if="${process.id}">
+												<input type="text" name="finishDate" th:field="*{finishDate}" 
+													class="form-control form-control-sm datepicker" placeholder="Date effective terminé.."/>
+											</div> -->
+									          <div class="form-group col-sm-12 input-field col s12">
+									            <textarea th:field="*{description}" id="description" class="materialize-textarea"></textarea>
+									            <label for="description">Déscription du process</label>
+									          </div>
+											<div class="form-group col-sm-12 mb-0">
+												<button type="submit" class="btn btn-sm btn-outline-info float-right">Enregistrer</button>
+											</div>
+										</div>
+									</div>
+									<!-- col  --
+									<div class="col-sm-12 col-md-6">
+										<div class="row">
+											<div class="form-group col-sm-12 input-field">
+												 <select th:field="*{noProcessId}" class="from-control form-control-sm">
+											      <option value="">Séléctionnez les intervenant du process</option>
+											      <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstname + ' '+user.lastname}"></option>
+											    </select>
+											</div>
+										</div>
+									</div>
+									end col emps -->
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		<!-- row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<!-- <script type="text/javascript" th:src="@{/js/logigramme.js}"></script> -->
+	</div>
+</body>
+</html>

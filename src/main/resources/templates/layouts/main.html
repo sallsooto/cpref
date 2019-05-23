@@ -18,25 +18,27 @@
   <link th:href="@{/css/sb-admin-2.min.css}" type="text/css" rel="stylesheet">
   <link th:href="@{/css/style.css}" type="text/css" rel="stylesheet">
     <link th:href="@{/getorgchart/getorgchart.css}" rel="stylesheet" />
+    <!-- datepicker css -->
+  <link rel="stylesheet" type="text/css" th:href="@{/css/plugins/tempusdominus-bootstrap-4.css}"/>
+  <link rel="stylesheet" type="text/css" th:href="@{/css/plugins/bootstrap-timepicker.css}"/>
+  <link rel="stylesheet" type="text/css" th:href="@{/css/plugins/angular-datepicker.css}"/>
   <style th:fragment="addon-styles-content"></style>
   
   <!-- -- [SCRIPT] -->
     <script th:src="@{/getorgchart/getorgchart.js}"></script>
-    <!-- angular -->
-  <script th:src="@{/js/plugins/angular.min.js}"></script>
   <!-- Bootstrap core JavaScript-->
   <script th:src="@{/lib/jquery/jquery.min.js}"></script>
-  <script th:src="@{/lib/bootstrap/js/bootstrap.bundle.min.js}"></script>
 
   <!-- Core plugin JavaScript-->
   <script th:src="@{/lib/jquery-easing/jquery.easing.min.js}"></script>
-
-  <!-- Custom scripts for all pages-->
-  <script th:src="@{/js/sb-admin-2.min.js}"></script>
-	<script th:src="@{/lib/js/mshz.form_validator.js}"></script>
+    <!-- angular -->
+  <script th:src="@{/js/plugins/angular.min.js}"></script>
+  <script th:src="@{/js/plugins/angular-strap.min.js}"></script>
+  <script th:src="@{/js/plugins/angular-strap.tpl.min.js}"></script>
+  <script th:src="@{/js/app_ng.js}"></script>
 </head>
 
-<body id="page-top">
+<body id="page-top" data-ng-app="Cperf">
 
   <!-- Page Wrapper -->
   <div id="wrapper">
@@ -104,7 +106,19 @@
       </div>
     </div>
   </div>
+  <!-- end modal alert danger action -->
+  <script th:src="@{/js/plugins/popper.min.js}"></script>
+  <script th:src="@{/js/plugins/bootstrap.min.js}"></script>
+
+  <!-- Custom scripts for all pages-->
+  <script th:src="@{/js/sb-admin-2.min.js}"></script>
+  <script th:src="@{/lib/js/mshz.form_validator.js}"></script>
   <script th:src="@{/js/main.js}"></script>
+  <!-- datepicker scripts -->
+  <script type="text/javascript" th:src="@{/js/plugins/moment.js}"></script>
+  <script type="text/javascript" th:src="@{/js/plugins/tempusdominus-bootstrap-4.js}"></script>
+  <script type="text/javascript" th:src="@{/js/plugins/datepicker.js}"></script>
+  <script type="text/javascript" th:src="@{/js/plugins/angular-datepicker.js}"></script>
   <div layout:fragment="addon-scripts-content"></div>
 </body>
 </html>

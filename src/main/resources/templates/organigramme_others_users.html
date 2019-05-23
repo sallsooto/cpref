@@ -11,14 +11,13 @@
 <meta name="description" content="">
 <meta name="author" content="">
 <title>Organigrame autres utilisateurs</title>
-<script th:src="@{/js/ng_organigramme.js}"></script>
 </head>
-<body data-ng-app="orgModule" data-ng-controller="OrganigrammeCtrl">
-	<div class="container-fluid" layout:fragment="content" data-ng-init="getUsers();">
+<body>
+	<div class="container-fluid" layout:fragment="content">
 		<!-- Page Heading -->
-		<div th:replace="fragments/main_content_heading::heading(heading_text='Organigramme : Uitlisateurs rétirés')"></div>
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Organigramme : Uitlisateurs rétirés',heading_link='/Organigramme/',heading_link_text='Organigramme',heading_ico='fas fa-sitemap')"></div>
 		<!-- content -->
-			<div class="class row">
+			<div class="class row" data-ng-controller="OrganigrammeCtrl" data-ng-init="getUsers();">
 				<div class="col-sm-12">
 					<div class="card border-0 p-0 bg-transparent">
 						<div class="card-body p-0 bg-info">
@@ -94,7 +93,7 @@
 										<td class="text-center">
 											<a href="#" title="Ajouter dans le diagramme" data-userId="{{user.id}}" data-ng-click="addInDiagramme($event)"
 											class="text-decoration-none mr-3"> <i
-												class="fas fa-sitemap fa_table_link text-info p-1" data-userId="{{user.id}}" data-ng-click="addInDiagramme($event)"></i>
+												class="fas fa-users fa_table_link text-info p-1" data-userId="{{user.id}}" data-ng-click="addInDiagramme($event)"></i>
 										</a>
 										</td>
 									</tr>

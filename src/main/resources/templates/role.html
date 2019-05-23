@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Profile</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Gestion de droits')"></div>
+		<!-- row content -->
+		<div class="row">
+			<div class="col-sm-12 col-md-10 offset-md-1">
+				<div class="card">
+					<div class="card-body">
+						<div class="row">
+							<!-- col form -->
+							<div class="col-sm-12 col-md-4">
+								<form th:object="${form}" th:action="@{/Admin/Role}" method="POST" class="row mshz-form-validate">
+									<div class="form-group col-sm-12 text-right" th:if="${form.id}">
+										<a th:href="@{/Admin/Role}" title="Actualiser"><i class="fas fa-sync-alt"></i></a>
+									</div>
+									<input type="hidden" th:field="*{id}"/>
+									<div th:if="${errorMsg}" class="col-sm-12">
+										<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+									</div>
+									<div th:if="${successMsg}" class="col-sm-12"> 
+										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+									</div>
+									<div class="form-group col-sm-12">
+										<label class="control-label" for="role">Libellé :</label>
+										<input type="text" id="role" th:field="*{role}" th:if="!${form.id}"
+										 placeholder="Entrez le nom du profile ici.." class="form-control form-control-sm" data-mshz-required="true" />
+										<input type="text" id="role" th:field="*{role}" th:if="${form.id}" readOnly
+										 placeholder="Entrez le nom du profile ici.." class="form-control form-control-sm" data-mshz-required="true"/>
+										 <div class="invalid-feedback">Ce champs est obligatoire!</div>
+									</div>
+									<div class="form-group col-sm-12">
+										<label class="control-label" for="description">Descritpion :</label>
+										<textarea id="description" th:field="*{description}"
+										 placeholder="Décrivez le profile ici.." class="form-control form-control-sm"/></textarea>
+										 <div class="invalid-feedback">Ce champs a des erreurs!</div>
+									</div>
+									<div class="form-group col-sm-12" th:if="!${form.id}">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm">Enregistrer</button>
+									</div>
+									<div class="form-group col-sm-12" th:if="${form.id}">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm">Mofidier</button>
+									</div>
+								</form>
+							</div>
+							<!-- col table list -->
+							<div class="col-sm-12 col-md-8 border-left border-info">
+								<table class="table table-bordered" th:if="${roles.size()>0}">
+									<thead>
+										<tr><th>Nom</th><th>Description</th><th>Action</th></tr>
+									</thead>
+									<tbody>
+										<tr th:each="role : ${roles}">
+											<td th:text="${role.role}"></td>
+											<td th:text="${role.description}"></td>
+											<td><a th:href="@{/Admin/Role/(id=${role.id})}">Modifer</a></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<!-- end col table -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript" th:src="@{/js/profile.js}"></script>
+	</div>
+</body>
+</html>

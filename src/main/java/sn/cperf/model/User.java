@@ -41,11 +41,15 @@ public class User implements Serializable,UserDetails{
 	private String email;
 	private String adresse;
 	private String phone;
-	private String fonction;
-	private String objectif;
 	private String activite;
 	@Column(columnDefinition="boolean default true")
 	private boolean organigramme = true;
+	
+	@ManyToOne(cascade=CascadeType.PERSIST)
+	@JoinColumn(name="fonction_id")
+	@JsonManagedReference
+	private Fonction fonction;
+	
 	public String getActivite() {
 		return activite;
 	}
@@ -77,16 +81,22 @@ public class User implements Serializable,UserDetails{
 	@JoinTable(name = "users_roles", 
 		joinColumns = { @JoinColumn(name = "user_id") },
 		inverseJoinColumns = {@JoinColumn(name = "role_id") })
+	@JsonManagedReference
 	private List<Role> roles;
+	@ManyToMany(mappedBy="users")
+	private List<Group> groupes;
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		Collection<GrantedAuthority> autorities = new ArrayList<>();
 		this.getRoles().forEach(role ->{
 			autorities.add(new SimpleGrantedAuthority(role.getRole().toUpperCase()));
 		});
+		this.getGroupes().forEach(g->{
+			autorities.add(new SimpleGrantedAuthority(g.getRole().getRole().toUpperCase()));
+		});
 		// set default autority for all users
-		autorities.add(new SimpleGrantedAuthority("ALL_USERS"));
-		return null;
+		autorities.add(new SimpleGrantedAuthority("user"));
+		return autorities;
 	}
 	@Override
 	public String getPassword() {
@@ -186,7 +196,14 @@ public class User implements Serializable,UserDetails{
 		this.valid = valid;
 	}
 	public List<Role> getRoles() {
-		return roles;
+		List<Role> distinctsRoles = new ArrayList<>();
+		if(!roles.isEmpty()) {
+			for(Role role : roles) {
+				if(!distinctsRoles.contains(role))
+					distinctsRoles.add(role);
+			}
+		}
+		return distinctsRoles;
 	}
 	public void setRoles(List<Role> roles) {
 		this.roles = roles;
@@ -197,22 +214,39 @@ public class User implements Serializable,UserDetails{
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getFonction() {
+	
+	public Fonction getFonction() {
 		return fonction;
 	}
-	public void setFonction(String fonction) {
+	public void setFonction(Fonction fonction) {
 		this.fonction = fonction;
-	}
-	public String getObjectif() {
-		return objectif;
-	}
-	public void setObjectif(String objectif) {
-		this.objectif = objectif;
 	}
 	public boolean isOrganigramme() {
 		return organigramme;
 	}
 	public void setOrganigramme(boolean organigramme) {
 		this.organigramme = organigramme;
+	}
+	
+	public boolean hasRole(String role) {
+		for(Role r : this.getRoles()) {
+			if(r.getRole().equals(role) || r.getRole().equals(role.toUpperCase()) ||
+			   r.getRole().equals("ROLE_"+role) || r.getRole().equals(("ROLE_"+role).toUpperCase()))
+				return true;
+		}
+		if(this.getAuthorities() != null) {
+			for(GrantedAuthority auth : this.getAuthorities()) {
+				if(auth.getAuthority().equals(role) || auth.getAuthority().equals(role.toUpperCase()) ||
+				   auth.getAuthority().equals("ROLE_"+role) || auth.getAuthority().equals(("ROLE_"+role).toUpperCase()))
+					return true;
+			}
+		}
+		return false;
+	}
+	public List<Group> getGroupes() {
+		return groupes;
+	}
+	public void setGroupes(List<Group> groupes) {
+		this.groupes = groupes;
 	}
 }

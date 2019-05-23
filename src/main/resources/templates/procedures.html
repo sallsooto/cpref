@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Liste procedures</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Procedures',heading_link='/Procedure/',heading_link_text='Actualiser',heading_ico='fas fa-sync')"></div>
+		<!-- content -->
+			<div class="class row " data-ng-controller="ProcedureCtrl" data-ng-init="getProcedures();">
+				<div class="col-sm-12">
+					<div class="card border-0 p-0 bg-transparent">
+						<div class="card-body p-0 bg-info">
+							<table class="table table-sm table-bordered mt-3 bg-light">
+								<thead class="text-info text-uppercase text-center">
+								<tr>
+									<td colspan="30">
+										
+							<!--=========== row de control ================-->
+							<div class="row ml-1 mr-1">
+								<div class="d-none d-md-block col-md-2 form-group">
+									<label class="control-label"><small>Max lignes/page :</small></label> <input type="number" min="1"
+										data-ng-model="size"
+										class="form-control form-control-sm"
+										data-ng-change="getProcedures();"/>
+								</div>
+								<div class="d-none d-md-block col-md-2 form-group">
+									<label class="control-label"><small>Trier par :</small></label>
+									<select data-ng-model="orderField"
+										class="form-control form-control-sm">
+										<option value="storeAt">Date Intégration</option>
+										<option value="name">Nom</option>
+									</select>
+								</div>
+								<div class="d-none d-md-block col-md-2 form-group">
+									<label class="control-label"><small>Ordre :</small></label> <select
+										data-ng-model="orderFieldReverse"
+										class="form-control form-control-sm">
+										<option value="-" selected="selected">Déscendant</option>
+										<option value="+">Ascendant</option>
+									</select>
+								</div>
+								<div class="col-sm-6 col-md-3  form-group">
+									<label class="control-label"><small>Rechercher :</small></label> <input type="text"
+										data-ng-model="$parent.searchField"
+										class="form-control form-control-sm"
+										placeholder="Rechercher par nom ou prénom..."
+										data-ng-change="getProcedures();" />
+								</div>
+								<div class="d-none d-md-block col-md-2"></div>
+								<div class="col-sm-6 col-md-1 form-group pt-2">
+									<label class="control-label"></label>
+									<a th:href="@{/Procedure/Edit/}" class="btn btn-outline-info btn-sm mt-4" title="Intégrer un procedure">
+										<i class="fas fa-plus"></i>
+									</a>
+								</div>
+							</div>
+							<!-- ========== end row de control =====-->
+									</td>
+								</tr>
+									<tr>
+										<th class="text-left pl-3">Nom du procédure</th>
+										<th>Fichier assosié</th>
+										<th class="text-center">Action</th>
+									</tr>
+								</thead>
+								<tbody class="text-center">
+									<tr data-ng-if="procedures.content.length>0"
+										data-ng-repeat="procedure in procedures.content | orderBy:orderFieldReverse+orderField">
+										<td class="text-left pl-3">{{replaceWithNullOrBlank(procedure.name,"Sans nom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
+										<td data-ng-if="procedure.filePath != null"><a th:href="@{/Procedure/Show/{{procedure.id}}/}" target="_blank" title="Lire fichier"> {{replaceWithNullOrBlank(procedure.filePath,"Sans fichier")}}</a></td>
+										<td data-ng-if="procedure.filePath == null">Sans fichier</td>
+										<td class="text-center">
+											<a th:href="@{/Procedure/Edit?pid={{procedure.id}}}" title="Modfier" class="text-decoration-none mr-3">
+												 <i class="fas fa-edit fa_table_link text-info p-1"></i>
+											</a>
+											<a th:href="@{/Procedure/{{procedure.id}}/del}" title="Supprimer" class="text-decoration-none mr-3">
+												 <i class="fas fa-trash-alt fa_table_link text-danger p-1"></i>
+											</a>
+										</td>
+									</tr>
+									<tr data-ng-if="procedures.content.length<=0">
+										<td colspan="30"  class="text-center">
+											<h5>Zéro utilisateur trouvé !</h5>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							<!-- =========== PAGINATION ============= -->
+							<nav aria-label="..." data-ng-if="pages.length>0" class="">
+								<ul class="pagination float-right" style="margin:-12px 1px 3px 1px;">
+									<!--<li class="page-item" data-ng-if="{pages.length-$parent.page>1}">
+										<a class="page-link" href="#" tabindex="-1">Previous</a>
+									</li> -->
+								   <li data-ng-repeat="p in pages" class="page-item" 
+								   	     data-ng-class="{'active': $parent.page==p}">
+								   		<button  type="button" class="page-link" data-pageIndex="{{p}}" 
+								   		data-ng-click="changePage($event)">{{p+1}}</button>
+								   </li>
+								   <!-- <li class="page-item"><a class="page-link" data-ng-if="false">Next</a></li> -->
+								</ul>
+							</nav>
+							<!-- ================ AND PAGINATION -->
+						</div>
+					</div>
+				</div>
+			</div>
+		<!-- content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+	</div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+package sn.cperf.form;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import sn.cperf.model.Fonction;
+import sn.cperf.model.User;
+
+@NoArgsConstructor @AllArgsConstructor
+@Getter @Setter
+public class ProfileForm {
+	private Long id;
+	private String firstname;
+	private String lastname;
+	private String username;
+	private String password;
+	private String email;
+	private String adresse;
+	private String phone;
+	private Fonction fonction;
+	private String photo;
+	private User userSup;
+	private MultipartFile file;
+}

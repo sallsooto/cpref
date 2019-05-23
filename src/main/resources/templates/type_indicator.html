@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/martial.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Type Indicateur</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Gestion des types d\'indicateurs')"></div>
+		<!-- row content -->
+		<div class="row">
+			<div class="col-sm-12 col-md-12">
+				<div class="card  border-success">
+					<div class="card-header"><h4 class="text-success">Gestion de types d'indicateurs</h4></div>
+					<div class="card-body">
+						<div class="row">
+							<!-- col form -->
+							<div class="col-sm-12 col-md-4">
+								<form th:object="${form}" th:action="@{/Objectif/Indicator/Type}" method="POST" class="row mshz-form-validate">
+									<div class="form-group col-sm-12 text-right" th:if="${form.id}">
+										<a th:href="@{/Objectif/Indicator/Type}" title="Actualiser"><i class="fas fa-sync-alt"></i></a>
+									</div>
+									<input type="hidden" th:field="*{id}"/>
+									<input type="hidden" th:field="*{valid}"/>
+									<div th:if="${errorMsg}" class="col-sm-12">
+										<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+									</div>
+									<div th:if="${successMsg}" class="col-sm-12"> 
+										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+									</div>
+									<div class="form-group col-sm-12 col s12">
+										<label>Libellé ou type <span class="text-danger">*</span> :</label>
+										<input type="text" id="name" th:field="*{type}" 
+										 placeholder="Entrez le nom du type ici.." class="form-control form-control-sm" data-mshz-required="true" />
+										 <div class="invalid-feedback">Ce champs est obligatoire!</div>
+									</div>
+									<div class="form-group col-sm-7 col s7"> 
+										Mésurable en nombre ou chiffre : 
+									</div>
+									<div class="form-group col-sm-5 col s5">
+										<label>
+									      <input class="with-gap" type="radio" th:field="*{withExpectedNumberResult}" value="true"/>
+									      <span>Oui</span>
+									    </label>
+										<label>
+									      <input class="with-gap" type="radio" name="" th:field="*{withExpectedNumberResult}" value="false"/>
+									      <span>Non</span>
+									    </label>
+									</div>
+									<div class="form-group col-sm-12" th:if="!${form.id}">
+										<button type="submit" class="btn btn-sm btn-outline-success form-control form-control-sm">Enregistrer</button>
+									</div>
+									<div class="form-group col-sm-12" th:if="${form.id}">
+										<button type="submit" class="btn btn-sm btn-outline-success form-control form-control-sm">Mofidier</button>
+									</div>
+								</form>
+							</div>
+							<!-- col table list -->
+							<div class="col-sm-12 col-md-8 border-left border-success">
+								<ul class="list-group" th:if="${typesIndicators.size()>0}">
+									<li class="list-group-item" th:each="indic : ${typesIndicators}">
+										<div class="row">
+											<div class="col-sm-8 col-md-9 text-left">
+													<span th:text="${indic.type}" class="font-weight-bold text-info"></span>
+													<span class="text-center" th:text="${indic.withExpectedNumberResult ? ' ( Mésurable en nombre ou chiffre )' : ' ( Non mésurable en nombre ou chiffre )' }"></span>
+											</div>
+											<div class="col-sm-4 col-md-3 text-right">
+											   <!-- Switch -->
+												  <div class="switch d-inline-block">
+												    <label>
+												      <input type="checkbox" th:checked="${indic.valid}" th:data-typeIndicatorId="${indic.id}" class="swithStatInput">
+												      <span class="lever"></span>
+												       <small th:class="${'statusTextContent'+indic.id}" th:text="${indic.valid ? 'Actif' : 'Inactif'}">Active</small>
+												    </label>
+												  </div>
+												  <a th:href="@{/Objectif/Indicator/Type/(tindid=${indic.id})}" class="fa_table_link ml-2 border-left pl-2" title="modifier">
+												  	<i class="fas fa-edit"></i>
+												  </a>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+							<!-- end col table -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".swithStatInput").on('click',function(){
+					var typeIndicatorId = $(this).attr('data-typeIndicatorId');
+					var textContainerClassNameSelector = ".statusTextContent"+typeIndicatorId;
+					$.ajax({
+						url : '/Objectif/Indicator/Type/changeValidStatus/?tindid='+typeIndicatorId+'&valid='+$(this).is(':checked'),
+						method : 'get',
+						contentType : 'json',
+						success : function(res){
+							if(res.status == true){
+								$(textContainerClassNameSelector).text(res.msg);
+							}
+						},
+						error : function(e){
+							console.log(e);
+						}
+					});
+				});
+			});
+		</script>
+	</div>
+</body>
+</html>

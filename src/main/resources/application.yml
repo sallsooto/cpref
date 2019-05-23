@@ -47,8 +47,9 @@ spring:
       max-request-size: 215MB
   
   file:
-    upload-dir: ../
-    avatar-dir: ./src/main/resources/static/images/avatars
+    upload-dir: ./uploads/
+    img-dir: ./uploads//images/
+    avatar-dir: ./uploads/images/avatars/
         
         
         

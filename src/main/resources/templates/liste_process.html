@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Liste des process</title>
+<script th:src="@{/js/jquery.scrollTo.min.js}"></script>
+<link href="http://www.jqueryscript.net/css/jquerysctipttop.css"
+	rel="stylesheet" type="text/css">
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading --
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Liste des process')"></div>-->
+		<!--row content-->
+		<div class="card shadow mb-4">
+			<div class="card-header py-3">
+				<div class="row">
+				<h6 class="m-0 mt-md-2 font-weight-bold text-primary col-sm-12 col-md-6">
+					Liste des process <a th:href="@{/Process/List/}" class="btn btn-sm btn-success" th:if="${param.s}">Actualiser</a>
+				</h6>
+				<!-- Topbar Search -->
+				<form th:action="@{/Process/List/}" method="get"
+					class="d-inline-block form-inline float-right col-sm-12 col-md-6 navbar-search">
+					<div class="input-group">
+						<input type="text" name="s" class="form-control bg-light small"
+							placeholder="Rechercher un process..." aria-label="Search"
+							aria-describedby="basic-addon2" th:value="${param.s}">
+						<div class="input-group-append">
+							<button class="btn btn-primary" type="submit">
+								<i class="fas fa-search fa-sm"></i>
+							</button>
+						</div>
+					</div>
+				</form>
+				</div>
+			</div>
+			<div class="card-body">
+				<div class="table-responsive">
+					<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+						<thead>
+							<tr>
+								<th>Libellé</th>
+								<th>Démarré le </th>
+								<th class="text-center">Date maximum de fin de traitement</th>
+								<th>Editeur</th>
+								<th colspan="3" class="text-center">Action</th>
+							</tr>
+						</thead>
+						<tbody th:each="p : ${processes}">
+							<tr>
+								<td th:text="${p.label}"></td>
+								<td th:text="${p.startAt != null ? #dates.format(p.startAt, 'dd/MM/yyyy à HH:mm') : 'Non démarré'}" th:class="${'startAtContent'+p.id}"></td>
+								<td th:text="${p.startAt != null ? #dates.format(p.maxDate, 'dd/MM/yyyy à HH:mm') : 'Pas encore démarré'}" th:class="${'maxDateContent'+p.id+' text-center'}"></td>
+								<td th:text="${p.editor != null ? p.editor.firstname + ' '+p.editor.lastname : ''}"></td>
+								<td><a th:href="@{/Process/Edit/(pid=${p.id})}" title="Modifier"><i class="fas fa-pen-alt"></i></a></td>
+								<td>
+									<span th:text="${p.sections.size()+' section(s)'}"></span>
+									<a th:if="${p.sections.size()>0}" href="#" class="collapsed" data-toggle="collapse" th:data-target="${'#secpid'+p.id}"
+										 aria-expanded="true" aria-controls="collpsesection" title="Afficher/Cacher"><i class="fas fa-eye text-dark"></i></a> |
+									<a th:href="@{/Process/Section/Edit/(pid=${p.id})}" title="Ajouter une section"><i class="fas fa-plus"></i></a>
+								</td>
+								<td>
+									<a th:href="@{/Process/Logigramme/(pid=${p.id})}" title="logigramme"> 
+										<i class="fas fa-sitemap fa_table_link text-info p-1"></i>
+								   	</a>
+									<a th:class="${p.startAt != null ? 'processStopper' : 'd-none processStopper'}" href="#" title="Arrêter" 
+									   th:id="${'stopProcess' +p.id}" th:data-replaceBtnId="${'startProcess' +p.id}" th:data-processId="${p.id}"
+									   th:data-startAtContentClassName="${'startAtContent'+p.id}" th:data-maxDateContentClassName="${'maxDateContent'+p.id}"> 
+										<i class="fas fa-stop fa_table_link text-secondary p-1"></i>
+								   	</a>
+									<a th:class="${p.startAt != null ? 'd-none processStarter' : 'processStarter'}" href="#" title="Démarrer"
+									 th:id="${'startProcess' +p.id}" th:data-replaceBtnId="${'stopProcess' +p.id}" th:data-processId="${p.id}"
+									 th:data-maxDateContentClassName="${'maxDateContent'+p.id}"  th:data-startAtContentClassName="${'startAtContent'+p.id}"> 
+										<i class="fas fa-play fa_table_link text-success p-1"></i>
+								   	</a>
+									<a th:href="@{/Process/{id}/del(id=${p.id})}" title="Supprimer" class="text-decoration-none mr-3">
+										 <i class="fas fa-trash-alt fa_table_link text-danger p-1"></i>
+									</a>
+								</td>
+							</tr>
+							<!-- section tr -->
+								<tr th:if="${p.sections.size()>0}" th:id="${'secpid'+p.id}" class="collapse" aria-labelledby="section">
+									<td colspan="30">
+										<table class="table">
+											<thead>
+												<tr>
+													<th>Libellé de la section</th><th>Taches</th><th>Action</th>
+												</tr>
+											</thead>
+											<tbody th:each="section : ${p.sections}">
+												<tr>
+													<td th:text="${section.name}"></td>
+													<td>
+														<small th:text="${section.tasks.size() + ' tache(s)'}"></small>
+														<small th:if="${section.tasks.size()>0}">
+														<a href="#" class="collapsed" data-toggle="collapse" th:data-target="${'#tasksid'+section.id}"
+															 aria-expanded="true" aria-controls="collpsetask" title="Afficher/Chacher">
+															 <i class="fas fa-eye"></i></a></small> |
+														     <small><a th:href="@{/Process/Task/Edit(sid=${section.id})}">Ajouter</a></small>
+													</td>
+													<td><small><a th:href="@{/Process/Section/Edit(pid=${p.id},sid=${section.id})}">Modfier</a></small></td>
+												</tr>
+												<!-- taches tr -->
+												<tr th:if="${section.tasks.size()>0}" th:id="${'tasksid'+section.id}" class="collapse" aria-labelledby="tâches">
+													<td colspan="100">
+														<table class="table text-center">
+															<thead>
+																<tr class="bg-info text-light pt-0 pb-0">
+																	<th>Nom de la tâche</th><th>Status</th><th>Tâche parente</th>
+																	<th>Utilisateurs assosiés</th><th>Groupe assosié</th><th>Action</th>
+																</tr>
+															</thead>
+															<tbody>
+																<tr th:each="task : ${section.tasks}">
+																	<td th:text="${task.name}"></td>
+																	<td th:text="${(task.status == 'valid') ? 'En état de traitement' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}"></td>
+																	<td th:text="${task.parent != null ? task.parent.name : 'Aucne'}"></td>
+																	<td>
+																		<div th:if="${task.AllUsers.size()>0}">
+																			<span th:each="user : ${task.AllUsers}" th:text="${user.firstname + ' '+user.lastname + ' ;  '}"></span>
+																		</div>
+																	</td>
+																	<td>
+																		<span th:if="${task.group}" th:text="${task.group.name}"></span>
+																		<span th:if="!${task.group}">Pas de groupe associé</span>
+																	</td>
+																	<td class="text-center">
+																		<small><a th:href="@{/Process/Task/Edit(sid=${section.id},tid=${task.id})}">Modfier</a></small>
+																	</td>
+																</tr>
+															</tbody>
+														</table>
+													</td>
+												</tr>
+												<!-- tache tr -->
+											</tbody>
+										</table>
+									</td>
+								</tr>
+							<!-- end section tr -->
+							</tbody>
+							<tbody  th:if="${processes.size()<=0}">
+							<tr>
+								<td colspan="20">Zéro process trouvé !</td>
+							</tr>
+						</tbody>
+					</table>
+					<!-- =========== PAGINATION ============= -->
+					<nav aria-label="..." th:if="${pages>0}" class="">
+						<ul class="pagination float-right" style="margin:-12px 1px 3px 1px;">
+							<!--<li class="page-item" data-ng-if="{pages.length-$parent.page>1}">
+								<a class="page-link" href="#" tabindex="-1">Previous</a>
+							</li> -->
+						   <li th:each="p : ${#numbers.sequence(0, pages-1)}" class="page-item" 
+						   	     th:class="${(p==currentPage) ? 'active page-item' : 'page-item'}">
+						   		<a th:href="@{/Process/List/(page=${p})}" type="button" class="page-link" th:text="${p+1}"></a>
+						   </li>
+						   <!-- <li class="page-item"><a class="page-link" data-ng-if="false">Next</a></li> -->
+						</ul>
+					</nav>
+					<!-- ================ AND PAGINATION -->
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<!-- manager play or stop proccess script -->
+			<script type="text/Javascript">
+				$(document).ready(function(){
+					$(".processStopper").on('click',function(e){
+						e.preventDefault();
+						var element = $(this);
+						playOrStopProcess(element,false);
+					});
+					$(".processStarter").on('click',function(e){
+						e.preventDefault();
+						var element = $(this);
+						console.log(element.attr('data-replaceBtnId'));
+						playOrStopProcess(element,true);
+					});
+				});
+				var playOrStopProcess = function(triggerElement,playStat){
+					if(triggerElement.length>0){
+						var processId = triggerElement.attr('data-processId');
+						var replaceElement = $('#'+triggerElement.attr('data-replaceBtnId'));
+						var startAtContent = $('.'+triggerElement.attr('data-startAtContentClassName'));
+						var maxDateContent = $('.'+triggerElement.attr('data-maxDateContentClassName'));
+						$.ajax({
+							url : '/Process/playOrStop/?pid='+processId+'&play='+playStat,
+							mathod : 'get',
+							contentType : 'json',
+							success : function(res){
+								if(res.success == true && replaceElement.length>0){
+									triggerElement.addClass('d-none');
+									replaceElement.removeClass('d-none');
+									startAtContent.text(res.startAt);
+									maxDateContent.text(res.maxDate);
+								}
+							},
+							error : function(e){
+								console.log(e);
+							}
+						});
+					}
+				};
+			</script>
+		<!-- end manager play or stop proccess script -->
+	</div>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/martial.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Objectifs-Indicateurs</title>
+<script th:src="@{/js/jquery.scrollTo.min.js}"></script>
+<link href="http://www.jqueryscript.net/css/jquerysctipttop.css"
+	rel="stylesheet" type="text/css">
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:if="${objectif}"
+			 th:replace="fragments/main_content_heading::heading(heading_text='Objectifs-Indicateurs',heading_link=${'/Objectif/?fid='+objectif.fonction.id},heading_link_text='Liste des objectifs',heading_ico='fas fa-arrow-circle-left')">
+		</div>
+		<div th:if="${objectif}" class="card">
+			<div class="card-header bg-danger text-white text-center">
+				<h5 th:text="${'Indicateurs de l''objectif << ' + objectif.name+' >> de l''acteur << '+objectif.fonction.name+' >>'}">Indicateurs</h5>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<!-- col data -->
+					<div class="col-sm-12 col-md-8">
+					  	<ul th:if="${indicators.size()>0}" class="list-group">
+					  		<li class="list-group-item active">Liste des indicateurs
+					  			<a th:if="${selectedIndicator != null && selectedIndicator.id != null}"
+					  				 th:href="@{/Objectif/Indicator(objid=${param.objid})}" title="Actualisez la vue"
+					  				 class="btn btn-outline-warning btn-sm float-right mt-0">
+									<i class="fas fa-sync"></i>
+								</a>
+					  		</li>
+					  		<li th:each="indicator : ${indicators}" 
+					  			th:class="${indicator.id==selectedIndicator.id ? 'list-group-item list-group-item-action border-warning bg-white' : 'list-group-item list-group-item-action bg-white'}">
+					  			<div class="row align-items-center">
+					  				<div class="col-sm-12 col-md-9 cursor-pointer">
+										<a th:href="@{/Objectif/Indicator/(indid=${indicator.id},objid=${param.objid})}" class="text-decoration-none font-wieght-bold text-secondary">
+											<span th:text="${indicator.label}" class="text-capitalize font-weight-bold"></span>
+										</a>
+									</div>
+					  				<div class="col-sm-12 col-md-3 text-center">
+					  					<div class="row align-items-center">
+					  						<div class="col-sm-6 col-md-4 text-center">
+						  					    <a title="Details" data-toggle="collapse" href="#" role="button" 
+						  					    	th:data-target="${'#detailIndicator'+indicator.id}" aria-expanded="false" aria-controls="collapseExample">
+								  					<i class="fas fa-eye"></i>
+								  				</a>
+							  				</div>
+					  						<!-- div edit button -->
+					  						<div class="col-sm-6 col-md-4 text-center">
+									  			<a th:href="@{/Objectif/Indicator/(indid=${indicator.id},objid=${param.objid})}" class="text-decoration-none text-secondary d-inline-block">
+							  						<i class="fas fa-edit text-secondary" title="modifier"></i>
+									  			</a>
+					  						</div>
+					  						<!-- div delete button -->
+					  						<div class="col-sm-6 col-md-4 text-right" th:if="${indicator.id != null}">
+									  			<a th:href="@{/Objectif/Indicator/{id}/del(id=${indicator.id})}" class="text-decoration-none text-danger d-inline-block">
+							  						<i class="fas fa-minus-circle" title="supprimer"></i>
+									  			</a>
+					  						</div>
+					  					</div>
+					  				</div>
+					  			</div>
+			  					<!-- row details -->
+		  						<div class="row collapse" th:id="${'detailIndicator'+indicator.id}">
+		  							<div class="d-none d-md-block col-md-4 text-letf">
+		  								<div class="text-secondary">
+			  								<small class="text-danger font-weight-bold">Resultat éditable par l'acteur : </small>
+			  								<small class="text-capitalize" th:text="${indicator.questionResolvableByActor ? ' Oui' : ' Non'}"></small>
+		  								</div>
+		  							</div>
+		  							<div class="d-none d-md-block col-md-4 text-center">
+		  								<div class="text-secondary">
+			  								<small class="text-danger font-weight-bold">Resultat ou qualité attendu en nombre : </small>
+			  								<small class="text-capitalize" th:text="${indicator.type.withExpectedNumberResult ? ' Oui' : ' Non'}"></small>
+		  								</div>
+		  							</div>
+		  							<div class="d-none d-md-block col-md-4 text-right">
+		  								<div class="text-secondary">
+			  								<small class="text-danger font-weight-bold">Avec un idicateur supérieur hierarchique : </small>
+			  								<small class="text-capitalize" th:text="${indicator.parent != null ? ' Oui' : ' Non'}"></small>
+		  								</div>
+		  							</div>
+		  							<div class="col-sm-12 mt-3" th:if="${indicator.expectedTextResult != null}">
+		  								<div class="row">
+			  								<div class="col-sm-12 col-md-3">
+			  									<span>Performance ou resultat attendu :</span>
+			  								</div>
+			  								<div class="col-sm-12 col-md-9" th:text="${indicator.expectedTextResult}"></div>
+		  								</div>
+		  							</div>
+		  							<div class="col-sm-12 mt-3" th:if="${indicator.expectedNumberResult != null}">
+		  								<div class="row">
+			  								<div class="col-sm-12 col-md-3">
+			  									<span>Resultat attendu :</span>
+			  								</div>
+			  								<div class="col-sm-12 col-md-9">
+			  									<span th:text="${indicator.expectedNumberResult + ' '+indicator.expectedResultUnite}"></span>
+				  								<span class="text-primary font-wight-bold" th:text="${indicator.objectif.deley != null ? '/'+indicator.objectif.deley : '/0'}"></span>
+				  								<span class="text-primary font-wight-bold" th:text="${ indicator.objectif.type != null && indicator.objectif.type.unite != null ? ' '+ indicator.objectif.type.unite : ''}"></span>
+			  								</div>
+		  								</div>
+		  							</div>
+		  							<div class="col-sm-12 mt-3" th:if="${indicator.question != null}">
+		  								<div class="row">
+			  								<div class="col-sm-12 col-md-3">
+			  									<span>Question à l'acteur :</span>
+			  								</div>
+			  								<div class="col-sm-12 col-md-9" th:text="${indicator.question + ' ?'}"></div>
+		  								</div>
+		  							</div>
+		  							<div class="col-sm-12 mt-3" th:if="${indicator.parent != null}">
+		  								<div class="row">
+			  								<div class="col-sm-12 col-md-3">
+			  									<span>Indicateur parent :</span>
+			  								</div>
+			  								<div class="col-sm-12 col-md-9" th:text="${indicator.parent.label}"></div>
+		  								</div>
+		  							</div>
+		  						</div>
+			  					<!-- end row details -->
+					  		</li>
+					  	</ul>
+						  <!-- end objectif content -->
+						<div class="row" th:if="${indicators.size()<=0}">
+							<div class="col-sm-12 col-md-8 offset-md-2">
+								<div class="alert alert-info mt-5">
+									<div class="alert-body">0 indicateur associé !</div>
+								</div>
+							</div>
+						</div>
+					</div><!-- end col datas -->
+					<div class="col-sm-12 col-md-4">
+						<div class="card p-0 m-0">
+							<div class="card-header bg-primary text-white">
+								<div class="row">
+									<h5 class="col-sm-12 col-md-10" th:text="${selectedIndicator.id != null ? 'Edition indicateur : '+selectedIndicator.label : 'Nouvel indicateur'}"></h5>
+									<div class="col-sm-12 col-md-2 text-right">
+							  			<a th:if="${selectedIndicator != null && selectedIndicator.id != null}"
+							  				 th:href="@{/Objectif/Indicator(objid=${param.objid})}" title="Actualisez la vue"
+							  				 class="btn btn-outline-warning btn-sm float-right mt-0">
+											<i class="fas fa-sync fa-sm"></i>
+										</a>
+									</div>
+								</div>
+							</div>
+							<div class="card-body">
+								<form th:object="${selectedIndicator}"	 method="post" class="row mshz-form-validate"
+									  th:action="@{/Objectif/Indicator(objid=${objectif.id},indid=${selectedIndicator.id})}">
+									<input type="hidden" th:field="*{id}"/>
+									<input type="hidden" th:field="*{objectif}"/>
+									<div th:if="${errorMsg}" class="col-sm-12">
+										<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg},id='errorObjectAlert')"></div>
+									</div>
+									<div th:if="${successMsg}" class="col-sm-12"> 
+										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg},id='successObjectAlert')"></div>
+									</div>
+							        <div class="col-sm-12 form-group input-field col s12">
+							        	<label class="control-label" for="label">Libellé <span class="text-danger">*</span> :</label>
+							        	<input type="text" th:field="*{label}" id="label" class="form-control form-control-sm"
+							        	 placeholder="Tappez le libellé de l'indicateur ici..." data-mshz-required="true"/>
+							        	 <div class="invalid-feedback"><small>Ce champs est obligatoire!</small></div>
+							        </div>
+							        <div class="col-sm-12 form-group input-field col s12">
+							        	<select th:field="*{type}" id="group" class="selectTypeIndicateur" data-mshz-required="true">
+							        		<option th:each="typeIndicator : ${typeIndicators}" th:value="${typeIndicator.id}" th:text="${typeIndicator.type}">Type</option>
+							        	</select>
+							        	<label>Choissiez la catégorie de l'indicateur :</label>
+							        </div>
+							        <div class="col-sm-6 form-group input-field col s12 m6 numberResultcontainer">
+							        	<label class="control-label" for="expectedNumberResult">Nombre ou chiffre attendu : </label>
+							        	<input type="number" min="0" step="1" th:field="*{expectedNumberResult}" id="expectedNumberResult"
+							        	 class="form-control form-control-sm"  placeholder="exemple 10..."/>
+							        </div>
+							        <div class="col-sm-6 form-group input-field col s12 m6 numberResultcontainer">
+							        	<label class="control-label" for="expectedNumberResult">Unité du resultat :</label>
+							        	<input type="text" th:field="*{expectedResultUnite}" id="expectedNumberResult"
+							        	       class="form-control form-control-sm"  placeholder="fcfa,client,ordinateur..."/>
+							        </div>
+							        <div class="col-sm-12 form-group input-field col s12 textResultContainer">
+							        	<label class="control-label" for="expectedTextResult">Resultat ou qualité attendu en text :</label>
+							        	<input type="text" th:field="*{expectedTextResult}" id="expectedTextResult"
+							        	       class="form-control form-control-sm"  placeholder="exemple un employé rigoureux, productif..."/>
+							        </div>
+									<div class="form-group col-sm-7 col s7"> 
+										Resultat éditable par l'acteur : 
+									</div>
+									<div class="form-group col-sm-5 col s5">
+										<label>
+									      <input class="with-gap radioQuestionResolvableByActor" type="radio" name="" th:field="*{questionResolvableByActor}" value="false"/>
+									      <span>Non</span>
+									    </label>
+										<label>
+									      <input class="with-gap radioQuestionResolvableByActor withQuestionResolvableByActor" type="radio" th:field="*{questionResolvableByActor}" value="true"/>
+									      <span>Oui</span>
+									    </label>
+									</div>
+							        <div class="col-sm-12 form-group input-field col s12 questionContainer">
+							        	<label class="control-label" for="question">Question à poser à l'editeur du résultat :</label>
+							        	<input type="text" th:field="*{question}" id="question"
+							        	       class="form-control form-control-sm"  placeholder="exemple combien d'ordinateur avez vous vendu..."/>
+							        </div>
+							        <div th:if="${parentIndicators.size()>0}" class="col-sm-12 form-group input-field col s12">
+							        	<select th:field="*{parent}" id="parent" class="">
+							        		<option th:each="parent : ${parentIndicators}" th:value="${parent.id}" th:text="${parent.label}">label</option>
+							        	</select>
+							        	<label>Séléctionner son indicateur supérieur :</label>
+							        </div>
+							        <div class="col-sm-12 col s12 mt-2">
+							        	<button type="submit" class="btn btn-outline-info form-control">Valider</button>
+							        </div>
+								</form>
+							</div>
+						</div>
+					</div><!-- end col form -->
+				</div><!-- end row card -->
+			</div><!-- end card-body -->
+		</div><!-- end card -->
+		<div th:if="!${objectif}" class="col-sm-12 col-md-6 offset-md-3">
+			<div class="alert alert-info">
+				<div class="alert-body">
+					<h5 class="text-center">Objectif introuvable !</h5>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript">
+			$(document).ready(function(){
+				showOrHideNumberResultContainer();
+				$(".selectTypeIndicateur").on('change',function(){
+					showOrHideNumberResultContainer();
+				});
+				showOrHideQuetionContainer();
+				$(".radioQuestionResolvableByActor").on('click',function(){
+					showOrHideQuetionContainer();
+				});
+			});
+			//selectTypeIndicateur numberResultcontainer
+			function showOrHideNumberResultContainer(){
+				var selectedIdTypeIndicatorId = $(".selectTypeIndicateur").val();
+				if(typeof selectedIdTypeIndicatorId != typeof undefined && selectedIdTypeIndicatorId.length>0){
+					$.ajax({
+						url : "/Objectif/getTIndicatorByIdJson/?id="+selectedIdTypeIndicatorId,
+						method: 'get',
+						contentType : 'json',
+						success : function(typeIndicator){
+							if(typeIndicator != null && typeIndicator.withExpectedNumberResult == true){
+								$(".numberResultcontainer").removeClass("d-none");
+								$(".textResultContainer").addClass("d-none");
+							}else{
+								$(".numberResultcontainer").addClass("d-none");
+								$(".textResultContainer").removeClass("d-none");
+							}
+						},
+						error : function(e){
+							console.log(e);
+						}
+					});
+				}
+			};
+			
+			function showOrHideQuetionContainer(){
+				if($(".withQuestionResolvableByActor").is(":checked"))
+					$(".questionContainer").removeClass("d-none");
+				else
+					$(".questionContainer").addClass("d-none");	
+			};
+		</script>
+	</div>
+</body>
+</html>

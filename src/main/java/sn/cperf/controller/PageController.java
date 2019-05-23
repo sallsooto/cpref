@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import sn.cperf.dao.PasswordRepository;
 import sn.cperf.dao.UserRepository;
@@ -22,6 +23,7 @@ import sn.cperf.form.PasswordForm;
 import sn.cperf.form.UserForm;
 import sn.cperf.model.Password;
 import sn.cperf.model.User;
+import sn.cperf.service.CperfService;
 import sn.cperf.service.MailService;
 import sn.cperf.service.StorageService;
 
@@ -31,9 +33,15 @@ public class PageController {
 	@Autowired StorageService storageService;
 	@Autowired PasswordRepository passwordRepository;
 	@Autowired MailService mailService;
+	@Autowired CperfService cperfService;
 	
 	@GetMapping("/")
 	public String index() {
+		try {
+			cperfService.doAllNecessaryOperationsAfterLunchApplication();
+		} catch (Exception e) {
+			
+		}
 		return "index";
 	}
 	@GetMapping("/403")
@@ -43,6 +51,10 @@ public class PageController {
 
 	@GetMapping("/login")
 	public String login() {
+		try {
+			cperfService.doAllNecessaryOperationsAfterLunchApplication();
+		} catch (Exception e) {
+		}
 		return "login";
 	}
 	
@@ -73,7 +85,7 @@ public class PageController {
 					user.setPhone(form.getPhone());
 					user.setPassword(new BCryptPasswordEncoder().encode(form.getPassword()));
 					if(form.getPhoto() != null) {
-						try {user.setPhoto(storageService.storeAvatar(form.getPhoto()));} catch (Exception e1) {e1.printStackTrace();}
+						try {user.setPhoto(storageService.storeAvatar(form.getPhoto(),new String[] { "jpg", "jpeg", "png", "gif", "svg","ico" }));} catch (Exception e1) {e1.printStackTrace();}
 						if(user.getPhoto()== null || user.getPhoto().equals(""))
 							user.setPhoto("user.png");
 					}
@@ -175,5 +187,11 @@ public class PageController {
 			e.printStackTrace();
 		}
 		return "password";
+	}
+	
+	@GetMapping("/getLoged/")
+	@ResponseBody
+	public User getLoged() {
+		return cperfService.getLoged();
 	}
 }
