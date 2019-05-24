@@ -91,7 +91,7 @@
 									<tr data-ng-if="users.content.length>0"
 										data-ng-repeat="user in users.content | orderBy:orderFieldReverse+orderField">
 										<td><img alt="" th:src="@{/User/getUserPhoto?uid={{user.id}}}" class="circle" style="max-height:50px;max-height:50px;"></td>
-										<td>{{reoplaceWithNullOrBlank(user.lastname,"Sans prénom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
+										<td>{{reoplaceWithNullOrBlank(user.firstname,"Sans prénom") + ' '+reoplaceWithNullOrBlank(user.lastname,"")}}</td>
 										<td>{{reoplaceWithNullOrBlank(user.fonction.name,"Sans fonction")}}</td>
 										<td data-ng-if="user.userSup != null">{{reoplaceWithNullOrBlank(user.userSup.lastname,"Sans Prénom") + ' '+reoplaceWithNullOrBlank(user.userSup.lastname,"Sans nom")}}</td>
 										<td data-ng-if="user.userSup == null">Sans supérieur hierarchique</td>
