@@ -2,6 +2,7 @@ package sn.cperf.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -30,10 +31,12 @@ import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.TypeIndicatorRepository;
 import sn.cperf.dao.TypeObjectifRepository;
 import sn.cperf.model.Fonction;
+import sn.cperf.model.Group;
 import sn.cperf.model.Indicateur;
 import sn.cperf.model.Objectif;
 import sn.cperf.model.TypeIndicator;
 import sn.cperf.model.TypeObjectif;
+import sn.cperf.model.User;
 
 @Controller
 @RequestMapping("/Objectif")
@@ -78,7 +81,21 @@ public class ObjectifController {
 					Fonction fonction = of.get();
 					model.addAttribute("fonction", fonction);
 					model.addAttribute("typeObjectifs", typeObjectifRepository.findByValid(true));
-					model.addAttribute("objectifs", objectifRepository.findByFonctionOrderByIdDesc(fonction));
+					List<Group> fonctionsUsersGroups = new ArrayList<>();
+					if(fonction.getUsers() != null && !fonction.getUsers().isEmpty()) {
+						for(User user : fonction.getUsers()) {
+							if(user.getGroupes() != null) {
+								for(Group group : user.getGroupes()) {
+									if(!fonctionsUsersGroups.contains(group))
+										fonctionsUsersGroups.add(group);
+								}
+							}
+						}
+					}
+					if(!fonctionsUsersGroups.isEmpty())
+						model.addAttribute("objectifs", objectifRepository.findByFonctionOrGroupIn(fonction, fonctionsUsersGroups));
+					else
+						model.addAttribute("objectifs", objectifRepository.findByFonctionOrderByIdDesc(fonction));
 					model.addAttribute("groups", groupRepository.findAll());
 					model.addAttribute("tasks", taskRepository.getByActor(fonction.getId()));
 					model.addAttribute("collectifObjectif", obj.getGroup() != null ? true : false);
@@ -368,7 +385,8 @@ public class ObjectifController {
 				}
 			}
 		} catch (Exception e) {
-			model.addAttribute("errorMsg", "Exception levée, veuillez actualser et recommencer !");
+			e.printStackTrace();
+			model.addAttribute("errorMsg", "veuillez vérifier les données saisi et assurez-vous d'avoir choisi un type d'indicateur !");
 		}
 		// get necesary model objects
 		try {

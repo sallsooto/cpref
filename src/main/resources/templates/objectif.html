@@ -18,7 +18,7 @@
 <body>
 	<div class="container-fluid" layout:fragment="content">
 		<!-- Page Heading -->
-		<div th:if="${fonction}"
+		<div th:if="!${fonction}"
 			 th:replace="fragments/main_content_heading::heading(heading_text='Objectifs-Indicateurs',heading_link='/Organigramme/',heading_link_text='Organigramme',heading_ico='fas fa-sitemap')">
 		</div>
 		<!-- row content -->
@@ -237,6 +237,13 @@
 								</div><!-- end col form -->
 							</div>
 						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" th:if="!${fonction}">
+				<div class="col-sm-12 col-md-4 offset-md-4">
+					<div class="alert alert-info mt-5 text-center">
+						<div class="alert-body">Acune fonction trouvée, editez d'abord la fonction de l'acteur dans l'organigramme !</div>
 					</div>
 				</div>
 			</div>

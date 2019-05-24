@@ -20,10 +20,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
 	List<Task> findBySectionAndIdIsNot(ProcessSection section, Long id);
 
-	@Query("select t from Task t where t.section.process.id=:x")
+	@Query("select t from Task t where t.section.process.id=:x order by t.id DESC")
 	List<Task> getByProcess(@Param("x") Long processId);
 
-	@Query("select t from Task t where t.id !=:id and t.section.process.id=:x")
+	@Query("select t from Task t where t.id !=:id and t.section.process.id=:x order by t.id DESC")
 	List<Task> getByProcessAndTaskIdIsNot(@Param("id") Long taskId, @Param("x") Long processId);
 
 	List<Task> findByGroupInAndNameLikeIgnoreCase(List<Group> groups, String name);
