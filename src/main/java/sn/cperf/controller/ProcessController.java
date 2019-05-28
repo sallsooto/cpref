@@ -266,104 +266,129 @@ public class ProcessController {
 	}
 	
 	@GetMapping("/Task/Edit")
-	public String getTaskView(@RequestParam("sid") Long sectionId, @RequestParam(name="tid", defaultValue="0") Long taskId, Model model) {
+	public String getTaskView(@RequestParam(name="pid") Long processId,
+			@RequestParam(name="tid", defaultValue="0") Long taskId, Model model) {
 		Task task = new Task();
-		ProcessSection section = new ProcessSection();
-		List<ProcessSection> sections = new ArrayList<>();
 		List<Task> tasks  = new ArrayList<>();
+		Processus process = null;
 		try {
-			if(sectionId != null && sectionId >0) {
-				Optional<ProcessSection> oSection = processSectionRepository.findById(sectionId);
-				if(oSection.isPresent()) {
-					section = oSection.get();
-					if(section.getProcess() != null && section.getProcess().getId() != null)
-						tasks = taskRepository.getByProcess(section.getProcess().getId());
-					sections = processSectionRepository.findByProcess(section.getProcess());
+			if(processId != null && processId>0) {
+				Optional<Processus> oProcess = processRepository.findById(processId);
+				if(oProcess.isPresent()) {
+					process = new Processus();
+					process = oProcess.get();
+					tasks = taskRepository.getByProcess(process.getId());
+				}else {
+					return "redirect:/Process/List/";
 				}
 			}
-			task.setSection(section);
+			
+			try {
+				if(!process.getSections().isEmpty()) {
+					task.setSection(process.getSections().get(process.getSections().size()-1));
+				}
+			} catch (Exception e) {
+				//e.printStackTrace();
+			}
+			
 			if(taskId != null && taskId >0) {
 				Optional<Task> opTask = taskRepository.findById(taskId);
 				if(opTask.isPresent()) {
 					task = opTask.get();
+					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
 				}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		model.addAttribute("sections", sections);
+		model.addAttribute("sections", process.getSections());
 		model.addAttribute("tasks", tasks);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		model.addAttribute("task", task);
+		model.addAttribute("process", process);
 		return "task";
 	}
 	@PostMapping("/Task/Edit")
-	public String editTask(@RequestParam("sid") Long sectionId,@RequestParam("fileDescription") MultipartFile fileDescription,
+	public String editTask(@RequestParam("pid") Long processId,@RequestParam("fileDescription") MultipartFile fileDescription,
 							@RequestParam("grouprodio") int withGroup,@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
 		boolean isUpdateOperation = false;
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
+		Processus process = null;
 		try {
 			if(bind.hasErrors()) {
 				bind.getAllErrors().forEach(e->System.out.println(e.getDefaultMessage()));
 			}else {
-				if(task.getSection() != null) {
-					if(task.getSection().getProcess() != null && task.getSection().getProcess().getId() != null)
-						tasks = taskRepository.getByProcess(task.getSection().getProcess().getId());
-					sections = processSectionRepository.findByProcess(task.getSection().getProcess());
-					if(task.getId() != null && task.getId() > 0) {
-						isUpdateOperation = true;
-						tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), task.getSection().getProcess().getId());
+				  try {
+					process = processRepository.getOne(processId);
+				} catch (Exception e1) {
+					return "redirect:/Process/List";
+				}
+				if(task.getSection() == null) {
+					ProcessSection section = new ProcessSection();
+					int sectionSize = (process.getSections() != null && !process.getSections().isEmpty()) ? process.getSections().size()+1 : 1;
+					String textSectionSize = sectionSize < 10 ? "0"+sectionSize : sectionSize+"";
+					section.setName("Section "+textSectionSize);
+					section.setProcess(process);
+					if(sectionRepository.save(section) != null)
+						task.setSection(section);
+				}
+				if(process != null)
+					tasks = taskRepository.getByProcess(process.getId());
+				sections = processSectionRepository.findByProcess(process);
+				if(task.getId() != null && task.getId() > 0) {
+					isUpdateOperation = true;
+					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
+				}
+				if(withGroup==3)
+					task.setGroup(null);
+				// traitement du fichier
+				if(fileDescription != null) {
+					try {
+						task.setFileDescriptionPath(storageService.storeFile(fileDescription, new String[] {"pdf"}));
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-					if(withGroup==3)
-						task.setGroup(null);
-					// traitement du fichier
-					if(fileDescription != null) {
+				}
+				//end file filedescription traitements
+				if(taskRepository.save(task) != null) {
+					model.addAttribute("task", task);
+					String successMsg = "";
+					String notificationMsg = "";
+					String notificationTitle = "";
+					if(isUpdateOperation) {
+						successMsg = "Tâche modifiée";
+						notificationTitle = "Tâche mise à jour";
+						notificationMsg = "La tâche \" "+task.getName()+" \" du process \" " + task.getSection().getProcess().getLabel() +" \" est mise à jour";
+					}
+					else {
+						successMsg = "Tâche enregistrée";
+						notificationTitle = "Nouvelle tâche créee";
+						notificationMsg = "Vous avez une nouvelle tâche nomée "+task.getName()+" du process \" " + task.getSection().getProcess().getLabel() + " \"";
+					}
+					if(fileDescription != null && task.getFileDescriptionPath()==null)
+						successMsg = successMsg + " sans le fichier de description(extension autorisée : pdf) !";
+					else
+						successMsg = successMsg+" !";
+					model.addAttribute("successMsg", successMsg);
+					
+					//update process totol time
 						try {
-							task.setFileDescriptionPath(storageService.storeFile(fileDescription, new String[] {"pdf"}));
+							Processus p = task.getSection().getProcess();
+							p.setTotalTime(p.getMaxDate());
+							processRepository.save(p);
+							System.out.println("total time "+p.getTotalTime().toString());
 						} catch (Exception e) {
+							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-					}
-					//end file filedescription traitements
-					if(taskRepository.save(task) != null) {
-						String successMsg = "";
-						String notificationMsg = "";
-						String notificationTitle = "";
-						if(isUpdateOperation) {
-							successMsg = "Tâche modifiée";
-							notificationTitle = "Tâche mise à jour";
-							notificationMsg = "La tâche \" "+task.getName()+" \" du process \" " + task.getSection().getProcess().getLabel() +" \" est mise à jour";
-						}
-						else {
-							successMsg = "Tâche enregistrée";
-							notificationTitle = "Nouvelle tâche créee";
-							notificationMsg = "Vous avez une nouvelle tâche nomée "+task.getName()+" du process \" " + task.getSection().getProcess().getLabel() + " \"";
-						}
-						if(fileDescription != null && task.getFileDescriptionPath()==null)
-							successMsg = successMsg + " sans le fichier de description(extension autorisée : pdf) !";
-						else
-							successMsg = successMsg+" !";
-						model.addAttribute("successMsg", successMsg);
-						
-						//update process totol time
-							try {
-								Processus p = task.getSection().getProcess();
-								p.setTotalTime(p.getMaxDate());
-								processRepository.save(p);
-								System.out.println("total time "+p.getTotalTime().toString());
-							} catch (Exception e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						// storing notifications
-						  notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),"/Task/?tid="+task.getId(), task.getAllUsers(), null);
-						// end storing notification
-					}else {
-						model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
-					}
+					// storing notifications
+					  notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),"/Task/?tid="+task.getId(), task.getAllUsers(), null);
+					// end storing notification
+				}else {
+					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
 			}
 		} catch (Exception e) {
@@ -374,6 +399,7 @@ public class ProcessController {
 		model.addAttribute("tasks", tasks);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
+		model.addAttribute("process", process);
 		return "task";
 	}
 	

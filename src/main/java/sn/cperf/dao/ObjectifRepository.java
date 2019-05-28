@@ -16,6 +16,10 @@ import sn.cperf.model.TypeObjectif;
 public interface ObjectifRepository extends JpaRepository<Objectif, Long>{
 	List<Objectif> findByFonctionOrderByIdDesc(Fonction fonction);
 	Page<Objectif> findByFonctionOrGroupIn(Fonction fonction, List<Group> groupes, Pageable page);
-	@Query("select o from Objectif o where (o.fonction =:fonction or o.group in :groupes) and o.type =:type")
-	Page<Objectif> getByFonctionOrGroupInAndType(@Param("fonction") Fonction fonction, @Param("groupes") List<Group> groupes, @Param("type") TypeObjectif type, Pageable page);
+	Page<Objectif> findByFonction(Fonction fonction, Pageable page);
+	Page<Objectif> findByFonctionAndType(Fonction fonction,TypeObjectif type, Pageable page);
+	Page<Objectif> findByTypeAndFonctionOrGroupIn(TypeObjectif type,Fonction fonction, List<Group> groupes, Pageable page);
+	@Query("select ob from Objectif ob where ob.type=:type and (ob.fonction =:fonction OR ob.group IN :groups)")
+	Page<Objectif> serachByTypeAndFonctionOrGroupIn(@Param("type") TypeObjectif type,@Param("fonction") Fonction fonction,@Param("groups") List<Group> groupes, Pageable page);
+	List<Objectif> findByFonctionOrGroupIn(Fonction fonction, List<Group> fonctionsUsersGroups);
 }

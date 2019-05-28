@@ -145,4 +145,20 @@ public class Processus implements Serializable{
 		}
 		return false;
 	}
+	
+	public List<Task> getTasks(){
+		List<Task> tasks = new ArrayList<>();
+		if(sections != null && !sections.isEmpty()) {
+			for(ProcessSection section : sections) {
+				if(section.getTasks() != null && !section.getTasks().isEmpty()) {
+					for(Task task : section.getTasks()) {
+						if(!tasks.contains(task))
+							tasks.add(task);
+					}
+				}
+					
+			}
+		}
+		return tasks;
+	}
 }

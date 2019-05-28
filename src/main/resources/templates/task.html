@@ -29,13 +29,13 @@
 					<div class="card">
 						<div class="card-header bg-info text-white">
 							<h5>
-								<span th:if="${task.id}" th:text="${' Mise à jour de la tâche : '+task.name+' de la section ' + task.section.name+' du processus '+task.section.process.label}">Mise à jour d'une tâche</span> 
-								<span th:if="!${task.id}" th:text="${'Nouvelle tâche de la section '+task.section.name+' du process : '+task.section.process.label}">Nouveau process</span>
-								<a th:href="@{/Process/Task/Edit(sid=${param.sid})}" th:if="${task.id}" class="btn-floating waves-effect waves-light d-inline-block float-right"><i class="material-icons">+</i></a>
+								<span th:if="${task.id}" th:text="${' Mise à jour de la tâche : '+task.name+' du processus '+process.label}">Mise à jour d'une tâche</span> 
+								<span th:if="!${task.id}" th:text="${'Nouvelle tâche du process : '+process.label}">Nouveau process</span>
+								<a th:href="@{/Process/Task/Edit(sid=${param.sid},pid=${param.pid})}" th:if="${task.id}" class="btn-floating waves-effect waves-light d-inline-block float-right"><i class="material-icons">+</i></a>
 							</h5>
 						</div>
 						<div class="card-body pb-0">
-							<form th:action="@{/Process/Task/Edit(sid=${param.sid})}" th:object="${task}" method="post" 
+							<form th:action="@{/Process/Task/Edit(pid=${param.pid})}" th:object="${task}" method="post" 
 							 enctype="multipart/form-data" class="mshz-form-validate pb-0">
 								<input type="hidden" th:field="*{id}"/>
 								<!-- <input type="hidden" th:field="*{section}"/> -->
@@ -48,15 +48,18 @@
 											<div th:if="${successMsg}" class="col-sm-12"> 
 												<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
 											</div>
-											<div class="form-group col-sm-12 col-md-6">
-												<input type="text" name="label" th:field="*{name}" placeholder="Entrez le libellé ou le nom de la tâche.."
+											<div class="form-group col-sm-12 col-md-6 s12 input-field">
+												<label class="ml-2">Entrez le libellé ou le nom de la tâche</label>
+												<input type="text" name="label" th:field="*{name}" placeholder=""
 												class="form-control form-control-sm" data-mshz-required="true"/>
 												<div class="invalid-feedback">Donnez un nom à la tâche !</div>
 											</div>
-											<div class="form-group col-sm-12 col-md-6" th:if="${sections.size()>0}">
+											<div class="form-group col-sm-12 col-md-6 s12 input-field" th:if="${sections.size()>0}">
 												 <select th:field="*{section}" class="from-control form-control-sm">
-												 <option th:each="sect : ${sections}" th:value="${sect.id}" th:text="${sect.name}"></option>
+												 	<option th:each="sect : ${sections}" th:value="${sect.id}" th:text="${sect.name}"></option>
+												 	<option value="">Nouvel section</option>
 											    </select>
+											    <label class="ml-2">Section ou ligne de séquance en affichage</label>
 											</div>
 											<div class="form-group col-sm-12">
 												<label class="font-weight-bold" style="font-size:15px;">Renseignez la durée effective de la tâche :</label>

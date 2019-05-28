@@ -25,4 +25,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	List<User> findByValid(boolean valid);
 	Page<User> findByValid(boolean valid, Pageable page);
 	Page<User> findByFirstnameLikeOrLastnameLikeIgnoreCase(String firstname,String lastname, Pageable page);
+	List<User> findByFirstnameLikeIgnoreCaseOrLastnameLikeIgnoreCase(String firstname,String lastname);
 }

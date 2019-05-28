@@ -6,10 +6,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import sn.cperf.dao.ImpactRepository;
+import sn.cperf.dao.ParamRepository;
 import sn.cperf.dao.TypeIndicatorRepository;
 import sn.cperf.dao.TypeObjectifRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.model.Impact;
+import sn.cperf.model.Parametre;
 import sn.cperf.model.TypeIndicator;
 import sn.cperf.model.TypeObjectif;
 import sn.cperf.model.User;
@@ -23,6 +25,7 @@ public class CperfServiceImpl implements CperfService {
 	@Autowired ImpactRepository impactRepository;
 	@Autowired TypeObjectifRepository typeObjectifRepository;
 	@Autowired TypeIndicatorRepository typeIndicatorRepository;
+	@Autowired ParamRepository paramrepository;
 
 	@Override
 	public User getLoged() {
@@ -57,6 +60,9 @@ public class CperfServiceImpl implements CperfService {
 			// store type indicator
 			storeIndicatorType("Quantitaif",true);
 			storeIndicatorType("Qualitatif",false);
+			
+			// store parametres
+			storeParametre("admin_email","mohamed.ali@snsoftware.com");
 		} catch (Exception e) {
 		}
 		
@@ -116,6 +122,19 @@ public class CperfServiceImpl implements CperfService {
 			try {
 				typeIndicatorRepository.saveAndFlush(tIndicator);
 			} catch (Exception e) {}
+		}
+	}
+	
+	private void storeParametre(String slug, String value) {
+		try {
+			Parametre param = paramrepository.findBySlug(slug);
+			if(param == null) {
+				param = new Parametre();
+				param.setSlug(slug);
+				param.setParam(value);
+				paramrepository.save(param);
+			}
+		} catch (Exception e) {
 		}
 	}
 
