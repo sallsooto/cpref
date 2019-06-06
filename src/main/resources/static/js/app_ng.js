@@ -308,6 +308,7 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 	$scope.status = "all";
 	$scope.orderFieldReverse = "-";
 	$scope.processLunshed = "true";
+	$scope.loged = null;
 	$scope.getTasks = function() {
 		var processLunshed = $scope.processLunshed == "true" ? true : false;
 		$scope.status = !processLunshed ? "all" : $scope.status;
@@ -327,7 +328,7 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 			$scope.pages[0] = 0;
 			for (var i = 0; i < response.data.totalPages; i++)
 				$scope.pages[i] = i;
-			console.log("load task request");
+			$scope.loged = response.data.loged;
 		});
 	};
 	$scope.replaceWithNullOrBlank = function(current_value, repalce_value) {
@@ -357,6 +358,20 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 			}
 		}).then(function(response) {
 			console.log(response.data);
+			if (response.data != null && response.data)
+				$scope.getTasks();
+		});
+	};
+	
+	$scope.changeStatusValid = function(taskId,valid){
+		$http({
+			url : '/Task/changeStatusValid',
+			method : 'get',
+			params : {
+				tid : taskId,
+				valid : valid
+			}
+		}).then(function(response) {
 			if (response.data != null && response.data)
 				$scope.getTasks();
 		});
@@ -651,10 +666,10 @@ cperfModule
 		.controller(
 				"ObjectifIndicatorCtrl",
 				function($scope, $http, $filter) {
-					$scope.userId = null;
+					$scope.selectedUser = null;
 					$scope.tibId = null;
 					$scope.page = 0;
-					$scope.size = 7;
+					$scope.size = 5;
 					$scope.totalPages = 0;
 					$scope.pages = [];
 					$scope.objectifs = [];
@@ -664,25 +679,79 @@ cperfModule
 					$scope.collectorResultText = null;
 					$scope.errorMsg = null;
 					$scope.successMsg = null;
+					$scope.userFirstOrLastname = null;
+					$scope.users = [];
+					$scope.showOthersUsers = true;
+					$scope.selectedTypeObjectifId = 0;
+					$scope.typeObjectifs = [];
+					$scope.sumPurcente = 0;
+					$scope.globalSumPercente = 0;
+					$scope.staticView = false;
 
 					$scope.getObjectifs = function() {
+						$scope.showOthersUsers = false;
+						$scope.pages = [];
 						$http({
 							url : '/Performance/getObjectifByUserJson/',
 							method : 'get',
 							params : {
-								uid : $scope.userId,
+								uid : $scope.selectedUser != null ? $scope.selectedUser.id : null,
 								tobid : $scope.tibId,
 								page : $scope.page,
-								size : $scope.size
+								size : $scope.size,
+								tobid : $scope.selectedTypeObjectifId
 							}
 						}).then(function(response) {
 							if (response.data != null) {
 								$scope.objectifs = response.data.content;
-								$scope.totalPages = response.data.totalPages
+								$scope.totalPages = response.data.totalPages;
+								for(var i=0; i<$scope.totalPages; i++)
+									$scope.pages[i]=i;
+								$scope.selectedUser = response.data.user;
+								if($scope.selectedUser != null){
+									$scope.userFirstOrLastname = $scope.selectedUser.firstname + ' '+$scope.selectedUser.lastname;
+								}
 							}
 						});
 					};
-
+					
+					$scope.getUsers = function(){
+						$http({
+							url : '/Performance/getUsersJson/',
+							method : 'get'
+						}).then(function(response) {
+							if (response.data != null) 
+								$scope.users = response.data;
+						});
+					};
+					
+					$scope.searchUserByLastOrFirstname = function(){
+						$scope.showOthersUsers = true;
+						console.log($scope.userFirstOrLastname);
+						$http({
+							url : '/Performance/getUserByLastOrFirstnameJson/',
+							method : 'get',
+							params : {lastOrFirstname : $scope.userFirstOrLastname}
+						}).then(function(response) {
+							if (response.data != null){
+								$scope.users = response.data;
+							}
+						});
+					};
+					$scope.getTypeObjectifs = function(){
+						$http({
+							url : '/Performance/getTypesObjectifsJson/',
+							method : 'get'
+						}).then(function(response) {
+							if (response.data != null) 
+								$scope.typeObjectifs = response.data;
+						});
+					};
+					
+					$scope.changeTypeObjectifs = function(){
+						$scope.getObjectifs();
+					};
+					
 					$scope.changePage = function($event) {
 						var element = angular.element($event.target)
 						var selectedPageIndex = element[0].attributes['data-pageIndex'].value;
@@ -852,5 +921,63 @@ cperfModule
 							}
 						}
 						return dates;
+					};
+					
+					$scope.changeSelectedUser = function($event){
+						$event.preventDefault();
+						var element = angular.element($event.target);
+						var userId = element[0].attributes['data-userId'].value;
+						if(userId.length>0 && $scope.users.length>0){
+							for(var i=0; i<$scope.users.length; i++){
+								if($scope.users[i].id == userId  && $scope.users[i].id != $scope.selectedUser.id){
+									$scope.selectedUser = $scope.users[i];
+									$scope.getObjectifs();
+									break;
+								}
+							}
+						}
+					};
+					
+					$scope.changeSize = function(){
+						if($scope.size != null && $scope.size>0){
+							$scope.page = 0;
+							$scope.getObjectifs();
+						}
+					};
+					
+					$scope.getObjectifPerfomancePurcentage = function(objectif){
+						var purcente = 0;
+						$scope.sumPurcente = 0;
+						if(objectif != null && objectif.indicators.length>0){
+							for(var i =0; i<objectif.indicators.length; i++){
+								var indicator = objectif.indicators[i];
+								if(indicator.expectedNumberResult != null && indicator.dataCollectors.length>0){
+									for(var j=0; j<indicator.dataCollectors.length; j++){
+										var collector = indicator.dataCollectors[j];
+										if(collector != null && collector.dataNumber != null){
+											$scope.sumPurcente = $scope.sumPurcente + parseInt("100");
+											$scope.globalSumPercente = $scope.globalSumPercente + $scope.sumPurcente;
+											purcente = purcente +parseFloat($scope.getPerformancePurcente(indicator.expectedNumberResult,collector.dataNumber));
+										}
+									}
+								}
+							}
+						}
+						return purcente.toFixed(2);
+					};
+					
+					$scope.getGlobalPerformance = function(){
+						var objectifsPerfomance = 0;
+						$scope.globalSumPercente = 0;
+						if($scope.objectifs.length>0){
+							for(var i=0; i<$scope.objectifs.length; i++){
+								objectifsPerfomance = objectifsPerfomance + parseFloat($scope.getObjectifPerfomancePurcentage($scope.objectifs[i]));
+							}
+						}
+						console.log(objectifsPerfomance);
+						return objectifsPerfomance.toFixed(2) +" / " +$scope.globalSumPercente +" %";
+					};
+					$scope.changeStaticViewStatus= function(stat){
+						$scope.staticView = stat;
 					};
 				});

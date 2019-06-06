@@ -78,6 +78,16 @@ public class Processus implements Serializable{
 				for(ProcessSection section : this.getSections()) {
 					if(section.getTasks() != null && !section.getTasks().isEmpty()) {
 						for(Task task : section.getTasks()) {
+							if(task.getStartAt() != null) {
+								Calendar taskCalander = Calendar.getInstance();
+								taskCalander.setTime(task.getStartAt());
+								nbYears = nbYears + taskCalander.get(GregorianCalendar.YEAR);
+								nbMonths = nbMonths + taskCalander.get(GregorianCalendar.MONTH);
+								nbDays = nbDays+ taskCalander.get(GregorianCalendar.DAY_OF_MONTH);
+								nbHours = nbHours + taskCalander.get(GregorianCalendar.HOUR);
+								nbMinutes = nbMinutes + taskCalander.get(GregorianCalendar.MINUTE);
+								
+							}
 							nbYears = nbYears + task.getNbYears();
 							nbMonths = nbMonths + task.getNbMonths();
 							nbDays = nbDays+task.getNbDays();
@@ -144,5 +154,21 @@ public class Processus implements Serializable{
 			return this.getMaxDate().compareTo(new Date())<0;
 		}
 		return false;
+	}
+	
+	public List<Task> getTasks(){
+		List<Task> tasks = new ArrayList<>();
+		if(sections != null && !sections.isEmpty()) {
+			for(ProcessSection section : sections) {
+				if(section.getTasks() != null && !section.getTasks().isEmpty()) {
+					for(Task task : section.getTasks()) {
+						if(!tasks.contains(task))
+							tasks.add(task);
+					}
+				}
+					
+			}
+		}
+		return tasks;
 	}
 }

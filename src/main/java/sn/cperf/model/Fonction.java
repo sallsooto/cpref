@@ -33,7 +33,7 @@ public class Fonction implements Serializable{
 	@JsonBackReference
 	private List<User> users;
 	@OneToMany(mappedBy="fonction",fetch=FetchType.LAZY)
-	@JsonManagedReference
+	@JsonBackReference
 	private List<Objectif> objectis;
 	@Override
 	public String toString() {

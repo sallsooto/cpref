@@ -67,36 +67,36 @@
 							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
 							 th:if="${#strings.equalsIgnoreCase(task.type, 'start')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
 								<rect width="150" height="50" 
-								 th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : '#f77467'}"
-								 stroke-width="2" th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : 'red'}" rx="20" ry="20"/>
+								 th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : (task.status=='started') ? 'orange' : '#f77467'}"
+								 stroke-width="2" th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : (task.status=='started') ? '#F8FA98' : 'red'}" rx="20" ry="20"/>
 							</svg>
 							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
 							 th:if="${#strings.equalsIgnoreCase(task.type, 'process')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
 							<rect width="150" height="50" fill="transparent" 
-								th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : '#f77467'}"
-								 stroke-width="4" stroke="black" th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : 'red'}"/>
+								th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : (task.status=='started') ? 'orange' : '#f77467'}"
+								 stroke-width="4" stroke="black" th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : (task.status=='started') ? '#F8FA98' : 'red'}"/>
 							</svg>
 							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
 							 th:if="${#strings.equalsIgnoreCase(task.type, 'sub_process')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
 							 <polyline points="0,0 0,50 10,50 10,0 0,0 140,0 140,50 0,50 150,50 150,0 140,0" style="fill:none;stroke:black;stroke-width:4" 
-								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
+								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : (task.status=='started') ? 'fill:orange;stroke:#F8FA98' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
 							</svg>
 							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
 							 th:if="${#strings.equalsIgnoreCase(task.type, 'decision')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
 							 <polyline points="0,25 75,0 150,25 75,50 0,25" style="fill:none;stroke:black;stroke-width:3" 
-								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
+								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : (task.status=='started') ? 'fill:orange;stroke:#F8FA98' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
 							</svg>
 							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
 							 th:if="${#strings.equalsIgnoreCase(task.type, 'doc')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
 								 <polyline points="0,0 8,25 0,50 150,50 142,25 150,0, 0,0" style="fill:none;stroke:black;stroke-width:3"
-								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
+								th:style="${((task.status=='valid') ? 'fill:none;stroke:grey' : (task.status=='completed') ? 'fill:#74F767;stroke:green' : (task.status=='started') ? 'fill:orange;stroke:#F8FA98' : 'fill:#f77467;stroke:red')+';stroke-width:3'}"/>
 							</svg>
 							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
 							 th:if="${#strings.equalsIgnoreCase(task.type, 'finish')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
 								<rect width="150" height="50" fill="transparent"
-									th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : '#f77467'}"
+									th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : (task.status=='started') ? 'orange' : '#f77467'}"
 								 stroke-width="4" stroke="black" rx="20" ry="20"
-								 th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : 'red'}"/>
+								 th:stroke="${task.status=='valid' ? 'grey' : (task.status=='completed') ? 'green' : (task.status=='started') ? '#F8FA98' : 'red'}"/>
 							</svg>
 							<!-- labels -->
 							<div style="width:150px;height:50px;overflow: auto; scroll:auto;cursor:pointer" class="d-inline-block p-1" 

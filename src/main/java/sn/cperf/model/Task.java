@@ -19,6 +19,10 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -39,6 +43,7 @@ public class Task implements Serializable{
 	private String type;
 	@Column(length=100)
 	private String status;
+	private String lastStatus;
 	private String description;
 	private String fileDescriptionPath;
 	@ManyToOne
@@ -65,7 +70,18 @@ public class Task implements Serializable{
 	@Column(columnDefinition="int(11) default 1")
 	private int nbHours=1;
 	@Column(columnDefinition="int(11) default 0")
-	private int nbMinuites=0;  
+	private int nbMinuites=0;
+	@Column(columnDefinition="boolean default true")
+	private boolean statusValid = true;
+	@Column(columnDefinition="boolean default true")
+	private boolean lunchingByProcess = true;
+	@Temporal(TemporalType.TIMESTAMP)
+	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm")
+	private Date startAt;
+	@ManyToOne
+	@JoinColumn(name="validator_id")
+	@JsonManagedReference
+	private User validator;
 	@ManyToMany(cascade=CascadeType.PERSIST, fetch=FetchType.LAZY)
 	@JoinTable(name="users_tasks",
 		joinColumns = {@JoinColumn(name="task_id")},
@@ -128,5 +144,5 @@ public class Task implements Serializable{
 		if(this.getSection() != null && this.getSection().getProcess() != null)
 			return this.getSection().getProcess().getId();
 		return null;
-	}
+	} 
 }

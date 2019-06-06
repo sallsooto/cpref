@@ -12,6 +12,7 @@ import sn.cperf.model.Fonction;
 import sn.cperf.model.Group;
 import sn.cperf.model.ProcessSection;
 import sn.cperf.model.Task;
+import sn.cperf.model.User;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 	List<Task> findByIdIsNot(Long id);
@@ -20,10 +21,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
 	List<Task> findBySectionAndIdIsNot(ProcessSection section, Long id);
 
-	@Query("select t from Task t where t.section.process.id=:x")
+	@Query("select t from Task t where t.section.process.id=:x order by t.id DESC")
 	List<Task> getByProcess(@Param("x") Long processId);
 
-	@Query("select t from Task t where t.id !=:id and t.section.process.id=:x")
+	@Query("select t from Task t where t.id !=:id and t.section.process.id=:x order by t.id DESC")
 	List<Task> getByProcessAndTaskIdIsNot(@Param("id") Long taskId, @Param("x") Long processId);
 
 	List<Task> findByGroupInAndNameLikeIgnoreCase(List<Group> groups, String name);
@@ -56,4 +57,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 			+ "INNER JOIN tasks as t ON pss.id=t.section_id INNER JOIN users_tasks as ut ON t.id=ut.task_id "
 			+ "INNER JOIN users as u ON ut.user_id=u.id INNER JOIN fonctions as f ON u.fonction_id=f.id WHERE f.id=:fonctionId", nativeQuery = true)
 	List<Task> getByActor(@Param("fonctionId") Long fonctionId);
+	
 }

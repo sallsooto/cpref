@@ -4,7 +4,8 @@ public enum TaskStatus {
 
     VALID("valid"),
     CANCELED("canceled"),
-    COMPLETED("completed");
+    COMPLETED("completed"),
+	STARTED("started");
 	private String status="";
 	
 	TaskStatus(String status){

@@ -60,7 +60,7 @@ loadOrganigramme = function(data){
         enableZoom: true,
         enableSearch: true,
         enableMove: true,
-        enableDetailsView: true,
+        enableDetailsView: false,
         enablePrint: true,
         enableZoomOnNodeDoubleClick: true,
         enableExportToImage: true,

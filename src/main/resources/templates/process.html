@@ -72,6 +72,8 @@
 									            <label for="description">Déscription du process</label>
 									          </div>
 											<div class="form-group col-sm-12 mb-0">
+												<a th:if="${process.id}" th:href="@{/Process/Task/Edit(pid=${process.id})}"
+												   role="button" class="btn btn-sm btn-outline-success float-left pt-2">Ajouter de nouvel tâche</a> 
 												<button type="submit" class="btn btn-sm btn-outline-info float-right">Enregistrer</button>
 											</div>
 										</div>

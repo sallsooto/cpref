@@ -43,30 +43,37 @@
 			</div>
 			<div class="card-body">
 				<div class="table-responsive">
-					<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+					<table class="table table-bordered table-responsive-sm table-hover" id="dataTable" width="100%" cellspacing="0">
 						<thead>
-							<tr>
+							<tr class="alert-info">
 								<th>Libellé</th>
 								<th>Démarré le </th>
 								<th class="text-center">Date maximum de fin de traitement</th>
 								<th>Editeur</th>
-								<th colspan="3" class="text-center">Action</th>
+								<th class="text-center">Tâches</th>
+								<th colspan="3" class="text-center">Action <a th:href="@{/Process/Edit/}" class="btn btn-sm btn-outline-primary float-right" title="Nouvel process"><i class="fas fa-plus"></i></a></th>
 							</tr>
 						</thead>
 						<tbody th:each="p : ${processes}">
+							<tr><td colspan="100"></td></tr>
 							<tr>
 								<td th:text="${p.label}"></td>
 								<td th:text="${p.startAt != null ? #dates.format(p.startAt, 'dd/MM/yyyy à HH:mm') : 'Non démarré'}" th:class="${'startAtContent'+p.id}"></td>
 								<td th:text="${p.startAt != null ? #dates.format(p.maxDate, 'dd/MM/yyyy à HH:mm') : 'Pas encore démarré'}" th:class="${'maxDateContent'+p.id+' text-center'}"></td>
 								<td th:text="${p.editor != null ? p.editor.firstname + ' '+p.editor.lastname : ''}"></td>
-								<td><a th:href="@{/Process/Edit/(pid=${p.id})}" title="Modifier"><i class="fas fa-pen-alt"></i></a></td>
 								<td>
-									<span th:text="${p.sections.size()+' section(s)'}"></span>
+									<small th:text="${p.tasks.size()+ ' tache(s)'}"></small>
+									<small th:if="${p.tasks.size()>0}">
+									<a href="#" class="collapsed" data-toggle="collapse" th:data-target="${'#tasksid'+p.id}"
+										 aria-expanded="true" aria-controls="collpsetask" title="Afficher/Chacher">
+										 <i class="fas fa-eye"></i></a></small> |
+									<small><a th:href="@{/Process/Task/Edit(pid=${p.id})}">Ajouter</a></small></td>
+								<!-- 	<span th:text="${p.sections.size()+' section(s)'}"></span>
 									<a th:if="${p.sections.size()>0}" href="#" class="collapsed" data-toggle="collapse" th:data-target="${'#secpid'+p.id}"
 										 aria-expanded="true" aria-controls="collpsesection" title="Afficher/Cacher"><i class="fas fa-eye text-dark"></i></a> |
-									<a th:href="@{/Process/Section/Edit/(pid=${p.id})}" title="Ajouter une section"><i class="fas fa-plus"></i></a>
-								</td>
+									<a th:href="@{/Process/Section/Edit/(pid=${p.id})}" title="Ajouter une section"><i class="fas fa-plus"></i></a> -->
 								<td>
+									<a th:href="@{/Process/Edit/(pid=${p.id})}" title="Modifier le process"><i class="fas fa-pen-alt"></i></a>
 									<a th:href="@{/Process/Logigramme/(pid=${p.id})}" title="logigramme"> 
 										<i class="fas fa-sitemap fa_table_link text-info p-1"></i>
 								   	</a>
@@ -85,66 +92,59 @@
 									</a>
 								</td>
 							</tr>
-							<!-- section tr -->
-								<tr th:if="${p.sections.size()>0}" th:id="${'secpid'+p.id}" class="collapse" aria-labelledby="section">
-									<td colspan="30">
-										<table class="table">
+								<!-- taches tr -->
+								<tr th:if="${p.tasks.size()>0}" th:id="${'tasksid'+p.id}" class="collapse" aria-labelledby="tâches">
+									<td colspan="100">
+										<table class="table text-center">
 											<thead>
-												<tr>
-													<th>Libellé de la section</th><th>Taches</th><th>Action</th>
+												<tr class="bg-info text-light pt-0 pb-0">
+													<th>Nom de la tâche</th><th>Status</th><th>Tâche précédente</th>
+													<th>Utilisateurs assosiés</th><th>Groupe assosié</th><th>Action</th>
 												</tr>
 											</thead>
-											<tbody th:each="section : ${p.sections}">
-												<tr>
-													<td th:text="${section.name}"></td>
+											<tbody>
+												<tr th:each="task : ${p.tasks}">
+													<td th:text="${task.name}"></td>
+													<td class="text-center">
+														<span th:text="${(task.status == 'valid') ? 'En état de traitement' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}" th:id="${'textStausContainer'+task.id}"></span>
+														<div>
+															<div th:if="${task.status != 'valid'}" class="font-weight-bold">
+																<small th:class="${!task.statusValid ? 'text-warning' : 'text-warning d-none'}" th:id="${'invalidStatusTextContainer'+task.id}">En attente de validation </small>
+																<small th:class="${task.statusValid ? 'text-success' : 'text-success d-none'}" th:id="${'validStatusTextContainer'+task.id}">Validé </small>
+																<span th:if="${(task.validator == null or task.validator.id==loged.id)}">
+																	<small th:class="${task.statusValid ? 'badge badge-danger cursor-pointer ml-2 taskStatusChanger' : 'badge badge-danger cursor-pointer taskStatusChanger ml-2 d-none'}" 
+																		   data-newStatus="false" th:data-replace-btnId="${'#trueValidTaskStatusBtn'+task.id}" th:data-textStatusContainerIdSelecor="${'#textStausContainer'+task.id}"
+																		   th:data-taskId="${task.id}" th:id="${'falseValidTaskBtn'+task.id}"
+																		   th:data-inValidTextContainerIdSelector="${'#invalidStatusTextContainer'+task.id}"
+																		   th:data-validTextContainerIdSelector="${'#validStatusTextContainer'+task.id}">Devalider</small>
+																	<small th:class="${!task.statusValid ? 'badge badge-success cursor-pointer ml-2 taskStatusChanger' : 'badge badge-success cursor-pointer ml-2 d-none taskStatusChanger'}"
+																	       data-newStatus="true" th:data-replace-btnId="${'#falseValidTaskBtn'+task.id}" th:data-textStatusContainerIdSelecor="${'#textStausContainer'+task.id}"
+																	       th:data-taskId="${task.id}" th:id="${'trueValidTaskStatusBtn'+task.id}"
+																		   th:data-inValidTextContainerIdSelector="${'#invalidStatusTextContainer'+task.id}"
+																		   th:data-validTextContainerIdSelector="${'#validStatusTextContainer'+task.id}">Valider</small>
+																</span>
+															</div>
+														</div>
+													</td>
+													<td th:text="${task.parent != null ? task.parent.name : 'Aucne'}"></td>
 													<td>
-														<small th:text="${section.tasks.size() + ' tache(s)'}"></small>
-														<small th:if="${section.tasks.size()>0}">
-														<a href="#" class="collapsed" data-toggle="collapse" th:data-target="${'#tasksid'+section.id}"
-															 aria-expanded="true" aria-controls="collpsetask" title="Afficher/Chacher">
-															 <i class="fas fa-eye"></i></a></small> |
-														     <small><a th:href="@{/Process/Task/Edit(sid=${section.id})}">Ajouter</a></small>
+														<div th:if="${task.AllUsers.size()>0}">
+															<span th:each="user : ${task.AllUsers}" th:text="${user.firstname + ' '+user.lastname + ' ;  '}"></span>
+														</div>
 													</td>
-													<td><small><a th:href="@{/Process/Section/Edit(pid=${p.id},sid=${section.id})}">Modfier</a></small></td>
-												</tr>
-												<!-- taches tr -->
-												<tr th:if="${section.tasks.size()>0}" th:id="${'tasksid'+section.id}" class="collapse" aria-labelledby="tâches">
-													<td colspan="100">
-														<table class="table text-center">
-															<thead>
-																<tr class="bg-info text-light pt-0 pb-0">
-																	<th>Nom de la tâche</th><th>Status</th><th>Tâche parente</th>
-																	<th>Utilisateurs assosiés</th><th>Groupe assosié</th><th>Action</th>
-																</tr>
-															</thead>
-															<tbody>
-																<tr th:each="task : ${section.tasks}">
-																	<td th:text="${task.name}"></td>
-																	<td th:text="${(task.status == 'valid') ? 'En état de traitement' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}"></td>
-																	<td th:text="${task.parent != null ? task.parent.name : 'Aucne'}"></td>
-																	<td>
-																		<div th:if="${task.AllUsers.size()>0}">
-																			<span th:each="user : ${task.AllUsers}" th:text="${user.firstname + ' '+user.lastname + ' ;  '}"></span>
-																		</div>
-																	</td>
-																	<td>
-																		<span th:if="${task.group}" th:text="${task.group.name}"></span>
-																		<span th:if="!${task.group}">Pas de groupe associé</span>
-																	</td>
-																	<td class="text-center">
-																		<small><a th:href="@{/Process/Task/Edit(sid=${section.id},tid=${task.id})}">Modfier</a></small>
-																	</td>
-																</tr>
-															</tbody>
-														</table>
+													<td>
+														<span th:if="${task.group}" th:text="${task.group.name}"></span>
+														<span th:if="!${task.group}">Pas de groupe associé</span>
+													</td>
+													<td class="text-center">
+														<small><a th:href="@{/Process/Task/Edit(pid=${p.id},tid=${task.id})}">Modfier</a></small>
 													</td>
 												</tr>
-												<!-- tache tr -->
 											</tbody>
 										</table>
 									</td>
 								</tr>
-							<!-- end section tr -->
+								<!-- tache tr -->
 							</tbody>
 							<tbody  th:if="${processes.size()<=0}">
 							<tr>
@@ -185,6 +185,10 @@
 						console.log(element.attr('data-replaceBtnId'));
 						playOrStopProcess(element,true);
 					});
+					$(".taskStatusChanger").on('click',function(e){
+						e.preventDefault();
+						changeTaskStausValid($(this));
+					});
 				});
 				var playOrStopProcess = function(triggerElement,playStat){
 					if(triggerElement.length>0){
@@ -208,6 +212,42 @@
 								console.log(e);
 							}
 						});
+					}
+				};
+				function changeTaskStausValid(triggerElement){
+					if(triggerElement.length>0){
+						var replaceElement = $(triggerElement.attr('data-replace-btnId'));
+						var newStatus = triggerElement.attr('data-newStatus');
+						var taskId =  triggerElement.attr('data-taskId');
+						var inValidTextContainer = $(triggerElement.attr('data-inValidTextContainerIdSelector'));
+						var validTextContainer = $(triggerElement.attr('data-validTextContainerIdSelector'));
+						var statusContainer = $(triggerElement.attr('data-textStatusContainerIdSelecor'));
+						if(taskId.length>0 && newStatus.length>0){
+							console.log(taskId);
+							newStatus = (newStatus == "true" || newStatus == true) ? true : false;
+							$.ajax({
+								url : '/Task/changeStatusValid?tid='+taskId+'&valid='+newStatus,
+								method : 'get',
+								dataType : 'json',
+								success : function(res){
+									if(res.status==true){
+										statusContainer.text(res.textStatus);
+									    triggerElement.addClass('d-none');
+										replaceElement.removeClass('d-none');
+										if(newStatus == true || newStatus=="true"){
+											inValidTextContainer.addClass('d-none');
+											validTextContainer.removeClass('d-none');
+										}else{
+											inValidTextContainer.removeClass('d-none');
+											validTextContainer.addClass('d-none');
+										} 
+									}
+								},
+								error : function(e){
+									console.logg(e);
+								}
+							});
+						}
 					}
 				};
 			</script>

@@ -89,6 +89,7 @@ public class PerformanceController {
 		if (user == null)
 			user = cperfService.getLoged();
 		if (user != null) {
+			datas.put("user", user);
 			TypeObjectif typeObjectif = null;
 			try {
 				if (typeObjectifId != null && typeObjectifId > 0) {
@@ -103,20 +104,23 @@ public class PerformanceController {
 			}
 			if (typeObjectif != null) {
 				try {
-					objectifs = objectfiRepository.getByFonctionOrGroupInAndType(user.getFonction(), user.getGroupes(),
-							typeObjectif, PageRequest.of(page, size));
+					if(user.getGroupes() == null || user.getGroupes().isEmpty())
+						objectifs = objectfiRepository.findByFonctionAndType(user.getFonction(),typeObjectif, PageRequest.of(page, size));
+					else	
+						objectifs = objectfiRepository.serachByTypeAndFonctionOrGroupIn(typeObjectif,user.getFonction(), user.getGroupes(), PageRequest.of(page, size));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}else {
+				try {
+					if(user.getGroupes() == null || user.getGroupes().isEmpty())
+						objectifs = objectfiRepository.findByFonction(user.getFonction(), PageRequest.of(page, size));
+					else
+						objectifs = objectfiRepository.findByFonctionOrGroupIn(user.getFonction(), user.getGroupes(),PageRequest.of(page, size));
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}
-
-			try {
-				objectifs = objectfiRepository.findByFonctionOrGroupIn(user.getFonction(), user.getGroupes(),
-						PageRequest.of(page, size));
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		if (objectifs != null) {
@@ -186,5 +190,30 @@ public class PerformanceController {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	@GetMapping("/getUsersJson")
+	@ResponseBody
+	public List<User> getUsersJson(){
+		return userRepository.findAll();
+	}
+	
+	@GetMapping("/getUserByLastOrFirstnameJson")
+	@ResponseBody
+	List<User> getUserByLastOrFirstnameJson(@RequestParam("lastOrFirstname") String lastOrFirstname){
+		List<User> users = new ArrayList<>();
+		try {
+			users = userRepository.findByFirstnameLikeIgnoreCaseOrLastnameLikeIgnoreCase("%"+lastOrFirstname+"%", "%"+lastOrFirstname+"%");
+			if(users == null || users.isEmpty())
+				users = userRepository.findAll();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return users;
+	}
+	
+	@GetMapping("/getTypesObjectifsJson")
+	@ResponseBody
+	List<TypeObjectif> getTypesObjectifsJson(){
+		return typeObjectifRepository.findAll();
 	}
 }

@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import sn.cperf.dao.ProcessRepository;
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.UserRepository;
+import sn.cperf.model.Group;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
@@ -55,7 +56,8 @@ public class TaskController {
 	ProcessRepository processRepository;
 
 	@GetMapping("/")
-	public String getListTaskView() {
+	public String getListTaskView(Model model) {
+		model.addAttribute("loged", cperfService.getLoged());
 		return "tasks";
 	}
 
@@ -66,7 +68,6 @@ public class TaskController {
 			@RequestParam(name = "page", defaultValue = "0") int page,
 			@RequestParam(name = "size", defaultValue = "7") int size,
 			@RequestParam(name = "processLunshed", defaultValue = "true") boolean lunchedProcessStatus) {
-		System.out.println("status " + status);
 		status = (status == null) ? "valid" : status;
 		name = (name == null) ? "" : name;
 		Map<String, Object> datas = new HashMap<>();
@@ -74,6 +75,7 @@ public class TaskController {
 		int totalPages = 0;
 		try {
 			User loged = cperfService.getLoged();
+			datas.put("loged", loged);
 			if (loged != null) {
 				status = (status.toLowerCase().equals(TaskStatus.CANCELED.toString()) && !loged.hasRole("admin"))
 						? "valid"
@@ -156,11 +158,25 @@ public class TaskController {
 				Task task = opTask.get();
 				if (isTaskForUser(task, loged, task.isProcessLunched()) || loged.hasRole("admin")) {
 					// List<Task> tasks = loged.getTasks();
+					task.setLastStatus(task.getStatus());
+					if (loged.hasRole("admin") || (task.getValidator() != null && task.getValidator().getId() == loged.getId()))
+						task.setStatusValid(true);
+					else
+						task.setStatusValid(false);
 					task.setStatus(status);
 					if (taskRepository.save(task) != null) {
-						task.getAllUsers().forEach(u -> {
-							System.err.println(u.getId() + " " + u.getFirstname() + " " + u.getLastname());
-						});
+						// luching chierld tasks
+						try {
+							if(status.toLowerCase().equals("completed")) {
+								for(Task taskChirld : task.getChirlds()) {
+									if(!taskChirld.isLunchingByProcess()) {
+										taskChirld.setStartAt(new Date());
+										taskRepository.save(taskChirld);
+									}
+								}
+							}
+						} catch (Exception e1) {
+						}
 						// storing notifications
 						try {
 							String title = (status.toLowerCase().equals("valid")) ? "Tâche relancée "
@@ -173,22 +189,26 @@ public class TaskController {
 											: " a anullé le traitement de la tâche ";
 							String note = loged.getFirstname() + " " + loged.getLastname() + " " + noteSlug + " "
 									+ task.getName() + " du processus " + task.getSection().getProcess().getLabel();
+							if (task.getValidator() != null)
+								notifService.notify(title, note, NotificationType.ALERT.toString(), task.getValidator(),
+										"/Task/");
 							notifService.notify(title, note, NotificationType.INFO.toString(),
 									"/Task/?tid=" + task.getId(), task.getAllUsers(), null);
+
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 						// store process finisAt date if is laste task completed
 						try {
 							Processus processForTask = task.getSection().getProcess();
-							if (status.toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase()) 
-								|| status.toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())) {
+							if (status.toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())
+									|| status.toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())) {
 								if (processForTask.getIsFinished()) {
 									processForTask.setFinishDate(new Date());
 									processRepository.save(processForTask);
 								}
-							}else {
-								if(processForTask.getFinishDate() != null) {
+							} else {
+								if (processForTask.getFinishDate() != null) {
 									processForTask.setFinishDate(null);
 									processRepository.save(processForTask);
 								}
@@ -220,7 +240,7 @@ public class TaskController {
 		}
 		return false;
 	}
-	
+
 	@GetMapping("/getTaskByIdJson")
 	@ResponseBody
 	public Task getTaskByIdJson(@RequestParam("tid") Long id) {
@@ -229,5 +249,40 @@ public class TaskController {
 		} catch (Exception e) {
 		}
 		return null;
+	}
+
+	@GetMapping("/changeStatusValid")
+	@ResponseBody
+	public Map<String, Object> changeStatusValid(@RequestParam("tid") Long taskId,
+			@RequestParam("valid") boolean valid) {
+		Map<String, Object> data = new HashMap<>();
+		try {
+			Task task = taskRepository.getOne(taskId);
+			data.put("status", false);
+			if (task != null && task.getStatus() != null) {
+				if (task.getValidator() == null || task.getValidator().getId() == cperfService.getLoged().getId()) {
+					task.setStatusValid(valid);
+					if (!valid && task.getLastStatus() != null) {
+						String currentStatus = task.getStatus();
+						task.setStatus(task.getLastStatus());
+						task.setLastStatus(currentStatus);
+					}
+					if (taskRepository.save(task) != null) {
+						data.put("status", true);
+						String textStatus = "";
+						if (task.getStatus().equals(TaskStatus.VALID.toString()))
+							textStatus = "En état de traitement";
+						else if (task.getStatus().equals(TaskStatus.COMPLETED.toString()))
+							textStatus = "Traitée";
+						else
+							textStatus = "Traitement annulé";
+						data.put("textStatus", textStatus);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return data;
 	}
 }

@@ -37,7 +37,7 @@ public class Objectif implements Serializable{
 	private String name;
 	@ManyToOne
 	@JoinColumn(name="fonction_id")
-	@JsonBackReference
+	@JsonManagedReference
 	private Fonction fonction;
 	@ManyToOne
 	@JoinColumn(name="type_id")
