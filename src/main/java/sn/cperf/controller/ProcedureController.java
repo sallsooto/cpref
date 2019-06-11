@@ -30,27 +30,36 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import sn.cperf.dao.ProcedureRepository;
+import sn.cperf.model.DBFile;
 import sn.cperf.model.Procedure;
+import sn.cperf.service.DBFileService;
 import sn.cperf.service.StorageService;
 
 @Controller
 @RequestMapping("/Procedure")
 public class ProcedureController {
-	
-	@Autowired ProcedureRepository procedureRepository;
-	@Autowired StorageService storageService;
+
+	@Autowired
+	ProcedureRepository procedureRepository;
+	@Autowired
+	StorageService storageService;
+	@Autowired
+	DBFileService dbFileService;
+
 	@GetMapping("/")
 	public String getListProceduresView() {
 		return "procedures";
 	}
-	
+
 	@GetMapping("/getProceduresJson")
 	@ResponseBody
-	public Page<Procedure> getProceduresJson(@RequestParam(name="name", defaultValue="") String procedureName,
-			@RequestParam(name="page", defaultValue="0") int page, @RequestParam(name="size", defaultValue="7") int size){
+	public Page<Procedure> getProceduresJson(@RequestParam(name = "name", defaultValue = "") String procedureName,
+			@RequestParam(name = "page", defaultValue = "0") int page,
+			@RequestParam(name = "size", defaultValue = "7") int size) {
 		try {
-			if(procedureName != null && !procedureName.equals(""))
-				return procedureRepository.findByNameLikeIgnoreCaseOrderByIdDesc("%"+procedureName+"%", new PageRequest(page, size));
+			if (procedureName != null && !procedureName.equals(""))
+				return procedureRepository.findByNameLikeIgnoreCaseOrderByIdDesc("%" + procedureName + "%",
+						new PageRequest(page, size));
 			else
 				return procedureRepository.findByOrderByIdDesc(new PageRequest(page, size));
 		} catch (Exception e) {
@@ -59,14 +68,14 @@ public class ProcedureController {
 		}
 		return null;
 	}
-	
+
 	@GetMapping("/Edit")
-	public String getEditProcedureVeiw(@RequestParam(name="pid",defaultValue="0") Long procedureId, Model model) {
+	public String getEditProcedureVeiw(@RequestParam(name = "pid", defaultValue = "0") Long procedureId, Model model) {
 		Procedure procedure = new Procedure();
 		try {
-			if(procedureId != null && procedureId >0) {
+			if (procedureId != null && procedureId > 0) {
 				Optional<Procedure> opp = procedureRepository.findById(procedureId);
-				if(opp.isPresent())
+				if (opp.isPresent())
 					procedure = opp.get();
 			}
 		} catch (Exception e) {
@@ -76,30 +85,39 @@ public class ProcedureController {
 		model.addAttribute("procedure", procedure);
 		return "procedure";
 	}
+
 	@PostMapping("/Edit")
-	public String editProcedure(@RequestParam(name="pid",defaultValue="0") Long procedureId,
-			@RequestParam(name="filePath") MultipartFile file,@Valid @ModelAttribute("procedure") Procedure procedure, BindingResult bind,Model model) {
+	public String editProcedure(@RequestParam(name = "pid", defaultValue = "0") Long procedureId,
+			@RequestParam(name = "filePath") MultipartFile file,
+			@Valid @ModelAttribute("procedure") Procedure procedure, BindingResult bind, Model model) {
 		try {
 			boolean isUpdateOperation = false;
-			String fileName="";
-			if(procedure.getId() != null)
+			String fileName = "";
+			if (procedure.getId() != null)
 				isUpdateOperation = true;
 			else
 				procedure.setStoreAt(new Date());
-			if(file != null) {
+			if (file != null) {
 				try {
-					fileName = storageService.storeFile(file, new String[] {"pdf"});
+					if (dbFileService.checkExtensions(file.getOriginalFilename(), new String[] { "pdf" })) {
+						procedure.setDbFile(dbFileService.storeOrUpdateFile(file,
+								procedure.getDbFile() != null ? procedure.getDbFile().getId() : null, false));
+						if (procedure.getDbFile() == null)
+							fileName = storageService.storeFile(file, new String[] { "pdf" });
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
-			if(fileName != null && !fileName.equals(""))
+			if (fileName != null && !fileName.equals(""))
 				procedure.setFilePath(fileName);
-			if(procedureRepository.save(procedure)!=null) {
+			if (procedureRepository.save(procedure) != null) {
 				String message = (isUpdateOperation) ? " Procedure modifié" : "Procedure enregistré";
-				message = (fileName != null && !fileName.equals("")) ? message + " !" : message +", sans le fichier(assurez-vous de charger un fichier pdf de taille inférieur ou égale à 200MB) !";
+				message = ((fileName != null && !fileName.equals("")) || procedure.getDbFile() != null) ? message + " !"
+						: message
+								+ ", sans le fichier(assurez-vous de charger un fichier pdf de taille inférieur ou égale à 200MB) !";
 				model.addAttribute("successMsg", message);
-			}else {
+			} else {
 				model.addAttribute("errorMsg", "Opération échouée, veuillez recommencer !");
 			}
 		} catch (Exception e) {
@@ -110,38 +128,40 @@ public class ProcedureController {
 		return "procedure";
 	}
 
-    
-    @RequestMapping(value = "/Show/{id}", method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_PDF_VALUE)
-    @ResponseBody
-    public ResponseEntity<InputStreamResource> showProceduresPDf(@PathVariable(name = "id") Long procedureId) {
+	@RequestMapping(value = "/Show/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_PDF_VALUE)
+	@ResponseBody
+	public ResponseEntity<InputStreamResource> showProceduresPDf(@PathVariable(name = "id") Long procedureId) {
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Disposition", "inline; filename=procedure.pdf");
-    	try {
+		try {
 			Procedure p = procedureRepository.getOne(procedureId);
+			if(p.getDbFile() != null)
+				return  dbFileService.showPDfOnBrower(p.getDbFile());
+			// show file on disk if exist
 			InputStream is = new FileInputStream(storageService.getFilePathInUploadDir(p.getFilePath()).toFile());
 
-			return ResponseEntity
-			        .ok()
-			        .headers(headers)
-			        .contentType(MediaType.APPLICATION_PDF)
-			        .body(new InputStreamResource(is));
+			return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF)
+					.body(new InputStreamResource(is));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			//e.printStackTrace();
+			// e.printStackTrace();
 		}
-    	System.out.println("Fichier introuvable");
-    	return null;
-    }
-    
-    @GetMapping("/{id}/del")
-    public String delProcedure(@PathVariable("id") Long id) {
-    	try {
+		System.out.println("Fichier introuvable");
+		return null;
+	}
+
+	@GetMapping("/{id}/del")
+	public String delProcedure(@PathVariable("id") Long id) {
+		try {
 			Procedure p = procedureRepository.getOne(id);
+			DBFile dbFile = p.getDbFile();
+			p.setDbFile(null);
 			procedureRepository.delete(p);
+			if(dbFile != null)
+				dbFileService.delete(dbFile);
 		} catch (Exception e) {
 		}
-    	return "redirect:/Procedure/";
-    }
+		return "redirect:/Procedure/";
+	}
 }

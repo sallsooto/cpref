@@ -78,8 +78,10 @@
 									<tr data-ng-if="procedures.content.length>0"
 										data-ng-repeat="procedure in procedures.content | orderBy:orderFieldReverse+orderField">
 										<td class="text-left pl-3">{{replaceWithNullOrBlank(procedure.name,"Sans nom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
-										<td data-ng-if="procedure.filePath != null"><a th:href="@{/Procedure/Show/{{procedure.id}}/}" target="_blank" title="Lire fichier"> {{replaceWithNullOrBlank(procedure.filePath,"Sans fichier")}}</a></td>
-										<td data-ng-if="procedure.filePath == null">Sans fichier</td>
+										<td data-ng-if="procedure.filePath != null || procedure.dbFile != null">
+										<a th:href="@{/Procedure/Show/{{procedure.id}}/}" target="_blank" title="Lire fichier">
+										 {{replaceWithNullOrBlank(procedure.filePath,"")}} {{replaceWithNullOrBlank(procedure.dbFile.name,"")}}</a></td>
+										<td data-ng-if="procedure.filePath == null && procedure.dbFile == null">Sans fichier</td>
 										<td class="text-center">
 											<a th:href="@{/Procedure/Edit?pid={{procedure.id}}}" title="Modfier" class="text-decoration-none mr-3">
 												 <i class="fas fa-edit fa_table_link text-info p-1"></i>

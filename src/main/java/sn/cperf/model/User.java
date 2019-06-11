@@ -49,13 +49,6 @@ public class User implements Serializable,UserDetails{
 	@JoinColumn(name="fonction_id")
 	@JsonManagedReference
 	private Fonction fonction;
-	
-	public String getActivite() {
-		return activite;
-	}
-	public void setActivite(String activite) {
-		this.activite = activite;
-	}
 	private String photo;
 	@ManyToOne(cascade=CascadeType.PERSIST)
 	@JsonManagedReference
@@ -85,6 +78,17 @@ public class User implements Serializable,UserDetails{
 	private List<Role> roles;
 	@ManyToMany(mappedBy="users")
 	private List<Group> groupes;
+	@JoinColumn(name="photo_id")
+	@ManyToOne(fetch=FetchType.LAZY,cascade=CascadeType.PERSIST)
+	@JsonManagedReference
+	private DBFile DbPhoto;
+
+	public DBFile getDbPhoto() {
+		return DbPhoto;
+	}
+	public void setDbPhoto(DBFile dbPhoto) {
+		DbPhoto = dbPhoto;
+	}
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		Collection<GrantedAuthority> autorities = new ArrayList<>();
@@ -248,5 +252,12 @@ public class User implements Serializable,UserDetails{
 	}
 	public void setGroupes(List<Group> groupes) {
 		this.groupes = groupes;
+	}
+	
+	public String getActivite() {
+		return activite;
+	}
+	public void setActivite(String activite) {
+		this.activite = activite;
 	}
 }

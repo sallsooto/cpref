@@ -58,7 +58,7 @@
 												<input type="hidden" th:field="*{filePath}" id="photo"/>
 												<input type="file" id="file" name="filePath" accept="application/pdf" class="form-control form-control-sm  d-none"/>
 												<a href="#" class="border form-control form-control-sm btn btn-sm in_edition file_filed_trigger">
-													<span class="photo-loader-label" th:text="${procedure.filePath}">Charger une fichier pdf contenant le procedure </span>
+													<span class="photo-loader-label" th:text="${procedure.dbFile != null ? procedure.dbFile.name : procedure.filePath}">Charger une fichier pdf contenant le procedure </span>
 													<i class="fas fa-file float-right mt-1 text-primary"  style="font-size:15px;"></i>
 												</a>
 												<div class="invalid-feedback">Le fichier n'est pas valide!</div>

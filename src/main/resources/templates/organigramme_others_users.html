@@ -86,9 +86,9 @@
 									<tr data-ng-if="users.content.length>0"
 										data-ng-repeat="user in users.content | orderBy:orderFieldReverse+orderField">
 										<td><img alt="" th:src="@{/images/avatars/{{reoplaceWithNullOrBlank(user.photo,'user.png')}}}" class="circle" style="max-height:50px;max-height:50px;"></td>
-										<td>{{reoplaceWithNullOrBlank(user.lastname,"Sans prénom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
-										<td>{{reoplaceWithNullOrBlank(user.fonction,"Sans fonction")}}</td>
-										<td data-ng-if="user.userSup != null">{{reoplaceWithNullOrBlank(user.userSup.lastname,"Sans Prénom") + ' '+reoplaceWithNullOrBlank(user.userSup.lastname,"Sans nom")}}</td>
+										<td>{{reoplaceWithNullOrBlank(user.firstname,"") + ' '+reoplaceWithNullOrBlank(user.lastname,"")}}</td>
+										<td>{{reoplaceWithNullOrBlank(user.fonction.name,"Sans fonction")}}</td>
+										<td data-ng-if="user.userSup != null">{{reoplaceWithNullOrBlank(user.userSup.lastname,"") + ' '+reoplaceWithNullOrBlank(user.userSup.firstname,"Sans nom")}}</td>
 										<td data-ng-if="user.userSup == null">Sans supérieur hierarchique</td>
 										<td class="text-center">
 											<a href="#" title="Ajouter dans le diagramme" data-userId="{{user.id}}" data-ng-click="addInDiagramme($event)"

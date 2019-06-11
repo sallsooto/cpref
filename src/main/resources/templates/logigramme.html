@@ -15,6 +15,9 @@
 	<script type="text/javascript" th:src="@{/js/plugins/svg.js}"></script>
 	<script type="text/javascript" th:src="@{/js/plugins/mshz-chart.js}"></script>
 	<script type="text/javascript" th:src="@{/js/logigramme.js}"></script>
+    <!-- angular -->
+  <script th:src="@{/js/plugins/angular.min.js}"></script>
+  <script th:src="@{/js/app_ng.js}"></script>
 </head>
 <body>
 	<div class="container-fluid" layout:fragment="content">
@@ -27,7 +30,210 @@
 			<div id="drawing" style="margin: 30px auto; width: 900px;" class=""></div>
 		</div> -->
 		<!-- end static table -->
-		<div class="text-center" th:if="${process}" id="drawing">
+		<div class="text-center" th:if="${process}" id="drawing" data-ng-app="Cperf" data-ng-controller="LogigrammeCtrl">
+		<!--  details task td--
+			<div class="row">
+				<div class="d-none d-md-block col-md-6"></div>
+				<div class="col-sm-12 col-md-6">
+					<!-- datisl task card --
+						<div data-ng-if="selectedTaskId != null && selectedTaskId >0" 
+							 class="card position-absolute" id="card-task" style="width:96.5%;z-index:8000;margin-top:9.5%;opacity:0.8;">
+							<div class="card-header bg-info"><h5>{{taskname}}</h5></div>
+							<div class="card-body">
+							<form th:action="@{/Process/Task/Edit(pid=${param.pid},tid=${param.tid})}" method="post" 
+							 enctype="multipart/form-data" class="mshz-form-validate pb-0">
+								<input type="hidden" th:field="*{id}"/>
+								<!-- <input type="hidden" th:field="*{section}"/> --
+								<div class="row p-0">
+									<div class="col-sm-12 col-md-12 p-0">
+										<div class="row">
+											<div data-ng-if="errorMsg" class="col-sm-12">
+												<div class="text-center" th:replace="fragments/alert::flash-danger(body='{{errorMsg}}')"></div>
+											</div>
+											<div data-ng-if="successMsg" class="col-sm-12"> 
+												<div class="text-center" th:replace="fragments/alert::flash-success(body='{{successMsg}}')"></div>
+											</div>
+											<div class="form-group col-sm-12 col-md-6 s12 input-field">
+												<label class="ml-2">Entrez le libellé ou le nom de la tâche</label>
+												<input type="text" data-ng-model="taskname" placeholder=""
+												class="form-control form-control-sm" data-mshz-required="true"/>
+												<div class="invalid-feedback">Donnez un nom à la tâche !</div>
+											</div>
+											<div class="form-group col-sm-12 col-md-6 s12 input-field" th:if="${sections.size()>0}">
+												 <select data-ng-model="taskSection" class="from-control form-control-sm">
+												 	<option th:each="sect : ${sections}" th:value="${sect.id}" th:text="${sect.name}"></option>
+												 	<option value="">Nouvel section</option>
+											    </select>
+											    <label class="ml-2">Section ou ligne de séquance en affichage</label>
+											</div>
+											<div class="form-group col-sm-12">
+												<label class="font-weight-bold" style="font-size:15px;">Renseignez la durée effective de la tâche :</label>
+												<div class="row">
+													<div class="col-sm-6 col-md-3">
+															<label>Nombre d'année(s) :</label>
+															<input type="number" min="0" step="1" name="nbYears" th:field="*{nbYears}" placeholder="Entrez le nombre d'années.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-2">
+															<label>Mois(s) :</label>
+															<input type="number" min="0" step="1" name="nbMonths" th:field="*{nbMonths}" placeholder="Entrez le nombre de mois.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-2">
+															<label>Jour(s) :</label>
+															<input type="number" min="0" step="1" name="nbDays" th:field="*{nbDays}" placeholder="Entrez le nombre de jours.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-2">
+															<label>Heure(s) :</label>
+															<input type="number" min="0" step="1" name="nbHours" th:field="*{nbHours}" placeholder="Entrez le nombre d'heures.."
+															class="form-control form-control-sm"/>
+													</div>
+													<div class="col-sm-6 col-md-3">
+															<label>Nombre de Minutes(s) :</label>
+															<input type="number" min="0" step="1" name="nbMinuites" th:field="*{nbMinuites}" placeholder="Entrez le nombre des minutes.."
+															class="form-control form-control-sm"/>
+													</div>
+												</div>
+											</div>
+											<!--  description content manager --
+											<div class="form-group col-sm-12 col-md-4"> 
+												Type de description : 
+											</div>
+											<div class="form-group col-sm-12 col-md-8 text-center">
+												<label>
+											      <input class="with-gap radiodescriptionFileAndText" type="radio" name="radiodescription" value="1" checked/>
+											      <span>Textuelle & fichier</span>
+											    </label>
+												<label>
+											      <input class="with-gap radiodescriptionText" type="radio" name="radiodescription" value="2"/>
+											      <span>Textuelle</span>
+											    </label>
+												<label>
+											      <input class="with-gap radiodescriptionFile" name="radiodescription" type="radio" value="3" />
+											      <span>Fichier</span>
+											    </label>
+											</div>
+											<div class="form-grup col-sm-12 col s12 input-field descriptionTextContainer">
+												<textarea rows="2" cols="1" placeholder="Tappez la description textuelle ici.."
+												th:field="*{description}" class="materialize-textarea"></textarea>
+											</div>
+											<div class="form-group col-sm-12 descriptionFileContainer">
+												<label>Fichier de scription :</span></label>
+												<input type="hidden" th:field="*{fileDescriptionPath}" id="photo"/>
+												<input type="file" id="file" name="fileDescription" accept="application/pdf" class="form-control form-control-sm  d-none"/>
+												<a href="#" class="border form-control form-control-sm btn btn-sm in_edition file_filed_trigger">
+													<span class="photo-loader-label" th:text="${task.fileDescriptionPath}">Charger une fichier de description </span>
+													<i class="fas fa-file float-right mt-1 text-primary"  style="font-size:15px;"></i>
+												</a>
+												<div class="invalid-feedback">Le fichier n'est pas valide!</div>
+											</div>
+											<!-- end description content manager --
+											<div class="form-group col-sm-12 col-md-6 input-field s12"> 
+												 <select th:field="*{type}" class="">
+												 <option value="process">Choisissez le type de la tâche</option>
+											      <option value="start">Debut</option>
+											      <option value="process">Activité</option>
+											      <option value="sub_process">Sous-activité</option>
+											      <option value="doc">Document</option>
+											      <option value="finish">Fin</option>
+											    </select>
+											    <label class="ml-2">Type de la tâche </label>
+											</div>
+											<div class="form-group col-sm-12 col-md-6 s12 input-field" th:if="${task.id}"> 
+												 <select th:field="*{status}">
+												 <option value="valid">Séléctionner un status de la tâche</option>
+											      <option value="valid">Non démarrée</option>
+											      <option value="started">Démarrée</option>
+											      <option value="canceled">Annulée</option>
+											      <option value="completed">Traitée</option>
+											    </select>
+											    <label class="ml-2">Etat </label>
+											</div>
+											<div class="form-group col-sm-12 col-md-6 s12 input-field" th:if="!${task.id}"> 
+												 <select th:field="*{status}">
+											      <option value="valid" selected>En attente de démarrage</option>
+											    </select>
+											    <label class="ml-2">Etat initial</label>
+											</div>
+											<!-- user integration --
+												<div class="form-group col-sm-12 col-md-4"> 
+													Utilisateurs associés par : 
+												</div>
+												<div class="form-group col-sm-12 col-md-8 text-center">
+													<label>
+												      <input class="with-gap radioSectionWithGroupAndusers" type="radio" name="grouprodio" value="1"
+												      th:checked="!${task.id} or (${task.group} and ${task.users.size()>0})"/>
+												      <span>Groupe & utilisateurs</span>
+												    </label>
+													<label>
+												      <input class="with-gap radioSectionWithGroup" type="radio" name="grouprodio" value="2"
+												      th:checked="${task.id} and ${task.group} and ${task.users.size()<=0}"/>
+												      <span>Groupe</span>
+												    </label>
+													<label>
+												      <input class="with-gap radioSectionWithNotGroup" name="grouprodio" type="radio" value="3"
+												      th:checked="${task.id} and !${task.group} and ${task.users.size()>0}" />
+												      <span>utilisateurs</span>
+												    </label>
+												</div>
+												<div class="form-group col-sm-12 input-field sectionUserFormGroup col s12">
+													 <select th:field="*{users}" class="from-control form-control-sm" multiple>
+												      <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstname + ' '+user.lastname}"></option>
+												    </select>
+											    	<label>Selectionez les utilisateurs</label>
+												</div>
+												<div class="form-group col-sm-12 col-md-6 input-field col s12">
+													 <select th:field="*{validator}" class="from-control form-control-sm">
+												      <option value="">Selectionez le validateur du status de la tâche</option>
+												      <option th:each="user : ${users}" th:if="${user.firstname != null || user.lastname != null}" th:value="${user.id}" th:text="${user.firstname + ' '+user.lastname}"></option>
+												    </select>
+											    	<label>Validateur de la tâche</label>
+												</div>
+												<div class="form-group col-sm-12 col-md-6 input-field sectionGroupFormGrouop col s12">
+													 <select th:field="*{group}" class="from-control form-control-sm">
+												      <option th:each="group : ${groups}" th:value="${group.id}" th:text="${group.name}"></option>
+												    </select>
+												     <label>Séléctionnez le groupe des utilisateurs associé</label>
+												</div>
+											<!-- end users integration --
+											<div class="form-group col-sm-12 col-md-6 input-field col s12" th:if="${tasks.size()>0}"> 
+												 <select th:field="*{parent}" class="from-control form-control-sm">
+											      <option th:each="t: ${tasks}" th:value="${t.id}" th:text="${t.name}">Tache parente</option>
+											    </select>
+												 <label>Choisissez la tâche précédente</label>
+											</div>
+											<div class="form-group col-sm-12 col-md-6 input-field col s12" th:if="${tasks.size()>0}"> 
+												 <select th:field="*{lunchingByProcess}">
+											      <option value="true">Démarre en même temps que le process</option>
+											      <option value="false">Attendre que la tâche précédente soit traitée</option>
+											    </select>
+												 <label>Condition de démarrage de la tâche</label>
+											</div>
+											<div class="form-group col-sm-12 mb-0">
+												<button type="submit" class="btn btn-sm btn-outline-info float-right">Enregistrer</button>
+											</div>
+										</div>
+									</div>
+									<!-- col  --
+									<div class="col-sm-12 col-md-6">
+										<div class="row">
+											<div class="form-group col-sm-12 input-field">
+												 <select th:field="*{noProcessId}" class="from-control form-control-sm">
+											      <option value="">Séléctionnez les intervenant du process</option>
+											      <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstname + ' '+user.lastname}"></option>
+											    </select>
+											</div>
+										</div>
+									</div>
+									end col emps --
+								</div>
+							</form>
+							</div>
+						</div>
+					<!-- end details task card --
+				</div>
+			</div>-->
 			<table class="table table-sm table-bordered bg-white">
 				<thead>
 					<tr>

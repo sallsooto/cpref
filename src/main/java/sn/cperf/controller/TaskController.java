@@ -34,6 +34,7 @@ import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
+import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
 import sn.cperf.service.StorageService;
 import sn.cperf.util.NotificationType;
@@ -54,6 +55,7 @@ public class TaskController {
 	NotificationService notifService;
 	@Autowired
 	ProcessRepository processRepository;
+	@Autowired DBFileService dbFileService;
 
 	@GetMapping("/")
 	public String getListTaskView(Model model) {
@@ -134,11 +136,18 @@ public class TaskController {
 		headers.add("Content-Disposition", "inline; filename=procedure.pdf");
 		try {
 			Task task = taskRepository.getOne(taskId);
-			InputStream is = new FileInputStream(
-					storageService.getFilePathInUploadDir(task.getFileDescriptionPath()).toFile());
-
-			return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF)
+			if(task.getDbFileDescription() != null) {
+				// show if file exist on db
+				System.err.println("c'est avec la base");
+				return  dbFileService.showPDfOnBrower(task.getDbFileDescription());
+			}else {
+				// show if file exist on disk
+				InputStream is = new FileInputStream(
+						storageService.getFilePathInUploadDir(task.getFileDescriptionPath()).toFile());
+	
+				return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF)
 					.body(new InputStreamResource(is));
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();

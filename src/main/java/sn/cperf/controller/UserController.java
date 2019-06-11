@@ -31,28 +31,36 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import sn.cperf.dao.FonctionRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.form.ProfileForm;
+import sn.cperf.model.DBFile;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
+import sn.cperf.service.DBFileService;
 import sn.cperf.service.StorageService;
 
 @Controller
 @RequestMapping("/User")
 public class UserController {
-	@Autowired UserRepository userRepository;
-	@Autowired CperfService cperfService;
-	@Autowired StorageService storageService;
-	@Autowired FonctionRepository fonctionRepository;
-	
+	@Autowired
+	UserRepository userRepository;
+	@Autowired
+	CperfService cperfService;
+	@Autowired
+	StorageService storageService;
+	@Autowired
+	FonctionRepository fonctionRepository;
+	@Autowired
+	DBFileService dbFileService;
+
 	@GetMapping("/Profile")
-	public String getProfileView(@RequestParam(name="uid", defaultValue="0") Long userId, Model model) {
+	public String getProfileView(@RequestParam(name = "uid", defaultValue = "0") Long userId, Model model) {
 		try {
 			User loged = cperfService.getLoged();
 			User user = new User();
 			ProfileForm userForm = new ProfileForm();
-			if(userId != null && userId >0 && loged.hasRole("admin")){
+			if (userId != null && userId > 0 && loged.hasRole("admin")) {
 				Optional<User> optUser = userRepository.findById(userId);
-				if(optUser.isPresent()) {
+				if (optUser.isPresent()) {
 					user = optUser.get();
 					userForm.setId(user.getId());
 					userForm.setLastname(user.getLastname());
@@ -63,7 +71,7 @@ public class UserController {
 					userForm.setPhone(user.getPhone());
 					userForm.setUserSup(user.getUserSup());
 				}
-			}else {
+			} else {
 				userForm.setId(loged.getId());
 				userForm.setLastname(loged.getLastname());
 				userForm.setFirstname(loged.getFirstname());
@@ -73,58 +81,74 @@ public class UserController {
 				userForm.setPhone(loged.getPhone());
 				userForm.setUserSup(loged.getUserSup());
 			}
-			if(loged.hasRole("admin"))
-				model.addAttribute("isAdmin",true);
+			if (loged.hasRole("admin"))
+				model.addAttribute("isAdmin", true);
 			else
-				model.addAttribute("isAdmin",false);
-		    model.addAttribute("user",userForm);
+				model.addAttribute("isAdmin", false);
+			model.addAttribute("user", userForm);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		model.addAttribute("fonctions", fonctionRepository.findAll(Sort.by(Order.desc("id"))));
 		return "profile";
 	}
-	
+
 	@PostMapping("/Profile")
-	public String editProfile(@RequestParam("isAdmin") boolean isAdmin, @Valid @ModelAttribute("user") ProfileForm userForm,
-							BindingResult bind,Model model) {
+	public String editProfile(@RequestParam("isAdmin") boolean isAdmin,
+			@Valid @ModelAttribute("user") ProfileForm userForm, BindingResult bind, Model model) {
 		model.addAttribute("isAdmin", isAdmin);
 		try {
-			if(bind.hasErrors()) {
-				bind.getAllErrors().forEach(e->{
+			if (bind.hasErrors()) {
+				bind.getAllErrors().forEach(e -> {
 					System.err.println(e.getDefaultMessage());
 				});
-			}else {
+			} else {
 				User user = userRepository.getOne(userForm.getId());
 				User userByEmail = userRepository.findByEmail(userForm.getEmail());
-				if(userByEmail == null || (userByEmail != null && user.getId() == userByEmail.getId())) {
-					if(userForm.getFirstname() != null && !userForm.getFirstname().equals(""))
+				if (userByEmail == null || (userByEmail != null && user.getId() == userByEmail.getId())) {
+					if (userForm.getFirstname() != null && !userForm.getFirstname().equals(""))
 						user.setFirstname(userForm.getFirstname());
-					if(userForm.getLastname() != null && !userForm.getLastname().equals(""))
+					if (userForm.getLastname() != null && !userForm.getLastname().equals(""))
 						user.setLastname(userForm.getLastname());
-					if(userForm.getEmail() != null && !userForm.getEmail().equals(""))
+					if (userForm.getEmail() != null && !userForm.getEmail().equals(""))
 						user.setEmail(userForm.getEmail());
-					if(userForm.getPhone() != null && !userForm.getPhone().equals(""))
+					if (userForm.getPhone() != null && !userForm.getPhone().equals(""))
 						user.setPhone(userForm.getPhone());
-					if(isAdmin) {
-						if(userForm.getFonction() != null)
+					if (isAdmin) {
+						if (userForm.getFonction() != null)
 							user.setFonction(userForm.getFonction());
 					}
-					if(userForm.getFile() != null) {
-						try {user.setPhoto(storageService.storeAvatar(userForm.getFile(),new String[] { "jpg", "jpeg", "png", "gif", "svg","ico" }));} catch (Exception e1) {e1.printStackTrace();}
-						if(user.getPhoto()== null || user.getPhoto().equals("")){
-							if(userForm.getPhoto() == null || userForm.getPhoto().equals(""))
-								user.setPhoto("user.png");
-							else
-								user.setPhoto(userForm.getPhoto());
+					if (userForm.getFile() != null) {
+						if (dbFileService.checkExtensions(userForm.getFile().getOriginalFilename(),
+								new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" })) {
+							DBFile dbPhoto = null;
+							try { dbPhoto = dbFileService.find(user.getDbPhoto() != null ? user.getDbPhoto().getId() : null);} catch (Exception e) {}
+							user.setDbPhoto(dbFileService.storeOrUpdateFile(userForm.getFile(),
+									dbPhoto != null ? dbPhoto.getId() : null,
+									dbPhoto != null ? dbPhoto.isDefaultUserAvatar() : false));
+							// storing on disk
+							if(user.getDbPhoto() == null) {
+								try {
+									user.setPhoto(storageService.storeAvatar(userForm.getFile(),
+											new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" }));
+								} catch (Exception e1) {
+									e1.printStackTrace();
+								}
+								if (user.getPhoto() == null || user.getPhoto().equals("")) {
+									if (userForm.getPhoto() == null || userForm.getPhoto().equals(""))
+										user.setPhoto("user.png");
+									else
+										user.setPhoto(userForm.getPhoto());
+								}
+							}
 						}
 					}
-					userForm.setPhoto(user.getPhoto());
-					if(userRepository.save(user) != null)
+					userForm.setPhoto(user.getDbPhoto() != null ? user.getDbPhoto().getName() : user.getPhoto());
+					if (userRepository.save(user) != null)
 						model.addAttribute("successMsg", "Mise à jour du profile appliquée !");
 					else
 						model.addAttribute("errorMsg", "Mise à jour échouée, veuillez recommencer!");
-				}else {
+				} else {
 					model.addAttribute("errorMsg", "Vous ne pouvez pas utiliser cette adresse email");
 				}
 			}
@@ -136,35 +160,40 @@ public class UserController {
 		return "profile";
 	}
 
-
 	@RequestMapping(value = "/getUserPhoto", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<Resource> showProceduresPDf(@RequestParam(name="uid", defaultValue="0") Long userId) {
+	public ResponseEntity<Resource> showProceduresPDf(@RequestParam(name = "uid", defaultValue = "0") Long userId) {
 		try {
 			User user = new User();
 			try {
-				if(userId != null && userId>0) {
+				if (userId != null && userId > 0) {
 					Optional<User> opU = userRepository.findById(userId);
-					if(opU.isPresent())
+					if (opU.isPresent())
 						user = opU.get();
-				}else {
+				} else {
 					user = cperfService.getLoged();
 				}
 			} catch (Exception e) {
 			}
-			String fileName = (user != null && user.getPhoto() != null) ? user.getPhoto() : "user.png";
-            Path file = storageService.getResolveFilePathWithEnDirConfig("spring.file.avatar-dir", fileName);
-            System.out.println(file);
-            Resource resource = new UrlResource(file.toUri());
-            if(resource.exists() || resource.isReadable()) {
-            	return ResponseEntity.ok().body(resource);
-            }
-            else {
-                System.out.println("no file");
-            }
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+			if (user.getDbPhoto() != null && user.getDbPhoto().getId() != null && dbFileService.find(user.getDbPhoto().getId()) != null) {
+				return dbFileService.downloadImageFile(user.getDbPhoto());
+			}else if(dbFileService.getDefaultUserAvatar() != null){
+			  return dbFileService.downloadImageFile(dbFileService.getDefaultUserAvatar());
+			}else {
+				String fileName = (user != null && user.getPhoto() != null) ? user.getPhoto() : "user.png";
+				Path file = storageService.getResolveFilePathWithEnDirConfig("spring.file.avatar-dir", fileName);
+				System.out.println(file);
+				Resource resource = new UrlResource(file.toUri());
+				if (resource.exists() || resource.isReadable()) {
+					return ResponseEntity.ok().body(resource);
+				} else {
+					System.out.println("no file");
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("monn erreur");
+			System.out.println(e);
+		}
 		return null;
 	}
 }

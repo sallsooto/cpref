@@ -46,6 +46,9 @@ public class Task implements Serializable{
 	private String lastStatus;
 	private String description;
 	private String fileDescriptionPath;
+	@ManyToOne(fetch=FetchType.LAZY, cascade=CascadeType.PERSIST)
+	@JoinColumn(name="file_description_id")
+	private DBFile dbFileDescription;
 	@ManyToOne
 	@JoinColumn(name="parent_id")
 	@JsonBackReference

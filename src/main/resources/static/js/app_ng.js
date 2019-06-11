@@ -981,3 +981,49 @@ cperfModule
 						$scope.staticView = stat;
 					};
 				});
+cperfModule.controller("LogigrammeCtrl", function($scope, $http) {
+	$scope.selectedTaskId = 5;
+	$scope.errorMsg = null;
+	$scope.successMsg = null;
+	$scope.taskname = null;
+	$scope.tasksection = null;
+	$scope.nbYears = 0;
+	$scope.nbMonths = 0;
+	$scope.nbDays = 0;
+	$scope.nbHours = 0;
+	$scope.nbMinuites=0;
+	$scope.taskDescription=null;
+	$scope.taskFileDescription=null;
+	$scope.taskType = null;
+	$scope.taskStatus = null;
+	$scope.taskValidator = null;
+	$scope.taskGroup = null;
+	$scope.taskLunchingByProcess = false;
+	
+	$scope.getSelectedTask = function(){
+		if($scope.selectedTaskId !== null && $scope.selectedTaskId > 0){
+		$http({
+			url : '/Task/getTaskByIdJson/',
+			method : 'get',
+			params : {tid : $scope.selectedTaskId}
+		}).then(function(response) {
+			if (response.data != null){
+				$scope.taskname = response.data.name;
+				$scope.taskSection = response.data.section.id;
+				$scope.nbYears = response.data.nbYears;
+				$scope.nbMonths = response.data.nbMonths;
+				$scope.nbDays = response.data.nbDays;
+				$scope.nbHours = response.data.nbHours;
+				$scope.nbMinuites=response.data.nbMinuites;
+				$scope.taskDescription=response.data.description;
+				$scope.taskFileDescription=response.data.DbFileDescription != null ? response.data.DbFileDescription.name : response.data.fileDescription;
+				$scope.taskType = response.data.type;
+				$scope.taskStatus = response.data.status;
+				$scope.taskValidator = response.data.validator.id;
+				$scope.taskGroup =response.data.group.id;
+				$scope.taskLunchingByProcess = response.data.lunchingByProcess;
+			}
+		});
+	 }
+	};
+});

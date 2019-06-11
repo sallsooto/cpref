@@ -27,18 +27,23 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import sn.cperf.dao.GroupRepository;
+import sn.cperf.dao.IndicateurRepository;
+import sn.cperf.dao.ObjectifRepository;
 import sn.cperf.dao.ProcessRepository;
 import sn.cperf.dao.ProcessSectionRepository;
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.form.SectionForm;
+import sn.cperf.model.DBFile;
 import sn.cperf.model.Group;
-import sn.cperf.model.Procedure;
+import sn.cperf.model.Indicateur;
+import sn.cperf.model.Objectif;
 import sn.cperf.model.ProcessSection;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
+import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
 import sn.cperf.service.StorageService;
 import sn.cperf.util.NotificationType;
@@ -52,22 +57,33 @@ public class ProcessController {
 	ProcessRepository processRepository;
 	@Autowired
 	UserRepository userRepository;
-	@Autowired CperfService cperfService;
-	@Autowired ProcessSectionRepository sectionRepository;
-	@Autowired GroupRepository groupRepository;
-	@Autowired ProcessSectionRepository processSectionRepository;
-	@Autowired TaskRepository taskRepository;
-	@Autowired StorageService storageService;
-	@Autowired NotificationService notifService;
+	@Autowired
+	CperfService cperfService;
+	@Autowired
+	ProcessSectionRepository sectionRepository;
+	@Autowired
+	GroupRepository groupRepository;
+	@Autowired
+	ProcessSectionRepository processSectionRepository;
+	@Autowired
+	TaskRepository taskRepository;
+	@Autowired
+	StorageService storageService;
+	@Autowired
+	NotificationService notifService;
+	@Autowired
+	DBFileService dbFileService;
+	@Autowired IndicateurRepository indicatorRepository;
+	@Autowired ObjectifRepository ObjectifRepository;
 
 	@GetMapping("/Edit")
-	public String process(@RequestParam(name="pid",defaultValue="0") Long processId, Model model) {
+	public String process(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
 		Processus form = new Processus();
-		if(processId != null && processId>0) {
+		if (processId != null && processId > 0) {
 			Optional<Processus> optProcess = processRepository.findById(processId);
-			if(optProcess.isPresent()) {
+			if (optProcess.isPresent()) {
 				Processus processus = optProcess.get();
-				if(processus != null) {
+				if (processus != null) {
 					form.setId(processus.getId());
 					form.setDescription(processus.getDescription());
 					form.setLabel(processus.getLabel());
@@ -81,18 +97,20 @@ public class ProcessController {
 		model.addAttribute("process", form);
 		return "process";
 	}
-	
+
 	@PostMapping("/Edit")
 	public String edit(@Valid @ModelAttribute("process") Processus form, BindingResult bind, Model model) {
 		try {
-			if(bind.hasErrors()) {
-				bind.getAllErrors().forEach(e->{ System.out.println(e.getDefaultMessage());});
+			if (bind.hasErrors()) {
+				bind.getAllErrors().forEach(e -> {
+					System.out.println(e.getDefaultMessage());
+				});
 				model.addAttribute("errorMsg", "Des erreurs de validation trouvés!");
-			}else {
+			} else {
 				Processus process = new Processus();
-				if(form.getId() != null) {
+				if (form.getId() != null) {
 					Optional<Processus> optProcess = processRepository.findById(form.getId());
-					if(optProcess.isPresent())
+					if (optProcess.isPresent())
 						process = optProcess.get();
 				}
 				process.setDescription(form.getDescription());
@@ -103,13 +121,13 @@ public class ProcessController {
 				process.setPreviewStartDate(form.getPreviewStartDate());
 				process.setPreviewFinishDate(form.getPreviewFinishDate());
 				process.setId(form.getId());
-				if(processRepository.save(process) != null) {
-					if(form.getId() != null && form.getId()>0)
+				if (processRepository.save(process) != null) {
+					if (form.getId() != null && form.getId() > 0)
 						model.addAttribute("successMsg", "Process modifié!");
 					else
 						model.addAttribute("successMsg", "Process enregistré!");
 					form.setId(process.getId());
-				}else {
+				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
 			}
@@ -120,49 +138,69 @@ public class ProcessController {
 		}
 		return "process";
 	}
-    
-    @GetMapping("/{id}/del")
-    public String delProcess(@PathVariable("id") Long id) {
-    	try {
+
+	@GetMapping("/{id}/del")
+	public String delProcess(@PathVariable("id") Long id) {
+		try {
 			Processus p = processRepository.getOne(id);
+			List<Task> tasks = p.getTasks();
+			if(tasks != null) {
+				for(Task t : tasks) {
+					if(t.getObjectifs() != null && !t.getObjectifs().isEmpty()) {
+						for(Objectif obj : t.getObjectifs()) {
+							if(obj.getIndicators() != null && !obj.getIndicators().isEmpty()) {
+								for(Indicateur ind : obj.getIndicators()) {
+									indicatorRepository.delete(ind);
+								}
+							}
+							ObjectifRepository.delete(obj);
+						}
+					}
+					DBFile dbFiledescription = t.getDbFileDescription();
+					taskRepository.delete(t);
+					if(t.getDbFileDescription() != null)
+						dbFileService.delete(dbFiledescription);
+				}
+			}
 			processRepository.delete(p);
 		} catch (Exception e) {
 		}
-    	return "redirect:/Process/List";
-    }
-	
+		return "redirect:/Process/List";
+	}
+
 	@GetMapping("/List")
-	public String list(@RequestParam(name="s", defaultValue="") String searchKey, 
-			@RequestParam(name="size", defaultValue="5") int size,
-			@RequestParam(name="page", defaultValue="0") int page, Model model){
-			List<Processus> process = new ArrayList<>();
-			
-			double pages = 0;
-			try {
-				if(searchKey != null && !searchKey.equals("")) {
-					Page<Processus> pageProcess = processRepository.findByLabelLikeIgnoreCaseOrderByIdDesc("%"+searchKey+"%", new PageRequest(page, size));
-					if(!pageProcess.isEmpty()) {
-						process = pageProcess.getContent();
-						pages = pageProcess.getTotalPages();
-					}
-				}else {
-					Page<Processus> pageProcess = processRepository.findByOrderByIdDesc(new PageRequest(page, size));
-					System.err.println("conten " + pageProcess.getContent().size());
-					if(!pageProcess.isEmpty()) {
-						process = pageProcess.getContent();
-						pages = pageProcess.getTotalPages();
-					}
+	public String list(@RequestParam(name = "s", defaultValue = "") String searchKey,
+			@RequestParam(name = "size", defaultValue = "5") int size,
+			@RequestParam(name = "page", defaultValue = "0") int page, Model model) {
+		List<Processus> process = new ArrayList<>();
+
+		double pages = 0;
+		try {
+			if (searchKey != null && !searchKey.equals("")) {
+				Page<Processus> pageProcess = processRepository
+						.findByLabelLikeIgnoreCaseOrderByIdDesc("%" + searchKey + "%", new PageRequest(page, size));
+				if (!pageProcess.isEmpty()) {
+					process = pageProcess.getContent();
+					pages = pageProcess.getTotalPages();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
+			} else {
+				Page<Processus> pageProcess = processRepository.findByOrderByIdDesc(new PageRequest(page, size));
+				System.err.println("conten " + pageProcess.getContent().size());
+				if (!pageProcess.isEmpty()) {
+					process = pageProcess.getContent();
+					pages = pageProcess.getTotalPages();
+				}
 			}
-			model.addAttribute("processes",process);
-			model.addAttribute("pages", pages);
-			model.addAttribute("currentPage", page);
-			model.addAttribute("loged", cperfService.getLoged());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		model.addAttribute("processes", process);
+		model.addAttribute("pages", pages);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("loged", cperfService.getLoged());
 		return "liste_process";
 	}
-	
+
 	@GetMapping("/playOrStop")
 	@ResponseBody
 	public Map<String, Object> playOrStop(@RequestParam("pid") Long id, @RequestParam("play") boolean play) {
@@ -175,18 +213,19 @@ public class ProcessController {
 			Processus process = processRepository.getOne(id);
 			process.setStartAt(startDate);
 			process.setTotalTime(process.getMaxDate());
-			if(processRepository.save(process) != null) {
+			if (processRepository.save(process) != null) {
 				try {
-					if(play) {
-						for(Task task : process.getTasks()) {
-							if(task.isLunchingByProcess()) {
+					if (play) {
+						for (Task task : process.getTasks()) {
+							if (task.isLunchingByProcess()) {
 								task.setStartAt(startDate);
 								taskRepository.save(task);
 							}
 						}
-					}else {
-						for(Task task : process.getTasks()) {
-							if(task.isLunchingByProcess() && task.getStatus().toLowerCase().equals(TaskStatus.STARTED.toString().toLowerCase())) {
+					} else {
+						for (Task task : process.getTasks()) {
+							if (task.isLunchingByProcess() && task.getStatus().toLowerCase()
+									.equals(TaskStatus.STARTED.toString().toLowerCase())) {
 								task.setStartAt(null);
 								task.setStatus(TaskStatus.VALID.toString().toLowerCase());
 								taskRepository.save(task);
@@ -196,25 +235,30 @@ public class ProcessController {
 				} catch (Exception e1) {
 				}
 				data.put("success", true);
-				if(play) {
+				if (play) {
 					SimpleDateFormat tf = new SimpleDateFormat("dd/MM/yyyy à HH:mm");
 					data.put("startAt", tf.format(startDate));
 					data.put("maxDate", tf.format(process.getMaxDate()));
-					if(process.getTasks() != null && !process.getTasks().isEmpty()) {
-						for(Task task : process.getTasks()) {
-							if(task.getStatus().equals(TaskStatus.VALID.toString()) && task.isStatusValid() && task.isLunchingByProcess()) {
+					if (process.getTasks() != null && !process.getTasks().isEmpty()) {
+						for (Task task : process.getTasks()) {
+							if (task.getStatus().equals(TaskStatus.VALID.toString()) && task.isStatusValid()
+									&& task.isLunchingByProcess()) {
 								task.setStatus(TaskStatus.STARTED.toString());
-								try { taskRepository.save(task);} catch (Exception e) {}
+								try {
+									taskRepository.save(task);
+								} catch (Exception e) {
+								}
 							}
 						}
 					}
 				}
 				// store Notifications
-				 try {
+				try {
 					String title = (play) ? "Un process démarré " : " Un process stoppé ";
-					 String noteSlug = (play) ? "demarré" : " arrêté";
-					 String note = "Le process << " + process.getLabel() + " >> est " + noteSlug+" !";
-					 notifService.notify(title, note, NotificationType.INFO.toString(), "/Task/", process.getAllUsers(), null);
+					String noteSlug = (play) ? "demarré" : " arrêté";
+					String note = "Le process << " + process.getLabel() + " >> est " + noteSlug + " !";
+					notifService.notify(title, note, NotificationType.INFO.toString(), "/Task/", process.getAllUsers(),
+							null);
 				} catch (Exception e) {
 				}
 				// end store Notifications
@@ -224,17 +268,19 @@ public class ProcessController {
 		}
 		return data;
 	}
+
 	@GetMapping("/Section/Edit")
-	public String getEditSectionView(@RequestParam("pid") Long pid, @RequestParam(name="sid", defaultValue="0") Long sectionId,Model model) {
+	public String getEditSectionView(@RequestParam("pid") Long pid,
+			@RequestParam(name = "sid", defaultValue = "0") Long sectionId, Model model) {
 		try {
 			Optional<Processus> opProcess = processRepository.findById(pid);
 			ProcessSection section = new ProcessSection();
-			if(opProcess.isPresent()) {
-				Processus p =  opProcess.get();
+			if (opProcess.isPresent()) {
+				Processus p = opProcess.get();
 				section.setProcess(p);
-				if(sectionId != null && sectionId >0) {
+				if (sectionId != null && sectionId > 0) {
 					Optional<ProcessSection> opSection = sectionRepository.findById(sectionId);
-					if(opSection.isPresent()) {
+					if (opSection.isPresent()) {
 						section = opSection.get();
 					}
 				}
@@ -253,36 +299,37 @@ public class ProcessController {
 		}
 		return "section";
 	}
-	
+
 	@PostMapping("/Section/Edit")
-	public String editSection(@RequestParam("pid") Long pid,@Valid @ModelAttribute("sectionForm") SectionForm form, BindingResult bind, Model model) {
+	public String editSection(@RequestParam("pid") Long pid, @Valid @ModelAttribute("sectionForm") SectionForm form,
+			BindingResult bind, Model model) {
 		Processus p = new Processus();
 		try {
 			p.setId(form.getProcessId());
-			if(p.getId() != null && p.getId()>0)
+			if (p.getId() != null && p.getId() > 0)
 				p = processRepository.getOne(p.getId());
-			if(bind.hasErrors()) {
-				bind.getAllErrors().forEach(e->{
+			if (bind.hasErrors()) {
+				bind.getAllErrors().forEach(e -> {
 					System.err.println(e.getDefaultMessage());
 				});
-			}else {
+			} else {
 				ProcessSection section = new ProcessSection();
-				if(form.isWithGroup() && form.getGroupId() != null && form.getGroupId() >0) {
+				if (form.isWithGroup() && form.getGroupId() != null && form.getGroupId() > 0) {
 					Optional<Group> og = groupRepository.findById(form.getId());
-					if(og.isPresent())
+					if (og.isPresent())
 						section.setGroup(og.get());
 				}
 				section.setId(form.getId());
 				section.setName(form.getName());
 				section.setProcess(p);
-				if(processSectionRepository.save(section) != null) {
+				if (processSectionRepository.save(section) != null) {
 					p = section.getProcess();
-					if(form.getId() != null && form.getId()>0)
+					if (form.getId() != null && form.getId() > 0)
 						model.addAttribute("successMsg", "Section modifiée!");
 					else
 						model.addAttribute("successMsg", "Section enregistrée!");
 					form.setId(section.getId());
-				}else {
+				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
 			}
@@ -293,36 +340,36 @@ public class ProcessController {
 		model.addAttribute("process", p);
 		return "section";
 	}
-	
+
 	@GetMapping("/Task/Edit")
-	public String getTaskView(@RequestParam(name="pid") Long processId,
-			@RequestParam(name="tid", defaultValue="0") Long taskId, Model model) {
+	public String getTaskView(@RequestParam(name = "pid") Long processId,
+			@RequestParam(name = "tid", defaultValue = "0") Long taskId, Model model) {
 		Task task = new Task();
-		List<Task> tasks  = new ArrayList<>();
+		List<Task> tasks = new ArrayList<>();
 		Processus process = null;
 		try {
-			if(processId != null && processId>0) {
+			if (processId != null && processId > 0) {
 				Optional<Processus> oProcess = processRepository.findById(processId);
-				if(oProcess.isPresent()) {
+				if (oProcess.isPresent()) {
 					process = new Processus();
 					process = oProcess.get();
 					tasks = taskRepository.getByProcess(process.getId());
-				}else {
+				} else {
 					return "redirect:/Process/List/";
 				}
 			}
-			
+
 			try {
-				if(!process.getSections().isEmpty()) {
-					task.setSection(process.getSections().get(process.getSections().size()-1));
+				if (!process.getSections().isEmpty()) {
+					task.setSection(process.getSections().get(process.getSections().size() - 1));
 				}
 			} catch (Exception e) {
-				//e.printStackTrace();
+				// e.printStackTrace();
 			}
-			
-			if(taskId != null && taskId >0) {
+
+			if (taskId != null && taskId > 0) {
 				Optional<Task> opTask = taskRepository.findById(taskId);
-				if(opTask.isPresent()) {
+				if (opTask.isPresent()) {
 					task = opTask.get();
 					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
 				}
@@ -339,42 +386,46 @@ public class ProcessController {
 		model.addAttribute("process", process);
 		return "task";
 	}
+
 	@PostMapping("/Task/Edit")
-	public String editTask(@RequestParam("pid") Long processId,@RequestParam("fileDescription") MultipartFile fileDescription,
-							@RequestParam(name="tid", defaultValue="0") Long taskId,@RequestParam("grouprodio") int withGroup,
-							@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
+	public String editTask(@RequestParam("pid") Long processId,
+			@RequestParam("fileDescription") MultipartFile fileDescription,
+			@RequestParam(name = "tid", defaultValue = "0") Long taskId, @RequestParam("grouprodio") int withGroup,
+			@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
 		boolean isUpdateOperation = false;
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
 		try {
-			if(bind.hasErrors()) {
-				bind.getAllErrors().forEach(e->System.out.println(e.getDefaultMessage()));
-			}else {
-				  try {
+			if (bind.hasErrors()) {
+				bind.getAllErrors().forEach(e -> System.out.println(e.getDefaultMessage()));
+			} else {
+				try {
 					process = processRepository.getOne(processId);
-					} catch (Exception e1) {
-						return "redirect:/Process/List";
-					}
-				if(task.getSection() == null) {
+				} catch (Exception e1) {
+					return "redirect:/Process/List";
+				}
+				if (task.getSection() == null) {
 					ProcessSection section = new ProcessSection();
-					int sectionSize = (process.getSections() != null && !process.getSections().isEmpty()) ? process.getSections().size()+1 : 1;
-					String textSectionSize = sectionSize < 10 ? "0"+sectionSize : sectionSize+"";
-					section.setName("Section "+textSectionSize);
+					int sectionSize = (process.getSections() != null && !process.getSections().isEmpty())
+							? process.getSections().size() + 1
+							: 1;
+					String textSectionSize = sectionSize < 10 ? "0" + sectionSize : sectionSize + "";
+					section.setName("Section " + textSectionSize);
 					section.setProcess(process);
-					if(sectionRepository.save(section) != null)
+					if (sectionRepository.save(section) != null)
 						task.setSection(section);
 				}
-				if(process != null)
+				if (process != null)
 					tasks = taskRepository.getByProcess(process.getId());
-				    sections = processSectionRepository.findByProcess(process);
+				sections = processSectionRepository.findByProcess(process);
 				try {
-					if(task.getValidator() != null) {
+					if (task.getValidator() != null) {
 						List<User> users = new ArrayList<>();
-						if(task.getUsers() != null || !task.getUsers().isEmpty())
+						if (task.getUsers() != null || !task.getUsers().isEmpty())
 							users = task.getUsers();
 						System.err.println("users " + task.getAllUsers().size());
-						if(!task.getAllUsers().contains(task.getValidator())) {
+						if (!task.getAllUsers().contains(task.getValidator())) {
 							System.err.println("Validator " + task.getValidator().getFirstname());
 							users.add(task.getValidator());
 						}
@@ -383,71 +434,79 @@ public class ProcessController {
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
-				if(task.getId() != null && task.getId() > 0) {
+				if (task.getId() != null && task.getId() > 0) {
 					isUpdateOperation = true;
 					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
 				}
-				if(withGroup==3)
+				if (withGroup == 3)
 					task.setGroup(null);
 				// traitement du fichier
-				if(fileDescription != null) {
+				if (fileDescription != null) {
 					try {
-						task.setFileDescriptionPath(storageService.storeFile(fileDescription, new String[] {"pdf"}));
+						if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),new String[] { "pdf" })) {
+							task.setDbFileDescription(dbFileService.storeOrUpdateFile(fileDescription,
+									task.getDbFileDescription() != null ? task.getDbFileDescription().getId() : null,false));
+							if(task.getDbFileDescription() == null)
+								task.setFileDescriptionPath(storageService.storeFile(fileDescription, new String[] { "pdf" }));
+						}
 					} catch (Exception e) {
-						//e.printStackTrace();
+						// e.printStackTrace();
 					}
 				}
-				//end file filedescription traitements
+				// end file filedescription traitements
 				// lanching task or note
-					if(task.getId() == null) {
-						if(task.isLunchingByProcess()) {
-							try {
-								Processus p = processRepository.getOne(task.getProcessId());
-								if(p != null && p.getStartAt() != null)
-									task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
-							} catch (Exception e) {
-							}
-						}else {
-							if(task.getParent() != null && task.getParent().getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase()))
+				if (task.getId() == null) {
+					if (task.isLunchingByProcess()) {
+						try {
+							Processus p = processRepository.getOne(task.getProcessId());
+							if (p != null && p.getStartAt() != null)
 								task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+						} catch (Exception e) {
 						}
+					} else {
+						if (task.getParent() != null && task.getParent().getStatus().toLowerCase()
+								.equals(TaskStatus.COMPLETED.toString().toLowerCase()))
+							task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
 					}
+				}
 				// end lunching task or note
-				if(taskRepository.save(task) != null) {
+				if (taskRepository.save(task) != null) {
 					model.addAttribute("task", task);
 					String successMsg = "";
 					String notificationMsg = "";
 					String notificationTitle = "";
-					if(isUpdateOperation) {
+					if (isUpdateOperation) {
 						successMsg = "Tâche modifiée";
 						notificationTitle = "Tâche mise à jour";
-						notificationMsg = "La tâche \" "+task.getName()+" \" du process \" " + task.getSection().getProcess().getLabel() +" \" est mise à jour";
-					}
-					else {
+						notificationMsg = "La tâche \" " + task.getName() + " \" du process \" "
+								+ task.getSection().getProcess().getLabel() + " \" est mise à jour";
+					} else {
 						successMsg = "Tâche enregistrée";
 						notificationTitle = "Nouvelle tâche créee";
-						notificationMsg = "Vous avez une nouvelle tâche nomée "+task.getName()+" du process \" " + task.getSection().getProcess().getLabel() + " \"";
+						notificationMsg = "Vous avez une nouvelle tâche nomée " + task.getName() + " du process \" "
+								+ task.getSection().getProcess().getLabel() + " \"";
 					}
-					if(fileDescription != null && task.getFileDescriptionPath()==null)
+					if (fileDescription != null && task.getFileDescriptionPath() == null)
 						successMsg = successMsg + " sans le fichier de description(extension autorisée : pdf) !";
 					else
-						successMsg = successMsg+" !";
+						successMsg = successMsg + " !";
 					model.addAttribute("successMsg", successMsg);
-					
-					//update process totol time
-						try {
-							Processus p = task.getSection().getProcess();
-							p.setTotalTime(p.getMaxDate());
-							processRepository.save(p);
-							System.out.println("total time "+p.getTotalTime().toString());
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+
+					// update process totol time
+					try {
+						Processus p = task.getSection().getProcess();
+						p.setTotalTime(p.getMaxDate());
+						processRepository.save(p);
+						System.out.println("total time " + p.getTotalTime().toString());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					// storing notifications
-					  notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),"/Task/?tid="+task.getId(), task.getAllUsers(), null);
+					notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),
+							"/Task/?tid=" + task.getId(), task.getAllUsers(), null);
 					// end storing notification
-				}else {
+				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
 			}
@@ -462,14 +521,14 @@ public class ProcessController {
 		model.addAttribute("process", process);
 		return "task";
 	}
-	
+
 	@GetMapping("/Logigramme")
-	public String logigramme(@RequestParam(name="pid",defaultValue="0") Long processId, Model model) {
+	public String logigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
 		Processus p = null;
 		try {
-			if(processId != null && processId>0) {
-				Optional<Processus>  op = processRepository.findById(processId);
-				if(op.isPresent()) {
+			if (processId != null && processId > 0) {
+				Optional<Processus> op = processRepository.findById(processId);
+				if (op.isPresent()) {
 					p = new Processus();
 					p = op.get();
 				}
