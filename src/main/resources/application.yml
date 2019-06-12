@@ -25,7 +25,7 @@ spring:
           ddl-auto: update
           dialect: org.hibernate.dialect.MySQL5Dialect
   datasource:
-      url: jdbc:mysql://mysql-dev.database.svc.cluster.local:5432/cperf?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
+      url: jdbc:mysql://mysql-prod.database.svc.cluster.local:5432/cperf?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
       username: cpef
       password: MGgqazV7vfs$@jkn
       driver-class-name: com.mysql.cj.jdbc.Driver
