@@ -294,4 +294,16 @@ public class TaskController {
 		}
 		return data;
 	}
+
+	@GetMapping("/GetTaskByJquery")
+	@ResponseBody
+	public Task getTaskByJquery(@RequestParam("tid") Long taskId,Model model) {
+		try {
+			Task task  =taskRepository.getOne(taskId);
+			model.addAttribute("selectedTask", task);
+			return task;
+		} catch (Exception e) {
+		}
+		return null;
+	}
 }

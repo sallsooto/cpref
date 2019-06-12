@@ -17,6 +17,8 @@ $(document).ready(function(){
 }, 1000);
 // $('[data-toggle="tooltip"]').tooltip(
 //	        {container:'body', trigger: 'hover', placement:"bottom"});
+ 
+ senTaskJson(6);
 });
 
 function showChronos(start_actual_time_text,end_actual_time_text,chronoContainerSelector){
@@ -316,4 +318,18 @@ function init() {
             tipMarginLeft: userOpts.tipMarginLeft || 10
         };
     return defaults;
-}
+};
+
+function senTaskJson(taskId){
+	$.ajax({
+		url : '/Task/GetTaskByJquery?tid='+taskId,
+		method : 'get',
+		dataType : 'json',
+		success : function(result){
+			console.log(result);
+		},
+		error : function(e){
+			console.log(e);
+		}
+	});
+};
