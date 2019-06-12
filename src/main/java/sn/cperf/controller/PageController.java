@@ -194,4 +194,13 @@ public class PageController {
 	public User getLoged() {
 		return cperfService.getLoged();
 	}
+	
+	@GetMapping("/initApp")
+	public String initApp() {
+		try {
+			cperfService.doAllNecessaryOperationsAfterLunchApplication();
+		} catch (Exception e) {
+		}
+		return "redirect:/";
+	}
 }
