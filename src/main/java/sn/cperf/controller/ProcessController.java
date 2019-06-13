@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,8 +74,10 @@ public class ProcessController {
 	NotificationService notifService;
 	@Autowired
 	DBFileService dbFileService;
-	@Autowired IndicateurRepository indicatorRepository;
-	@Autowired ObjectifRepository ObjectifRepository;
+	@Autowired
+	IndicateurRepository indicatorRepository;
+	@Autowired
+	ObjectifRepository ObjectifRepository;
 
 	@GetMapping("/Edit")
 	public String process(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
@@ -144,12 +147,12 @@ public class ProcessController {
 		try {
 			Processus p = processRepository.getOne(id);
 			List<Task> tasks = p.getTasks();
-			if(tasks != null) {
-				for(Task t : tasks) {
-					if(t.getObjectifs() != null && !t.getObjectifs().isEmpty()) {
-						for(Objectif obj : t.getObjectifs()) {
-							if(obj.getIndicators() != null && !obj.getIndicators().isEmpty()) {
-								for(Indicateur ind : obj.getIndicators()) {
+			if (tasks != null) {
+				for (Task t : tasks) {
+					if (t.getObjectifs() != null && !t.getObjectifs().isEmpty()) {
+						for (Objectif obj : t.getObjectifs()) {
+							if (obj.getIndicators() != null && !obj.getIndicators().isEmpty()) {
+								for (Indicateur ind : obj.getIndicators()) {
 									indicatorRepository.delete(ind);
 								}
 							}
@@ -158,7 +161,7 @@ public class ProcessController {
 					}
 					DBFile dbFiledescription = t.getDbFileDescription();
 					taskRepository.delete(t);
-					if(t.getDbFileDescription() != null)
+					if (t.getDbFileDescription() != null)
 						dbFileService.delete(dbFiledescription);
 				}
 			}
@@ -443,11 +446,14 @@ public class ProcessController {
 				// traitement du fichier
 				if (fileDescription != null) {
 					try {
-						if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),new String[] { "pdf" })) {
+						if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),
+								new String[] { "pdf" })) {
 							task.setDbFileDescription(dbFileService.storeOrUpdateFile(fileDescription,
-									task.getDbFileDescription() != null ? task.getDbFileDescription().getId() : null,false));
-							if(task.getDbFileDescription() == null)
-								task.setFileDescriptionPath(storageService.storeFile(fileDescription, new String[] { "pdf" }));
+									task.getDbFileDescription() != null ? task.getDbFileDescription().getId() : null,
+									false));
+							if (task.getDbFileDescription() == null)
+								task.setFileDescriptionPath(
+										storageService.storeFile(fileDescription, new String[] { "pdf" }));
 						}
 					} catch (Exception e) {
 						// e.printStackTrace();
@@ -523,23 +529,206 @@ public class ProcessController {
 	}
 
 	@GetMapping("/Logigramme")
-	public String logigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
+	public String logigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
+			@RequestParam(name = "tid", defaultValue = "0") Long taskId, Model model) {
 		Processus p = null;
+		Task task = null;
+		List<Task> tasks = new ArrayList<>();
+		List<ProcessSection> sections = new ArrayList<>();
+		List<User> users = new ArrayList<>();
+		List<Group> groups = new ArrayList<>();
 		try {
 			if (processId != null && processId > 0) {
 				Optional<Processus> op = processRepository.findById(processId);
 				if (op.isPresent()) {
 					p = new Processus();
 					p = op.get();
+					sections = p.getSections();
+				}
+				model.addAttribute("pId", p.getId());
+	
+				if (taskId != null && taskId > 0) {
+					Optional<Task> opTask = taskRepository.findById(taskId);
+					if (opTask.isPresent()) {
+						task = new Task();
+						task = opTask.get();
+						tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), p.getId());
+					}else {
+						tasks = taskRepository.getByProcess(p.getId());
+					}
+				}
+				if (task == null) {
+					task = new Task();
+					tasks = p.getTasks();
 				}
 			}
-			System.out.println(p.getId());
-			model.addAttribute("pId", p.getId());
+			users = userRepository.findAll();
+			groups = groupRepository.findAll();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		// suppressions des tasche vies 
+		deleteAllProcessSectionsWithoutTask();
+		
+		model.addAttribute("sections", sections);
+		model.addAttribute("tasks", tasks);
+		model.addAttribute("users", users);
+		model.addAttribute("groups", groups);
+		model.addAttribute("task", task);
 		model.addAttribute("process", p);
 		return "logigramme";
+	}
+	
+	@PostMapping("/Logigramme")
+	public String editTaskInLogigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
+			@RequestParam("fileDescription") MultipartFile fileDescription,
+			@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model,HttpSession session) {
+		    List<Task> tasks = new ArrayList<>();
+			List<ProcessSection> sections = new ArrayList<>();
+			List<User> users = new ArrayList<>();
+			List<Group> groups = new ArrayList<>();
+			Long taskId = null;
+			boolean tasSectionChanged = false;
+		Processus process = null;
+		try {
+			if (bind.hasErrors()) {
+				bind.getAllErrors().forEach(e -> System.out.println(e.getDefaultMessage()));
+			} else {
+				try {
+					if(session.getAttribute("successMsg") != null)
+						session.removeAttribute("successMsg");
+					if(session.getAttribute("errorMsg") != null)
+					 session.removeAttribute("errorMsg");
+					Task dbTask = taskRepository.getOne(task.getId());
+					if(dbTask != null) {
+						tasSectionChanged = task.getSection() != null && task.getSection().getId() == dbTask.getSection().getId() ? false : true;
+						taskId = dbTask.getId();
+						process = dbTask.getSection().getProcess();
+						dbTask.setGroup(task.getGroup());
+						dbTask.setName(task.getName() != null && !task.getName().equals("") ? task.getName() : dbTask.getName());
+						dbTask.setNbYears(task.getNbYears());
+						dbTask.setNbMonths(task.getNbMonths());
+						dbTask.setNbDays(task.getNbDays());
+						dbTask.setNbHours(task.getNbHours());
+						dbTask.setNbMinuites(task.getNbMinuites());
+						dbTask.setDescription(task.getDescription());
+						dbTask.setType(task.getType());
+						dbTask.setStatus(task.getStatus());
+						// traitement du fichier
+						if (fileDescription != null) {
+							try {
+								if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),
+										new String[] { "pdf" })) {
+									task.setDbFileDescription(dbFileService.storeOrUpdateFile(fileDescription,
+											task.getDbFileDescription() != null ? task.getDbFileDescription().getId() : null,
+											false));
+									if (task.getDbFileDescription() == null)
+										task.setFileDescriptionPath(
+												storageService.storeFile(fileDescription, new String[] { "pdf" }));
+								}
+							} catch (Exception e) {
+								// e.printStackTrace();
+							}
+						}
+						// section description traitements 
+						dbTask.setDbFileDescription(task.getDbFileDescription() != null ? task.getDbFileDescription() : dbTask.getDbFileDescription());
+						dbTask.setFileDescriptionPath(task.getFileDescriptionPath() != null ? task.getFileDescriptionPath() : dbTask.getFileDescriptionPath());
+						if (task.getSection() == null) {
+							try {
+								ProcessSection section = new ProcessSection();
+								int sectionSize = (process.getSections() != null && !process.getSections().isEmpty())
+										? process.getSections().size() + 1
+										: 1;
+								String textSectionSize = sectionSize < 10 ? "0" + sectionSize : sectionSize + "";
+								section.setName("Section " + textSectionSize);
+								section.setProcess(process);
+								if (sectionRepository.save(section) != null)
+									task.setSection(section);
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+						// en section description traitements
+						dbTask.setSection(task.getSection() != null ? task.getSection() : dbTask.getSection());
+						// end lunching task or note
+						if (taskRepository.save(dbTask) != null) {
+							try {
+								process = dbTask.getSection().getProcess();
+								sections = process.getSections();
+								tasks = taskRepository.getByProcessAndTaskIdIsNot(dbTask.getId(), process.getId());
+								users =  userRepository.findAll();
+								groups = groupRepository.findAll();
+								model.addAttribute("task", dbTask);
+							} catch (Exception e1) {
+							}
+							
+							String successMsg ="Tâche modifiée";
+							String notificationTitle = "Tâche mise à jour";
+							String notificationMsg = "La tâche \" " + dbTask.getName() + " \" du process \" "
+									+ dbTask.getSection().getProcess().getLabel() + " \" est mise à jour";
+								
+							if (fileDescription != null && dbTask.getFileDescriptionPath() == null && dbTask.getDbFileDescription() == null)
+								successMsg = successMsg + " sans le fichier de description(extension autorisée : pdf) !";
+							else
+								successMsg = successMsg + " !";
+							session.setAttribute("successMsg", successMsg);
+
+							// update process totol time
+							try {
+								Processus p = dbTask.getSection().getProcess();
+								p.setTotalTime(p.getMaxDate());
+								processRepository.save(p);
+								System.out.println("total time " + p.getTotalTime().toString());
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							// storing notifications
+							notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),
+									"/Task/?tid=" + dbTask.getId(), dbTask.getAllUsers(), null);
+							// end storing notification
+						} else {
+							session.setAttribute("errorMsg", "Echèc de la modification de la tâche");
+						}
+					}else {
+						session.setAttribute("errorMsg", "Tâche introuvable");
+					}
+				} catch (Exception e1) {
+					return "redirect:/Process/List";
+				}
+			}
+		} catch (Exception e) {
+			session.setAttribute("errorMsg", "Opération échouée, veuillez recommncer !");
+			e.printStackTrace();
+		}
+		
+		// suppressions des tasche vies 
+		deleteAllProcessSectionsWithoutTask();
+		if(tasSectionChanged && process != null)
+			return "redirect:/Process/Logigramme?pid="+process.getId()+"&tid="+taskId;
+		model.addAttribute("sections", sections);
+		model.addAttribute("tasks",tasks);
+		model.addAttribute("users", users);
+		model.addAttribute("groups", groups);
+		model.addAttribute("process", process);
+		
+		return "logigramme";
+	}
+	
+	private void deleteAllProcessSectionsWithoutTask() {
+		try {
+			List<ProcessSection> emptySections = processSectionRepository.findByTasksIsNullOrProcessIsNull();
+			if(!emptySections.isEmpty()) {
+				emptySections.forEach(ps->{
+					processSectionRepository.delete(ps);
+				});
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

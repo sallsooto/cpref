@@ -8,6 +8,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,9 +23,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.NotificationRepository;
+import sn.cperf.dao.ParamRepository;
 import sn.cperf.dao.RoleRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.model.Group;
+import sn.cperf.model.Parametre;
 import sn.cperf.model.Role;
 import sn.cperf.model.User;
 import sn.cperf.service.MailService;
@@ -38,6 +41,7 @@ public class AdminController {
 	@Autowired UserRepository userRepository;
 	@Autowired NotificationRepository notificationRepository;
 	@Autowired MailService mailService;
+	@Autowired ParamRepository paramRepository;
 	
 	@GetMapping("/Role")
 	public String getRoleView(@RequestParam(name="id", defaultValue="0") Long id, Model model) {
@@ -243,5 +247,48 @@ public class AdminController {
 		model.addAttribute("roles", roleRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		return "user";
+	}
+	
+	@GetMapping("/Config")
+	public String getConfigView(@RequestParam(name="paramId", defaultValue="0") Long paramId, Model model) {
+		Parametre param = null;
+		if(paramId != null && paramId >0) {
+			try {param = paramRepository.getOne(paramId);} catch (Exception e) {}
+		}
+		if(param == null)
+			param = new Parametre();
+		model.addAttribute("config", param);
+		model.addAttribute("params", paramRepository.findAll());
+		return "config";
+	}
+	
+	@PostMapping("/Config")
+	public String editConfig(@RequestParam(name="paramId", defaultValue="0") Long paramId,
+			@Valid @ModelAttribute("config") Parametre param, BindingResult bind, Model model) {
+		boolean isUpdateOp = false, paramExist=false;
+		try {
+			if(param != null) {
+				isUpdateOp = param.getId() != null ? true : false;
+				if(param.getSlug() != null) {
+					if(!isUpdateOp)
+						paramExist = paramRepository.findBySlug(param.getSlug()) != null ? true : false;
+					if(!paramExist) {
+						if(paramRepository.save(param) != null) {
+							model.addAttribute("successMsg",isUpdateOp ? " Données mise à jour !" : " Donnée enregistrées !");
+						}
+					}else {
+						model.addAttribute("errorMsg", "Ce slogan est utilisé, veuillez choisir un autre !");
+					}
+				}else {
+					model.addAttribute("errorMsg", "Le slogan est réquis !");
+				}
+			}else {
+				return "redirect:/Admin/Config";
+			}
+		} catch (Exception e) {
+			model.addAttribute("errorMsg", "Opération échouée !");
+		}
+		model.addAttribute("params", paramRepository.findAll(Sort.by("id").descending()));
+		return "config";
 	}
 }

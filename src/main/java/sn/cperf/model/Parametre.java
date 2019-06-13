@@ -24,4 +24,5 @@ public class Parametre implements Serializable {
 	private String param;
 	@Column(unique=true,length=50)
 	private String slug;
+	private String label;
 }

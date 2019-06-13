@@ -6,14 +6,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +25,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.ProcessRepository;
+import sn.cperf.dao.ProcessSectionRepository;
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.UserRepository;
-import sn.cperf.model.Group;
+import sn.cperf.model.ProcessSection;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
@@ -56,7 +57,8 @@ public class TaskController {
 	@Autowired
 	ProcessRepository processRepository;
 	@Autowired DBFileService dbFileService;
-
+	@Autowired GroupRepository groupRepository;
+	@Autowired ProcessSectionRepository processSectionRepository;
 	@GetMapping("/")
 	public String getListTaskView(Model model) {
 		model.addAttribute("loged", cperfService.getLoged());
@@ -293,5 +295,50 @@ public class TaskController {
 			e.printStackTrace();
 		}
 		return data;
+	}
+	
+	@GetMapping("/LoadTaskInModel")
+	public String LoadTaskInModel(@RequestParam("tid") Long taskId, Model model, HttpSession session) {
+		try {
+			// suppression des section vide
+			deleteAllProcessSectionsWithoutTask();
+			
+		  Task t = taskRepository.getOne(taskId);
+		  if(t != null) {
+			    Processus process = processRepository.getOne(t.getProcessId());
+				model.addAttribute("sections", process.getSections());
+				model.addAttribute("tasks", taskRepository.getByProcessAndTaskIdIsNot(process.getId(), t.getId()));
+				model.addAttribute("users", userRepository.findAll());
+			    model.addAttribute("task", t);
+				model.addAttribute("groups", groupRepository.findAll());
+				model.addAttribute("process", process);
+				if(session.getAttribute("errorMsg") != null && !session.getAttribute("errorMsg").equals("")) {
+					model.addAttribute("errorMsg", session.getAttribute("errorMsg"));
+					session.removeAttribute("errorMsg");
+				}
+				if(session.getAttribute("successMsg") != null && !session.getAttribute("successMsg").equals("")) {
+					model.addAttribute("successMsg", session.getAttribute("successMsg"));
+					session.removeAttribute("successMsg");
+				}
+			  return "logigramme :: #taskForm";
+		  }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private void deleteAllProcessSectionsWithoutTask() {
+		try {
+			List<ProcessSection> emptySections = processSectionRepository.findByTasksIsNullOrProcessIsNull();
+			if(!emptySections.isEmpty()) {
+				emptySections.forEach(ps->{
+					processSectionRepository.delete(ps);
+				});
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
