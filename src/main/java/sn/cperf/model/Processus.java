@@ -73,37 +73,51 @@ public class Processus implements Serializable{
 	
 	public Date getMaxDate() {
 		if(startAt != null) {
-			int nbYears =0, nbMonths=0, nbDays=0, nbHours=0, nbMinutes=0;
-			if(this.getSections() != null && !this.getSections().isEmpty()) {
-				for(ProcessSection section : this.getSections()) {
-					if(section.getTasks() != null && !section.getTasks().isEmpty()) {
-						for(Task task : section.getTasks()) {
-							if(task.getStartAt() != null) {
-								Calendar taskCalander = Calendar.getInstance();
-								taskCalander.setTime(task.getStartAt());
-								nbYears = nbYears + taskCalander.get(GregorianCalendar.YEAR);
-								nbMonths = nbMonths + taskCalander.get(GregorianCalendar.MONTH);
-								nbDays = nbDays+ taskCalander.get(GregorianCalendar.DAY_OF_MONTH);
-								nbHours = nbHours + taskCalander.get(GregorianCalendar.HOUR);
-								nbMinutes = nbMinutes + taskCalander.get(GregorianCalendar.MINUTE);
-								
-							}
-							nbYears = nbYears + task.getNbYears();
-							nbMonths = nbMonths + task.getNbMonths();
-							nbDays = nbDays+task.getNbDays();
-							nbHours = nbHours + task.getNbHours();
-							nbMinutes = nbMinutes + task.getNbMinuites();
+			Calendar calander = Calendar.getInstance();
+			calander.setTime(startAt);
+			if(this.getTasks() != null && !this.getTasks().isEmpty()) {
+				List<Task> tasks = this.getTasks();
+				for(Task task : tasks) {
+					if(!task.getStatus().toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())) {
+						if(task.getStartAt() != null) {
+							Calendar taskCalander = Calendar.getInstance();
+							Calendar tmpCalender = Calendar.getInstance();
+							taskCalander.setTime(task.getStartAt());
+							tmpCalender.setTime(startAt);
+							// setting taskcalenderValues
+//							taskCalander.add(GregorianCalendar.YEAR,Math.abs(task.getNbYears()));
+//							taskCalander.add(GregorianCalendar.MONTH, Math.abs(task.getNbMonths()));
+//							taskCalander.add(GregorianCalendar.DAY_OF_MONTH,Math.abs(task.getNbDays()));
+//							taskCalander.add(GregorianCalendar.HOUR,Math.abs(task.getNbHours()));
+//							taskCalander.add(GregorianCalendar.MINUTE,Math.abs(task.getNbMinuites()));
+							// totales times values setting
+							int totalNbYears = Math.abs(tmpCalender.get(Calendar.YEAR)-taskCalander.get(Calendar.YEAR)) + task.getNbYears();
+							int totalNbMonths =  Math.abs(tmpCalender.get(Calendar.MONTH)-taskCalander.get(Calendar.MONTH)) + task.getNbMonths();
+							int totalNbDays = Math.abs(tmpCalender.get(Calendar.DAY_OF_MONTH)-taskCalander.get(Calendar.DAY_OF_MONTH)) +task.getNbDays();
+							int totalNbHours = Math.abs(tmpCalender.get(Calendar.HOUR)-taskCalander.get(Calendar.HOUR)) + task.getNbHours();
+							int totalNbMinutes = Math.abs(tmpCalender.get(Calendar.MINUTE)-taskCalander.get(Calendar.MINUTE)) + task.getNbYears();
+				    		// set calander values 
+							System.err.println(task.getName() + " diff years : "+ totalNbYears);
+							calander.add(GregorianCalendar.YEAR,totalNbYears );
+							System.err.println(task.getName() + " diff months : "+totalNbMonths);
+							calander.add(GregorianCalendar.MONTH, totalNbMonths);
+							System.err.println(task.getName() + " diff days : "+ totalNbDays);
+							calander.add(GregorianCalendar.DAY_OF_MONTH, totalNbDays);
+							System.err.println(task.getName() + " diff hours : "+totalNbHours);
+							calander.add(GregorianCalendar.HOUR,totalNbHours );
+							System.err.println(task.getName() + " diff min : "+ totalNbMinutes);
+							calander.add(GregorianCalendar.MINUTE,totalNbMinutes);
+							tmpCalender = null;
+						}else {
+							calander.add(GregorianCalendar.YEAR, task.getNbYears());
+							calander.add(GregorianCalendar.MONTH, task.getNbMonths());
+							calander.add(GregorianCalendar.DAY_OF_MONTH, task.getNbDays());
+							calander.add(GregorianCalendar.HOUR, task.getNbHours());
+							calander.add(GregorianCalendar.MINUTE,task.getNbMinuites());
 						}
 					}
 				}
 			}
-			Calendar calander = Calendar.getInstance();
-			calander.setTime(startAt);
-			calander.set(GregorianCalendar.YEAR, calander.get(GregorianCalendar.YEAR) + nbYears);
-			calander.set(GregorianCalendar.MONTH, calander.get(GregorianCalendar.MONTH) + nbMonths);
-			calander.set(GregorianCalendar.DAY_OF_MONTH, calander.get(GregorianCalendar.DAY_OF_MONTH) + nbDays);
-			calander.set(GregorianCalendar.HOUR, calander.get(GregorianCalendar.HOUR) + nbHours);
-			calander.set(GregorianCalendar.MINUTE, calander.get(GregorianCalendar.MINUTE) + nbMinutes);
 			return calander.getTime();
 		}
 		return null;
@@ -162,7 +176,13 @@ public class Processus implements Serializable{
 			for(ProcessSection section : sections) {
 				if(section.getTasks() != null && !section.getTasks().isEmpty()) {
 					for(Task task : section.getTasks()) {
-						if(!tasks.contains(task))
+						boolean findedTask = false;
+						for(Task finded : tasks) {
+							if(finded.getId() == task.getId())
+								findedTask = true;
+							break;
+						}
+						if(!findedTask)
 							tasks.add(task);
 					}
 				}
@@ -170,5 +190,39 @@ public class Processus implements Serializable{
 			}
 		}
 		return tasks;
+	}
+	
+	public List<Task> getFinishedLateTasks(){
+		List<Task> tasks = new ArrayList<>();
+		for(Task task : getTasks()) {
+			if(task.isFinishedLate() && !tasks.contains(task)
+				&& !task.getStatus().toLowerCase().equals("canceled") && !task.getStatus().toLowerCase().equals("valid")) {
+				tasks.add(task);
+			}
+		}
+		return tasks;
+	}
+	
+	public List<Task> getNoFinishedTasks(){
+		List<Task> noFinishedTasks = new ArrayList<>();
+		for(Task task : getTasks()) {
+			if((task.getStartAt() != null || task.getStatus().toLowerCase().equals("started")) 
+					&& task.getFinishAt() == null && !noFinishedTasks.contains(task)
+				    && !task.getStatus().toLowerCase().equals("canceled")
+				    && !task.getStatus().toLowerCase().equals("valid")) {
+				noFinishedTasks.add(task);
+			}
+		}
+		return noFinishedTasks;
+	}
+	
+	public List<Task> getNoStartedTasks(){
+		List<Task> noStartedTasks = new ArrayList<>();
+		for(Task task : getTasks()) {
+			if((task.getStartAt() == null || task.getStatus().toLowerCase().equals("valid")) && !noStartedTasks.contains(task)) {
+				noStartedTasks.add(task);
+			}
+		}
+		return noStartedTasks;
 	}
 }

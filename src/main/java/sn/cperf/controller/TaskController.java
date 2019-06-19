@@ -6,14 +6,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,16 +25,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.ProcessRepository;
+import sn.cperf.dao.ProcessSectionRepository;
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.UserRepository;
-import sn.cperf.model.Group;
+import sn.cperf.model.ProcessSection;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
 import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
+import sn.cperf.service.ProcessService;
 import sn.cperf.service.StorageService;
 import sn.cperf.util.NotificationType;
 import sn.cperf.util.TaskStatus;
@@ -56,7 +58,9 @@ public class TaskController {
 	@Autowired
 	ProcessRepository processRepository;
 	@Autowired DBFileService dbFileService;
-
+	@Autowired GroupRepository groupRepository;
+	@Autowired ProcessSectionRepository processSectionRepository;
+	@Autowired ProcessService processService;
 	@GetMapping("/")
 	public String getListTaskView(Model model) {
 		model.addAttribute("loged", cperfService.getLoged());
@@ -173,12 +177,30 @@ public class TaskController {
 					else
 						task.setStatusValid(false);
 					task.setStatus(status);
+					// seting finish date
+					if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
+						if(task.getFinishAt() == null)
+							task.setFinishAt(new Date());
+					}
+					else {
+						task.setFinishAt(null);
+					}
+					// set staring task date
+					if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+						if(task.getStartAt() == null)
+							task.setStartAt(new Date());
+					}
+					else {
+						task.setStartAt(null);
+					}
+					// en setting start task date
 					if (taskRepository.save(task) != null) {
 						// luching chierld tasks
 						try {
 							if(status.toLowerCase().equals("completed")) {
 								for(Task taskChirld : task.getChirlds()) {
-									if(!taskChirld.isLunchingByProcess()) {
+									if(!taskChirld.isLunchingByProcess() 
+									   && taskChirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
 										taskChirld.setStartAt(new Date());
 										taskRepository.save(taskChirld);
 									}
@@ -276,15 +298,55 @@ public class TaskController {
 						task.setStatus(task.getLastStatus());
 						task.setLastStatus(currentStatus);
 					}
+					// seting finish date
+					if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
+						if(task.getFinishAt() == null)
+							task.setFinishAt(new Date());
+					}
+					else {
+						task.setFinishAt(null);
+					}
+					// set staring task date
+					if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+						if(task.getStartAt() == null)
+							task.setStartAt(new Date());
+					}
+					else {
+						task.setStartAt(null);
+					}
+					// en setting start task date
 					if (taskRepository.save(task) != null) {
+						// finish process op
+						try {
+							Processus p = processRepository.getOne(task.getProcessId());
+							processService.finishProcessWhenIsTime(p);
+						} catch (Exception e1) {
+						}
+						// en process finishing op
 						data.put("status", true);
 						String textStatus = "";
-						if (task.getStatus().equals(TaskStatus.VALID.toString()))
+						if (task.getStatus().equals(TaskStatus.VALID.toString())) {
 							textStatus = "En état de traitement";
-						else if (task.getStatus().equals(TaskStatus.COMPLETED.toString()))
+						}
+						else if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
 							textStatus = "Traitée";
-						else
+							try {
+								// lunch started
+								if(task.getChirlds() != null && !task.getChirlds().isEmpty()) {
+									for(Task chirld : task.getChirlds()) {
+										if(chirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+											chirld.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+											chirld.setStartAt(new Date());
+											taskRepository.save(chirld);
+										}
+									}
+								}
+							} catch (Exception e) {
+							}
+						}
+						else {
 							textStatus = "Traitement annulé";
+						}
 						data.put("textStatus", textStatus);
 					}
 				}
@@ -294,16 +356,49 @@ public class TaskController {
 		}
 		return data;
 	}
-
-	@GetMapping("/GetTaskByJquery")
-	@ResponseBody
-	public Task getTaskByJquery(@RequestParam("tid") Long taskId,Model model) {
+	
+	@GetMapping("/LoadTaskInModel")
+	public String LoadTaskInModel(@RequestParam("tid") Long taskId, Model model, HttpSession session) {
 		try {
-			Task task  =taskRepository.getOne(taskId);
-			model.addAttribute("selectedTask", task);
-			return task;
+			// suppression des section vide
+			deleteAllProcessSectionsWithoutTask();
+			
+		  Task t = taskRepository.getOne(taskId);
+		  if(t != null) {
+			    Processus process = processRepository.getOne(t.getProcessId());
+				model.addAttribute("sections", process.getSections());
+				model.addAttribute("tasks", taskRepository.getByProcessAndTaskIdIsNot(process.getId(), t.getId()));
+				model.addAttribute("users", userRepository.findAll());
+			    model.addAttribute("task", t);
+				model.addAttribute("groups", groupRepository.findAll());
+				model.addAttribute("process", process);
+				if(session.getAttribute("errorMsg") != null && !session.getAttribute("errorMsg").equals("")) {
+					model.addAttribute("errorMsg", session.getAttribute("errorMsg"));
+					session.removeAttribute("errorMsg");
+				}
+				if(session.getAttribute("successMsg") != null && !session.getAttribute("successMsg").equals("")) {
+					model.addAttribute("successMsg", session.getAttribute("successMsg"));
+					session.removeAttribute("successMsg");
+				}
+			  return "logigramme :: #taskForm";
+		  }
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
+	}
+
+	private void deleteAllProcessSectionsWithoutTask() {
+		try {
+			List<ProcessSection> emptySections = processSectionRepository.findByTasksIsNullOrProcessIsNull();
+			if(!emptySections.isEmpty()) {
+				emptySections.forEach(ps->{
+					processSectionRepository.delete(ps);
+				});
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

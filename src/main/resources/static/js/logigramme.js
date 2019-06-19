@@ -17,13 +17,43 @@ $(document).ready(function(){
 }, 1000);
 // $('[data-toggle="tooltip"]').tooltip(
 //	        {container:'body', trigger: 'hover', placement:"bottom"});
- 
- senTaskJson(6);
+ /** form task controlls **/
+	 $("#taskContent").on('mouseenter',function(){
+		$(this).css({"opacity" : "1"}); 
+	 });
+	 
+	 $("#taskContent").on('mouseleave',function(){
+		$(this).css({"opacity" : "0.7"});
+	 });
+	chowgroupOrUserSection();
+	chowTextOrFileDescription();
+	$(".radioSectionWithGroup, .radioSectionWithNotGroup, .radioSectionWithGroupAndusers").on("click",function(){
+		chowgroupOrUserSection();
+	});
+	
+	$(".radiodescriptionFileAndText, .radiodescriptionText, .radiodescriptionFile").on("click",function(){
+		chowTextOrFileDescription();
+	});
+	
+	var selectedTaskIdFieald = $(".selectedTaskIdFiealdContainer").val();
+	if(selectedTaskIdFieald.length>0 && selectedTaskIdFieald > 0)
+		laodTaskInView(selectedTaskIdFieald);
+	
+	$(".taskEntity").on('click',function(){
+		var taskId = $(this).attr('data-taskId');
+		if(taskId.length>0 && taskId > 0)
+			laodTaskInView(taskId);
+	});
+	$(".photo-loader-label").on('click',function(){
+		console.log('ok');
+	})
+	// end task form controlls
 });
-
 function showChronos(start_actual_time_text,end_actual_time_text,chronoContainerSelector){
 	var chronoContainer = $(chronoContainerSelector);
 	if(typeof start_actual_time_text != typeof undefined && end_actual_time_text.length>0){
+		console.log(" start " + start_actual_time_text);
+		console.log(" end " +end_actual_time_text);
 		var start_actual_time = new Date(start_actual_time_text);
 		var end_actual_time = new Date(end_actual_time_text);
 		var current_time = new Date();
@@ -42,7 +72,6 @@ function showChronos(start_actual_time_text,end_actual_time_text,chronoContainer
 		var diff = end_actual_time - start_actual_time;
 		var diffSeconds = diff/1000;
 		var JJ = Math.floor(diffSeconds/86400);
-		console.log(JJ);
 		var HH = Math.floor(diffSeconds/3600);
 		var MM = Math.floor(diffSeconds%3600)/60;
 		HH = (HH<0)? (HH*(-1)) : HH;
@@ -318,18 +347,60 @@ function init() {
             tipMarginLeft: userOpts.tipMarginLeft || 10
         };
     return defaults;
-};
+}
 
-function senTaskJson(taskId){
+/** all form task utils fonctions **/
+function laodTaskInView(taskId){
+	if(typeof errorMsg === typeof undefined || errorMsg.length<=0)
+		errorMsg = "";
+	if(typeof successMsg === typeof undefined || successMsg.length<=0 )
+		successMsg = "";
 	$.ajax({
-		url : '/Task/GetTaskByJquery?tid='+taskId,
+		url : '/Task/LoadTaskInModel?tid='+taskId,
 		method : 'get',
-		dataType : 'json',
-		success : function(result){
-			console.log(result);
+		success : function(res){
+			if(res != null){
+				$("#taskContent").html(res);
+				$("#takmodal").modal('show');
+			}
+//			$("#taskContent").hide().removeClass('d-none').slideDown();
+			console.log(res);
 		},
 		error : function(e){
 			console.log(e);
 		}
 	});
+};
+
+function chowgroupOrUserSection(){
+	if($(".radioSectionWithGroup").is(":checked")){
+		$(".sectionGroupFormGrouop").removeClass("d-none");
+		$(".sectionUserFormGroup").addClass("d-none");
+	}
+	if($(".radioSectionWithNotGroup").is(":checked")){
+
+		$(".sectionGroupFormGrouop").addClass("d-none");
+		$(".sectionUserFormGroup").removeClass("d-none");
+	}
+	if($(".radioSectionWithGroupAndusers").is(":checked")){
+		$(".sectionGroupFormGrouop").removeClass("d-none");
+		$(".sectionUserFormGroup").removeClass("d-none");
+	}
+	
+};
+
+function chowTextOrFileDescription(){
+	if($(".radiodescriptionText").is(":checked")){
+		$(".descriptionTextContainer").removeClass("d-none");
+		$(".descriptionFileContainer").addClass("d-none");
+	}
+	if($(".radiodescriptionFile").is(":checked")){
+
+		$(".descriptionTextContainer").addClass("d-none");
+		$(".descriptionFileContainer").removeClass("d-none");
+	}
+	if($(".radiodescriptionFileAndText").is(":checked")){
+		$(".descriptionFileContainer").removeClass("d-none");
+		$(".descriptionTextContainer").removeClass("d-none");
+	}
 };

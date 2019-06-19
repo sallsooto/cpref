@@ -15,9 +15,6 @@
 	<script type="text/javascript" th:src="@{/js/plugins/svg.js}"></script>
 	<script type="text/javascript" th:src="@{/js/plugins/mshz-chart.js}"></script>
 	<script type="text/javascript" th:src="@{/js/logigramme.js}"></script>
-    <!-- angular -->
-  <script th:src="@{/js/plugins/angular.min.js}"></script>
-  <script th:src="@{/js/app_ng.js}"></script>
 </head>
 <body>
 	<div class="container-fluid" layout:fragment="content">
@@ -30,8 +27,17 @@
 			<div id="drawing" style="margin: 30px auto; width: 900px;" class=""></div>
 		</div> -->
 		<!-- end static table -->
-		<div class="text-center" th:if="${process}" id="drawing">
-			<span th:if="${selectedTask}" th:text="${selectedTask.name}"></span>
+		 <!-- task form row container -->
+			<div  class="row">
+				<div id="taskContent"  style="z-index:500000;">
+					<div  id="taskForm" th:if="${task}">
+						<input type="hidden" min="0" step="1" class="selectedTaskIdFiealdContainer" th:value="${task.id}" />
+						<div th:replace="fragments/logigrammeTaskModal::modal_logigramme_task_form"></div>
+					</div>
+				</div>
+		  </div>
+		  <!-- end task form row container -->
+		<div class="text-center" th:if="${process}" id="drawing" data-ng-app="Cperf" data-ng-controller="LogigrammeCtrl">
 			<table class="table table-sm table-bordered bg-white">
 				<thead>
 					<tr>
@@ -67,8 +73,9 @@
 							</div>
 						</td>
 						<td class="pt-5">
-							<div th:if="${section.tasks.size()>0}" th:each="task : ${section.tasks}" class="d-inline-block w-25 text-center">
-							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}"
+							<div th:if="${section.tasks.size()>0}" th:each="task : ${section.tasks}"
+							   class="d-inline-block w-25 text-center taskEntity" th:data-taskId="${task.id}">
+							<svg width="150" height="50" th:id="${'task'+task.id}" th:data-labelClasSelector="${'.task_label'+task.id}" 
 							 th:if="${#strings.equalsIgnoreCase(task.type, 'start')}" th:data-yes="${task.status=='completed' ? 'true' : 'false'}" class="mb-5">
 								<rect width="150" height="50" 
 								 th:fill="${task.status=='valid' ? 'transparent' : (task.status=='completed') ? '#74F767' : (task.status=='started') ? 'orange' : '#f77467'}"
@@ -104,11 +111,12 @@
 							</svg>
 							<!-- labels -->
 							<div style="width:150px;height:50px;overflow: auto; scroll:auto;cursor:pointer" class="d-inline-block p-1" 
-								data-toggle="popover" data-trigger="hover" data-placement="bottom" 
-								 th:title="Description" th:data-content="${task.description !=null ? task.description : ''}">
-								<a th:if="${task.fileDescriptionPath != null}" th:href="@{/Task/File/Description/Show/{id}(id=${task.id})}" target="_blank" 
-									th:class="${'task_label'+task.id+' align-text-middle'}"  th:text="${task.name}"></a>
-								<span th:if="${task.fileDescriptionPath == null}"  th:class="${'task_label'+task.id+' align-text-middle'}" th:text="${task.name}"></span>
+								 data-toggle="popover" data-trigger="hover" data-placement="bottom" title="Etat de la tâche" 
+								 th:data-content="${task.status == 'valid' ? 'Non démarrée' : task.status == 'started' ? 'Démarrée' : task.status == 'canceled' ? 'Annulée' : 'Traitée'}">
+								<!--<a th:if="${task.fileDescriptionPath != null}" th:href="@{/Task/File/Description/Show/{id}(id=${task.id})}" target="_blank" 
+								       th:class="${'task_label'+task.id+' align-text-middle'}"  th:text="${task.name}"></a>-->
+								<!-- <span th:if="${task.fileDescriptionPath == null}"  th:class="${'task_label'+task.id+' align-text-middle'}" th:text="${task.name}"></span>-->
+								<span  th:class="${'task_label'+task.id+' align-text-middle taskEntity'}" th:data-taskId="${task.id}" th:text="${task.name}"></span>
 							</div>
 							</div>
 						</td>

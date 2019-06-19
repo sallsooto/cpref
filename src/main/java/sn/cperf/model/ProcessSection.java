@@ -35,7 +35,7 @@ public class ProcessSection implements Serializable{
 	private Long id;
 	@Column(length=100, nullable=false)
 	private String name;
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="process_id")
 	@JsonBackReference
 	private Processus process;

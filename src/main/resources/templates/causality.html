@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Causalités</title>
+</head>
+<body>
+  <!-- data-ng-controller="ImpactCtrl" data-ng-init="getProcess();getImpacts(); -->
+	<div class="container-fluid" layout:fragment="content" data-ng-controller="CausalityCtrl">
+		<div class="row">
+			<div class="col-sm-12 col-md-10 offset-md-1">
+				<div class="card">
+					<div class="card-header">
+						<form th:object="${causalitySearchForm}" th:action="@{/Causality/}" method="post" class="row align-items-end">
+							<div class="col-sm-12 text-info text-uppercase">
+								<h5 class="font-weight-bold text-center" 
+								    th:if="${causalitySearchForm.status == 'finished_expired' or causalitySearchForm.status == 'unfinished_expired'}">
+								   Causalités des process
+								   <span th:text="${causalitySearchForm.status == 'finished_expired' ? ' traités tardivement, ' : causalitySearchForm.status == 'unfinished_expired' ? ' non traités et expirés, ' : ' '}"></span>
+								   démarrés <br/> entre le 
+								   <span th:text="${' '+#dates.format(causalitySearchForm.startDate, 'dd/MM/yyyy')+ ' et le  '+#dates.format(causalitySearchForm.endDate, 'dd/MM/yyyy')}"></span>
+								 </h5>
+								 <h5 class="font-weight-bold text-center"
+								    th:if="${causalitySearchForm.status == 'canceled' or causalitySearchForm.status == 'unlunched'}">
+								  Causalités de tous les process 
+								  <span th:text="${causalitySearchForm.status == 'canceled' ? ' annulés ' : causalitySearchForm.status == 'unlunched' ? ' non démarrés ' : ' '}"></span>
+								 </h5>
+								 <hr/>
+							</div>
+							  <div class="form-group col-sm-6 col-md-2">
+		                      	<label class="control-label">Max Lignes/Page  : </label>
+		                      	<div class="input-group input-group-sm">
+		                              <div class="input-group-prepend">
+		                                  <div class="input-group-text bg-info text-white"></div>
+		                              </div>
+		                              <input type="number" min="0" step="1" class="form-control form-control-sm" name="size" th:field="*{size}"/>
+		                          </div>
+							  </div>
+							  <div class="form-group col-sm-6 col-md-4">
+		                      	<label class="control-label">Status des pross à lister : </label>
+		                        <select class="form-control form-control-sm"  name="status" th:field="*{status}">
+		                        	<option value="finished_expired">Traitement finit tardivement</option>
+		                        	<option value="unfinished_expired">Non traités et delaie dépassé</option>
+		                        	<!-- <option value="canceled">Annulés</option> -->
+		                        	<option value="unlunched">Non Démarrés</option>
+		                        </select>
+							  </div>
+							  <div class="form-group col-sm-6 col-md-2">
+		                      	<label class="control-label">Date début : </label>
+		                      	<input type="date" class="form-control form-control-sm" th:field="*{startDate}"/>
+							  </div>
+							  <div class="form-group col-sm-6 col-md-2">
+		                      	<label class="control-label">Date fin : </label>
+		                      	<input type="date" class="form-control form-control-sm" th:field="*{endDate}"/>
+							  </div>
+							  <div class="form-group col-sm-12 col-md-2">
+							  	<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm">Rechercher</button>
+							  </div>
+	                      </form>
+					</div>
+					<div class="card-body">
+						<ul th:if="${pageProcess.content.size()>0}" class="list-group">
+							<li class="list-group-item" th:each="p : ${pageProcess.content}">
+								<div class="row">
+									<div class="col-sm-12 col-md-12">
+										<div class="row align-items-center">
+											<h4 th:text="${p.label}" class="text-primary col-sm-8"></h4>
+											<div class="col-sm-4 text-right">
+													<i class="fas fa-exclamation-circle text-warning fa-lg cursor-pointer border-right border-danger pr-2 mr-1" 
+													   title="justifications" th:data-cause="${causalitySearchForm.status}"
+													   th:data-processLabel="${p.label}" data-taskName=""
+													   th:data-processId="${p.id}" data-taskId="0" data-ng-click="showJustification($event);"></i>
+											 	<a href="#" class="d-inline-block"  data-toggle="collapse"
+											 	    th:data-target="${'#collapseTaskDetails'+p.id}" role="button" aria-expanded="false" aria-controls="collapseTaskDetails">
+											 		<i class="fas fa-book-open fa-lg" title="Afficher/cacher détails"></i>
+											 	</a>
+											 </div>
+										</div>
+										<div class="row collapse" th:id="${'collapseTaskDetails'+p.id}">
+										   <!-- col finished late tasks -->
+											<div class="col-sm-12" th:if="${p.finishedLateTasks.size()>0}">
+												<div class="card border-0">
+													<div class="card-body">
+														<ul class="list-group" th:if="${p.finishedLateTasks.size()>0}">
+															<li class="list-group-item active">
+															   <h5 th:text="${p.finishedLateTasks.size()+'/'+p.tasks.size() + ' tâche(s) finie(s) tardivement '}">
+															   	 List des tâche traité tardivement
+															   </h5>
+															</li>
+															<li class="list-group-item border-primary" th:each="task : ${p.finishedLateTasks}">
+																<div>
+																	<h5 th:text="${task.name}" class="text-danger d-inline-block"></h5>
+																	<i class="fas fa-exclamation-circle text-warning fa-lg cursor-pointer float-right" 
+																	   title="justifications" data-cause="t_finishedLate" th:data-processLabel="${p.label}" th:data-taskName="${task.name}"
+																	   th:data-processId="${p.id}" th:data-taskId="${task.id}" data-ng-click="showJustification($event);"></i>
+																	 </div>
+																<hr/>
+																<ul class="list-group">
+																	<li class="list-group-item border-0">
+																		<div class="row">
+																			<div class="col-sm-4" th:id="${task.startAt != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Démarré le : </small>
+																				<small th:text="${#dates.format(task.startAt,'dd/MM/yyy à HH:mm')}" class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-4" th:id="${task.maxDate != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Devait finir le : </small>
+																				<small th:text="${#dates.format(task.maxDate,'dd/MM/yyy à HH:mm')}" class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-4" th:if="${task.finishAt != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Traitement fini le : </small>
+																				<small th:text="${#dates.format(task.finishAt,'dd/MM/yyy à HH:mm')}" class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-6 mt-2 text-center" th:if="${task.validator != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Validateur : </small>
+																				<small th:text="${task.validator.firstname+ ' '+task.validator.lastname}" class="badge badge-default font-weight-bold"></small>
+																				<small th:if="${task.validator.fonction != null and task.validator.fonction.name != null}"
+																					   th:text="${'('+task.validator.fonction.name+')'}"  class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-6 mt-2 text-center" th:if="${task.group != null and task.group.name != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Groupe associé : </small>
+																				<small th:text="${task.group.name}"  class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-12 mt-2" th:if="${task.users != null and task.users.size() >0}">
+																				<div class="card">
+																					<div class="card-header font-weight-bold">Utilisateurs assosiés</div>
+																					<div class="card-body">
+																						<span th:each="user : ${task.users}"  class="badge badge-default font-weight-bold border">
+																							<img th:src="@{/User/getUserPhoto/(uid=${user.id})}" alt="" class="" style="width:50px; height:50px;"/>
+																							<span th:text="${user.firstname+ ' '+user.lastname}"></span>
+																							<span th:if="${user.fonction != null and user.fonction.name != null}"
+																					               th:text="${'('+user.fonction.name+')'}"></span>
+																						</span>
+																					</div>
+																				</div>
+																			</div>
+																		</div>
+																	</li>
+																</ul>
+															</li>
+														</ul>
+													</div>
+												</div>
+											</div><!-- end col tasks finished late -->
+										   <!-- col no finished tasks -->
+											<div class="col-sm-12" th:if="${p.noFinishedTasks.size()>0}">
+												<div class="card border-0">
+													<div class="card-body">
+														<ul class="list-group" th:if="${p.noFinishedTasks.size()>0}">
+															<li class="list-group-item bg-info text-white">
+															   <h5 th:text="${p.noFinishedTasks.size()+'/'+p.tasks.size() + ' tâche(s) lancée(s) et non terminée(s) '}">
+															   	 List des non terminés
+															   </h5>
+															</li>
+															<li class="list-group-item border-primary" th:each="task : ${p.noFinishedTasks}">
+															    <div>
+																	<h5 th:text="${task.name}" class="text-danger d-inline-block"></h5>
+																	<i class="fas fa-exclamation-circle text-warning fa-lg cursor-pointer float-right" 
+																	   title="justifications" data-cause="t_unfinished" th:data-processLabel="${p.label}" th:data-taskName="${task.name}"
+																	   th:data-processId="${p.id}" th:data-taskId="${task.id}" data-ng-click="showJustification($event);"></i>
+																</div>
+															    <hr/>
+																<ul class="list-group">
+																	<li class="list-group-item border-0">
+																		<div class="row">
+																			<div class="col-sm-6" th:id="${task.startAt != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Démarré le : </small>
+																				<small th:text="${#dates.format(task.startAt,'dd/MM/yyy à HH:mm')}" class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-6" th:id="${task.maxDate != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Devait finir le : </small>
+																				<small th:text="${#dates.format(task.maxDate,'dd/MM/yyy à HH:mm')}" class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-6 mt-2" th:if="${task.validator != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Validateur : </small>
+																				<small th:text="${task.validator.firstname+ ' '+task.validator.lastname}" class="badge badge-default font-weight-bold"></small>
+																				<small th:if="${task.validator.fonction != null and task.validator.fonction.name != null}"
+																					   th:text="${'('+task.validator.fonction.name+')'}"  class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-6 mt-2" th:if="${task.group != null and task.group.name != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Groupe associé : </small>
+																				<small th:text="${task.group.name}"  class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-12 mt-2" th:if="${task.users != null and task.users.size() >0}">
+																				<div class="card">
+																					<div class="card-header font-weight-bold">Utilisateurs assosiés</div>
+																					<div class="card-body">
+																						<span th:each="user : ${task.users}"  class="badge badge-default font-weight-bold border">
+																							<img th:src="@{/User/getUserPhoto/(uid=${user.id})}" alt="" class="" style="width:50px; height:50px;"/>
+																							<span th:text="${user.firstname+ ' '+user.lastname}"></span>
+																							<span th:if="${user.fonction != null and user.fonction.name != null}"
+																					               th:text="${'('+user.fonction.name+')'}"></span>
+																						</span>
+																					</div>
+																				</div>
+																			</div>
+																		</div>
+																	</li>
+																</ul>
+															</li>
+														</ul>
+													</div>
+												</div>
+											</div><!-- end col tasks non finished -->
+										   <!-- col no started Task tasks -->
+											<div class="col-sm-12" th:if="${p.noStartedTasks.size()>0}">
+												<div class="card border-0">
+													<div class="card-body">
+														<ul class="list-group" th:if="${p.noStartedTasks.size()>0}">
+															<li class="list-group-item bg-secondary text-white">
+															   <h5 th:text="${p.noStartedTasks.size()+'/'+p.tasks.size() + ' tâche(s) non démarrée(s) '}">
+															   	 List des tâches non lancées
+															   </h5>
+															</li>
+															<li class="list-group-item border-primary" th:each="task : ${p.noStartedTasks}">
+																<div>
+																	<h5 th:text="${task.name}" class="text-danger d-inline-blick"></h5>
+																		<i class="fas fa-exclamation-circle text-warning fa-lg cursor-pointer float-right" 
+																		   title="justifications" data-cause="t_unlunched" th:data-processLabel="${p.label}" th:data-taskName="${task.name}"
+																		   th:data-processId="${p.id}" th:data-taskId="${task.id}" data-ng-click="showJustification($event);"></i>
+																</div><hr/>
+																<ul class="list-group">
+																	<li class="list-group-item border-0">
+																		<div class="row">
+																			<div class="col-sm-6 mt-2" th:if="${task.validator != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Validateur : </small>
+																				<small th:text="${task.validator.firstname+ ' '+task.validator.lastname}" class="badge badge-default font-weight-bold"></small>
+																				<small th:if="${task.validator.fonction != null and task.validator.fonction.name != null}"
+																					   th:text="${'('+task.validator.fonction.name+')'}"  class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-6 mt-2" th:if="${task.group != null and task.group.name != null}">
+																				<small class="bage badge-default text-primary font-weight-bold">Groupe associé : </small>
+																				<small th:text="${task.group.name}"  class="badge badge-default font-weight-bold"></small>
+																			</div>
+																			<div class="col-sm-12 mt-2" th:if="${task.users != null and task.users.size() >0}">
+																				<div class="card">
+																					<div class="card-header font-weight-bold">Utilisateurs assosiés</div>
+																					<div class="card-body">
+																						<span th:each="user : ${task.users}"  class="badge badge-default font-weight-bold border">
+																							<img th:src="@{/User/getUserPhoto/(uid=${user.id})}" alt="" class="" style="width:50px; height:50px;"/>
+																							<span th:text="${user.firstname+ ' '+user.lastname}"></span>
+																							<span th:if="${user.fonction != null and user.fonction.name != null}"
+																					               th:text="${'('+user.fonction.name+')'}"></span>
+																						</span>
+																					</div>
+																				</div>
+																			</div>
+																		</div>
+																	</li>
+																</ul>
+															</li>
+														</ul>
+													</div>
+												</div>
+											</div><!-- end col tasks non started -->
+										</div>
+									</div>
+								</div>
+							</li>
+							<li class="list-group-item p-0 pt-3 bg-secondary">	
+								<!-- =========== PAGINATION ============= -->
+								<nav aria-label="..." th:if="${pageProcess.totalPages>0}" class="">
+									<ul class="pagination float-right" style="margin:-12px 1px 3px 1px;">
+									   <li th:each="i : ${#numbers.sequence( 0, pageProcess.totalPages-1)}"
+									       th:class="${i==causalitySearchForm.page ? ' active page-item' : 'page-item'}">
+									   		<a th:href="@{/Causality/ChangePage(status=${causalitySearchForm.status},startDate=${#dates.format(causalitySearchForm.startDate,'yyyy-MM-dd')},endDate=${#dates.format(causalitySearchForm.endDate,'yyyy-MM-dd')},page=${i},size=${causalitySearchForm.size})}" type="button" class="page-link"><span th:text="${i+1}"></span></a>
+									   </li>
+									   <!-- <li class="page-item"><a class="page-link" data-ng-if="false">Next</a></li> -->
+									</ul>
+								</nav>
+								<!-- ================ AND PAGINATION -->
+							</li>
+						</ul>
+						<h5 th:if="${pageProcess.content.size()<=0}" class="text-center mt-3">
+							 Aucun process trouvé !
+						</h5>
+					</div>
+				</div>
+			</div>
+		</div>
+	    <!-- moadal edit or show justification-->
+	  	<div th:replace="fragments/modal_justification::modal_justification"></div>
+	</div>
+	<div layout:fragment="addon-scripts-content">
+	</div>
+</body>
+</html>

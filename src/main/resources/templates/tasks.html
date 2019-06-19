@@ -90,8 +90,8 @@
 										data-ng-repeat="task in tasks | orderBy:orderFieldReverse+orderField">
 										<td class="text-left pl-3">{{replaceWithNullOrBlank(task.name,"Sans nom")}}</td>
 										<td> 
-											{{replaceWithNullOrBlank(task.description,"Sans description")}}
-											<a data-ng-if="task.fileDescriptionPath != null" th:href="@{/Task/File/Description/Show/{{task.id}}}" 
+											{{replaceWithNullOrBlank(task.description,"Aucune description textuelle")}}
+											<a data-ng-if="task.fileDescriptionPath != null || task.dbFileDescription != null" th:href="@{/Task/File/Description/Show/{{task.id}}}" 
 											   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file-pdf"></i></a>
 										</td>
 										<td class="text-center">

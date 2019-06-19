@@ -73,15 +73,15 @@ public class ImpactController {
 				startDate = tmpDate;
 			}
 			if(status.toLowerCase().equals("valid"))
-				return processRepository.getNofinishedAndNoExpiredProcess(new Date(), new PageRequest(page, size));
+				return processRepository.getNofinishedAndNoExpiredProcess(startDate, endDate,new Date(), new PageRequest(page, size));
 			else if(status.toLowerCase().equals("unlunched"))
 				return processRepository.findByStartAtIsNull(new PageRequest(page, size));
 			else if(status.toLowerCase().equals("canceled"))
 				return processRepository.findByValidFalse(new PageRequest(page, size));
 			else if(status.toLowerCase().equals("unfinished_expired"))
-				return processRepository.getNofinishedAndExpiredProcess(new Date(), new PageRequest(page, size));
+				return processRepository.getNofinishedAndExpiredProcess(startDate, endDate,new Date(), new PageRequest(page, size));
 			else
-				return processRepository.getFinishedAndExpiredProcess(new PageRequest(page, size));
+				return processRepository.getFinishedAndExpiredProcess(startDate, endDate,new PageRequest(page, size));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

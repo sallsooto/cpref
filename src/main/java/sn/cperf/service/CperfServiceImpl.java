@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import sn.cperf.dao.ImpactRepository;
 import sn.cperf.dao.ParamRepository;
+import sn.cperf.dao.ProcessSectionRepository;
 import sn.cperf.dao.TypeIndicatorRepository;
 import sn.cperf.dao.TypeObjectifRepository;
 import sn.cperf.dao.UserRepository;
@@ -26,6 +27,7 @@ public class CperfServiceImpl implements CperfService {
 	@Autowired TypeObjectifRepository typeObjectifRepository;
 	@Autowired TypeIndicatorRepository typeIndicatorRepository;
 	@Autowired ParamRepository paramrepository;
+	@Autowired ProcessSectionRepository processSectionRepository;
 
 	@Override
 	public User getLoged() {
@@ -62,7 +64,7 @@ public class CperfServiceImpl implements CperfService {
 			storeIndicatorType("Qualitatif",false);
 			
 			// store parametres
-			storeParametre("admin_email","mohamed.ali@snsoftware.com");
+			storeParametre("admin_email","mohamed.ali@snsoftware.com","Email adminstrateur");
 		} catch (Exception e) {
 		}
 		
@@ -125,13 +127,14 @@ public class CperfServiceImpl implements CperfService {
 		}
 	}
 	
-	private void storeParametre(String slug, String value) {
+	private void storeParametre(String slug, String value, String label) {
 		try {
 			Parametre param = paramrepository.findBySlug(slug);
 			if(param == null) {
 				param = new Parametre();
 				param.setSlug(slug);
 				param.setParam(value);
+				param.setLabel(label);
 				paramrepository.save(param);
 			}
 		} catch (Exception e) {

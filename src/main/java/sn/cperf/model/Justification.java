@@ -50,16 +50,20 @@ public class Justification implements Serializable{
 				translated = "Process traité tardivement";
 			else if(cause.toLowerCase().trim().equals("unfinished_expired"))
 				translated = "Process non traité et delaie expiré";
-			else if(cause.toLowerCase().trim().equals("process_canceld"))
+			else if(cause.toLowerCase().trim().equals("process_canceld") || cause.toLowerCase().trim().equals("canceled"))
 				translated = "Process annulé";
 			else if(cause.toLowerCase().trim().equals("unlunched"))
 				translated = "Process non démarré";
-			else if(cause.toLowerCase().trim().equals("valid"))
-				translated = "Tâche en traitement";
 			else if(cause.toLowerCase().trim().equals("t_canceled"))
 				translated = "Tâche annulée";
 			else if(cause.toLowerCase().trim().equals("completed"))
-				translated = "Tâche traité";
+				translated = "Tâche traité"; 
+			else if(cause.toLowerCase().trim().equals("t_finishedlate"))
+				translated = "Tâche finie tardivement";
+			else if(cause.toLowerCase().trim().equals("t_unfinished"))
+				translated = "Tâche démarrée et non términée";
+			else if(cause.toLowerCase().trim().equals("t_unlunched") || cause.toLowerCase().trim().equals("valid"))
+				translated = "Tâche non démarrée";    
 			else
 				translated = cause;
 		}

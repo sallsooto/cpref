@@ -2,7 +2,9 @@ package sn.cperf.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -14,7 +16,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -60,7 +61,7 @@ public class Task implements Serializable{
 	@JoinColumn(name="section_id")
 	@JsonBackReference
 	private ProcessSection section;
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="group_id")
 	@JsonBackReference
 	private Group group;
@@ -81,7 +82,7 @@ public class Task implements Serializable{
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm")
 	private Date startAt;
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="validator_id")
 	@JsonManagedReference
 	private User validator;
@@ -98,6 +99,7 @@ public class Task implements Serializable{
 	@OneToMany(mappedBy="task", fetch=FetchType.LAZY)
 	@JsonBackReference
 	private List<Objectif> objectifs;
+	private Date finishAt;
 	public  List<User> getAllUsers() {
 		List<User> allUsers = new ArrayList<User>();
 		try {
@@ -147,5 +149,33 @@ public class Task implements Serializable{
 		if(this.getSection() != null && this.getSection().getProcess() != null)
 			return this.getSection().getProcess().getId();
 		return null;
-	} 
+	}
+	
+    public Date getMaxDate() {
+		Calendar calendar = Calendar.getInstance();
+    	if(startAt != null) {
+    		calendar.setTime(startAt);
+    		calendar.add(GregorianCalendar.YEAR,Math.abs(nbYears));
+    		calendar.add(GregorianCalendar.MONTH, Math.abs(nbMonths));
+    		calendar.add(GregorianCalendar.DAY_OF_MONTH,Math.abs(nbDays));
+    		calendar.add(GregorianCalendar.HOUR,Math.abs(nbHours));
+    		calendar.add(GregorianCalendar.MINUTE,Math.abs(nbMinuites));
+    	}else {
+    		calendar.add(GregorianCalendar.YEAR,Math.abs(nbYears));
+    		calendar.add(GregorianCalendar.MONTH,Math.abs(nbMonths));
+    		calendar.add(GregorianCalendar.DAY_OF_MONTH,Math.abs(nbDays));
+    		calendar.add(GregorianCalendar.HOUR,Math.abs(nbHours));
+    		calendar.add(GregorianCalendar.MINUTE,Math.abs(nbMinuites));
+    	}
+    	return calendar.getTime();
+    }
+    
+    public boolean isFinishedLate() {
+    	if(finishAt != null) {
+    		Calendar  calander = Calendar.getInstance();
+    		calander.setTime(getMaxDate());
+    		return finishAt.compareTo(getMaxDate())>0;
+    	}
+    	return false;
+    }
 }
