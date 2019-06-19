@@ -117,7 +117,7 @@
 							      <option value="finish">Fin</option>
 							    </select>
 							</div>
-							<div class="form-group col-sm-12 col-md-6" th:if="${task.id}"> 
+							<div class="form-group col-sm-12 col-md-6" th:if="${task.id != null and process.startAt != null}"> 
 							    <label class="control-label"><small>Etat</small> </label>
 								 <select th:field="*{status}" class="form-control form-control-sm">
 								 <option value="valid">Séléctionner un status de la tâche</option>
@@ -127,6 +127,7 @@
 							      <option value="completed">Traitée</option>
 							    </select>
 							</div>
+							<input type="hidden" th:field="*{status}"  th:if="${task.id != null and process.startAt == null}"/>
 							<div class="form-group col-sm-12 col-md-6 s12 input-field" th:if="!${task.id}"> 
 								 <select th:field="*{status}">
 							      <option value="valid" selected>En attente de démarrage</option>

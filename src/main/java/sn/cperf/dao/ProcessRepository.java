@@ -20,12 +20,15 @@ public interface ProcessRepository extends JpaRepository<Processus, Long> {
 	Page<Processus> findByLabelLikeIgnoreCaseOrderByIdDesc(String label, Pageable page);
 	Page<Processus> findByStartAtBetween(Date startDate, Date endDate, Pageable page);
 	Page<Processus> findByStartAtIsNull(Pageable page);
-	@Query("select p from Processus p where p.startAt != null and p.finishDate != null and valid=true and p.finishDate>p.totalTime")
-	Page<Processus> getFinishedAndExpiredProcess(Pageable page);
-	@Query("select p from Processus p where p.startAt != null and p.finishDate = null and valid=true and p.totalTime<:limitDate")
-	Page<Processus> getNofinishedAndExpiredProcess(@Param("limitDate") Date limitDate,Pageable page);
-	@Query("select p from Processus p where p.startAt != null and p.finishDate = null and valid=true and p.totalTime>=:limitDate")
-	Page<Processus> getNofinishedAndNoExpiredProcess(@Param("limitDate") Date limitDate,Pageable page);
+	@Query("select p from Processus p where p.startAt != null and p.finishDate != null and valid=true "
+			+ "and p.startAt BETWEEN :startDate AND :endDate and p.finishDate > p.totalTime")
+	Page<Processus> getFinishedAndExpiredProcess(@Param("startDate") Date startDate,@Param("endDate") Date endDate, Pageable page);
+	@Query("select p from Processus p where p.startAt != null and p.finishDate = null "
+			+ "and p.startAt BETWEEN :startDate AND :endDate and valid=true and p.totalTime <:limitDate")
+	Page<Processus> getNofinishedAndExpiredProcess(@Param("startDate") Date startDate,@Param("endDate") Date endDate, @Param("limitDate") Date limitDate,Pageable page);
+	@Query("select p from Processus p where p.startAt != null and p.finishDate = null and valid=true "
+			+ "and p.startAt BETWEEN :startDate AND :endDate and p.totalTime>=:limitDate")
+	Page<Processus> getNofinishedAndNoExpiredProcess(@Param("startDate") Date startDate,@Param("endDate") Date endDate, @Param("limitDate") Date limitDate,Pageable page);
 	Page<Processus> findByValidFalse(Pageable page);
 	
 }

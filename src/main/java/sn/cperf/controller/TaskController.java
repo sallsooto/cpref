@@ -37,6 +37,7 @@ import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
 import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
+import sn.cperf.service.ProcessService;
 import sn.cperf.service.StorageService;
 import sn.cperf.util.NotificationType;
 import sn.cperf.util.TaskStatus;
@@ -59,6 +60,7 @@ public class TaskController {
 	@Autowired DBFileService dbFileService;
 	@Autowired GroupRepository groupRepository;
 	@Autowired ProcessSectionRepository processSectionRepository;
+	@Autowired ProcessService processService;
 	@GetMapping("/")
 	public String getListTaskView(Model model) {
 		model.addAttribute("loged", cperfService.getLoged());
@@ -175,12 +177,30 @@ public class TaskController {
 					else
 						task.setStatusValid(false);
 					task.setStatus(status);
+					// seting finish date
+					if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
+						if(task.getFinishAt() == null)
+							task.setFinishAt(new Date());
+					}
+					else {
+						task.setFinishAt(null);
+					}
+					// set staring task date
+					if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+						if(task.getStartAt() == null)
+							task.setStartAt(new Date());
+					}
+					else {
+						task.setStartAt(null);
+					}
+					// en setting start task date
 					if (taskRepository.save(task) != null) {
 						// luching chierld tasks
 						try {
 							if(status.toLowerCase().equals("completed")) {
 								for(Task taskChirld : task.getChirlds()) {
-									if(!taskChirld.isLunchingByProcess()) {
+									if(!taskChirld.isLunchingByProcess() 
+									   && taskChirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
 										taskChirld.setStartAt(new Date());
 										taskRepository.save(taskChirld);
 									}
@@ -278,15 +298,55 @@ public class TaskController {
 						task.setStatus(task.getLastStatus());
 						task.setLastStatus(currentStatus);
 					}
+					// seting finish date
+					if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
+						if(task.getFinishAt() == null)
+							task.setFinishAt(new Date());
+					}
+					else {
+						task.setFinishAt(null);
+					}
+					// set staring task date
+					if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+						if(task.getStartAt() == null)
+							task.setStartAt(new Date());
+					}
+					else {
+						task.setStartAt(null);
+					}
+					// en setting start task date
 					if (taskRepository.save(task) != null) {
+						// finish process op
+						try {
+							Processus p = processRepository.getOne(task.getProcessId());
+							processService.finishProcessWhenIsTime(p);
+						} catch (Exception e1) {
+						}
+						// en process finishing op
 						data.put("status", true);
 						String textStatus = "";
-						if (task.getStatus().equals(TaskStatus.VALID.toString()))
+						if (task.getStatus().equals(TaskStatus.VALID.toString())) {
 							textStatus = "En état de traitement";
-						else if (task.getStatus().equals(TaskStatus.COMPLETED.toString()))
+						}
+						else if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
 							textStatus = "Traitée";
-						else
+							try {
+								// lunch started
+								if(task.getChirlds() != null && !task.getChirlds().isEmpty()) {
+									for(Task chirld : task.getChirlds()) {
+										if(chirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+											chirld.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+											chirld.setStartAt(new Date());
+											taskRepository.save(chirld);
+										}
+									}
+								}
+							} catch (Exception e) {
+							}
+						}
+						else {
 							textStatus = "Traitement annulé";
+						}
 						data.put("textStatus", textStatus);
 					}
 				}

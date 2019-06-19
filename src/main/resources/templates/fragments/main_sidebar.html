@@ -88,19 +88,25 @@
           <span sec:authorize="!hasRole('ROLE_admin')">Vos Objectifs et indicateurs</span>
         </a>
       </li>
-     <li class="nav-item" sec:authorize="hasRole('ROLE_hjklmlkjhg')">
+      <!-- <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseImpact" aria-expanded="true" aria-controls="collapseImpact">
           <i class="fas fa-map-signs"></i>
           <span>Impact</span>
         </a>
         <div id="collapseImpact" class="collapse" aria-labelledby="collapseImpact">
           <div class="bg-white py-2 collapse-inner rounded">
-           <!--  <h6 class="collapse-header">Custom Components:</h6> -->
+            <h6 class="collapse-header">Custom Components:</h6>
            <a class="collapse-item" th:href="@{/Impact/History}">Historique</a>
             <a class="collapse-item" th:href="@{/Organigramme/Others/}">Process encours</a>
           </div>
         </div>
-      </li> 
+      </li> -->  
+      <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
+        <a class="nav-link" th:href="@{/Causality/}">
+          <i class="fab fa-empire"></i>
+          <span>Causalités</span>
+        </a>
+      </li>
      <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collpaseAdmin" aria-expanded="true" aria-controls="collpaseAdmin">
           <i class="fas fa-fw fa-cog"></i>

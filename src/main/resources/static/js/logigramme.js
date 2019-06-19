@@ -53,6 +53,8 @@ $(document).ready(function(){
 function showChronos(start_actual_time_text,end_actual_time_text,chronoContainerSelector){
 	var chronoContainer = $(chronoContainerSelector);
 	if(typeof start_actual_time_text != typeof undefined && end_actual_time_text.length>0){
+		console.log(" start " + start_actual_time_text);
+		console.log(" end " +end_actual_time_text);
 		var start_actual_time = new Date(start_actual_time_text);
 		var end_actual_time = new Date(end_actual_time_text);
 		var current_time = new Date();

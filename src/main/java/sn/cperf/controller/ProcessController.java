@@ -46,6 +46,7 @@ import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
 import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
+import sn.cperf.service.ProcessService;
 import sn.cperf.service.StorageService;
 import sn.cperf.util.NotificationType;
 import sn.cperf.util.TaskStatus;
@@ -78,6 +79,8 @@ public class ProcessController {
 	IndicateurRepository indicatorRepository;
 	@Autowired
 	ObjectifRepository ObjectifRepository;
+	
+	@Autowired ProcessService processService;
 
 	@GetMapping("/Edit")
 	public String process(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
@@ -264,7 +267,9 @@ public class ProcessController {
 							null);
 				} catch (Exception e) {
 				}
-				// end store Notifications
+				// update process total_time 
+				process.setTotalTime(process.getMaxDate());
+				processRepository.save(process);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -465,17 +470,37 @@ public class ProcessController {
 					if (task.isLunchingByProcess()) {
 						try {
 							Processus p = processRepository.getOne(task.getProcessId());
-							if (p != null && p.getStartAt() != null)
+							if (p != null && p.getStartAt() != null) {
 								task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+								task.setStartAt(new Date());
+							}
 						} catch (Exception e) {
 						}
 					} else {
 						if (task.getParent() != null && task.getParent().getStatus().toLowerCase()
-								.equals(TaskStatus.COMPLETED.toString().toLowerCase()))
+								.equals(TaskStatus.COMPLETED.toString().toLowerCase())) {
 							task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+						    task.setStartAt(new Date());
+						}
 					}
 				}
-				// end lunching task or note
+				// seting finish date
+				if (task.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())) {
+					if(task.getFinishAt() == null)
+						task.setFinishAt(new Date());
+				}
+				else {
+					task.setFinishAt(null);
+				}
+				// set staring task date
+				if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+					if(task.getStartAt() == null)
+						task.setStartAt(new Date());
+				}
+				else {
+					task.setStartAt(null);
+				}
+				// en setting start task date
 				if (taskRepository.save(task) != null) {
 					model.addAttribute("task", task);
 					String successMsg = "";
@@ -498,10 +523,13 @@ public class ProcessController {
 						successMsg = successMsg + " !";
 					model.addAttribute("successMsg", successMsg);
 
-					// update process totol time
+					// update process totol time and finish data if nessary
 					try {
 						Processus p = task.getSection().getProcess();
 						p.setTotalTime(p.getMaxDate());
+						if(!task.getStatus().toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())
+								   && !task.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase()))
+									process.setFinishDate(null);
 						processRepository.save(p);
 						System.out.println("total time " + p.getTotalTime().toString());
 					} catch (Exception e) {
@@ -511,7 +539,22 @@ public class ProcessController {
 					// storing notifications
 					notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),
 							"/Task/?tid=" + task.getId(), task.getAllUsers(), null);
-					// end storing notification
+					// lunching task childs 
+					if(task.getChirlds() != null && !task.getChirlds().isEmpty() 
+							&& task.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())) {
+						for(Task chirld : task.getChirlds()) {
+							try {
+								if(chirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+									chirld.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+									chirld.setStartAt(new Date());
+								}
+							} catch (Exception e) {
+							}
+						}
+					}
+					// finishing process if is necessary
+					 processService.finishProcessWhenIsTime(process);
+					// end finishing process op
 				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
@@ -616,6 +659,8 @@ public class ProcessController {
 						dbTask.setDescription(task.getDescription());
 						dbTask.setType(task.getType());
 						dbTask.setStatus(task.getStatus());
+						if(dbTask.getStartAt() == null && dbTask.getStatus().toLowerCase().equals(TaskStatus.STARTED.toString().toLowerCase()))
+							dbTask.setStartAt(new Date());
 						// traitement du fichier
 						if (fileDescription != null) {
 							try {
@@ -653,7 +698,23 @@ public class ProcessController {
 						}
 						// en section description traitements
 						dbTask.setSection(task.getSection() != null ? task.getSection() : dbTask.getSection());
-						// end lunching task or note
+						// seting finish date
+						if (dbTask.getStatus().equals(TaskStatus.COMPLETED.toString())) {
+							if(dbTask.getFinishAt() == null)
+								dbTask.setFinishAt(new Date());
+						}
+						else {
+							dbTask.setFinishAt(null);
+						}
+						// set staring task date
+						if (!dbTask.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+							if(dbTask.getStartAt() == null)
+								dbTask.setStartAt(new Date());
+						}
+						else {
+							dbTask.setStartAt(null);
+						}
+						// en setting start task date
 						if (taskRepository.save(dbTask) != null) {
 							try {
 								process = dbTask.getSection().getProcess();
@@ -676,12 +737,14 @@ public class ProcessController {
 								successMsg = successMsg + " !";
 							session.setAttribute("successMsg", successMsg);
 
-							// update process totol time
+							// update process totol time and finish_date if necessary
 							try {
-								Processus p = dbTask.getSection().getProcess();
-								p.setTotalTime(p.getMaxDate());
-								processRepository.save(p);
-								System.out.println("total time " + p.getTotalTime().toString());
+								process.setTotalTime(process.getMaxDate());
+								if(!dbTask.getStatus().toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())
+								   && !dbTask.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase()))
+									process.setFinishDate(null);
+								processRepository.save(process);
+								System.out.println("total time " + process.getTotalTime().toString());
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
@@ -689,7 +752,9 @@ public class ProcessController {
 							// storing notifications
 							notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),
 									"/Task/?tid=" + dbTask.getId(), dbTask.getAllUsers(), null);
-							// end storing notification
+							// finishing process if is necessary
+							 processService.finishProcessWhenIsTime(process);
+							// end finishing process op
 						} else {
 							session.setAttribute("errorMsg", "Echèc de la modification de la tâche");
 						}

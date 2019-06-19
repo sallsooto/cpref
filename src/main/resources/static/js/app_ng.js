@@ -1027,3 +1027,161 @@ cperfModule.controller("LogigrammeCtrl", function($scope, $http) {
 	 }
 	};
 });
+
+cperfModule.controller("CausalityCtrl", function($scope, $http) {
+	$scope.processId = null;
+	$scope.taskId = null;
+	$scope.justificationId = null;
+	$scope.processLabel = "";
+	$scope.taskName = "";
+	$scope.page = 0;
+	$scope.size = 1;
+	$scope.modalPpages = [];
+	$scope.justifications = [];
+	$scope.cause = null;
+	$scope.content = null;
+	$scope.withEdit = true;
+	$scope.formMsg = null;
+	$scope.isSuccessFormMsg = false;
+	$scope.selectedJustification = null;
+	$scope.getJustifications = function(){
+		$scope.formMsg = null;
+		if($scope.processId != null || $scope.taskId != null){
+			$scope.modalPpages = [];
+			$http({
+				url : '/Causality/getJustificationsByProcessOrTask/',
+				method : 'get',
+				params : {
+						tid : $scope.taskId != null && $scope.taskId > 0 ? $scope.taskId : null,
+						pid : $scope.processId != null && $scope.processId > 0 ? $scope.processId : null
+					}
+			}).then(function(response) {
+				if (response.data != null){
+					$scope.justifications = response.data;
+					for(var i=0; i < $scope.justifications.length; i++)
+						$scope.modalPpages.push(i);
+				}
+				if($scope.justifications != null && $scope.justifications.length>0)
+					$scope.selectedJustification = $scope.justifications[0];
+			});
+		}
+	};
+	
+	$scope.showJustification = function($event){
+		$scope.formMsg = null;
+		var element = angular.element($event.target);
+		$scope.processId = element[0].attributes['data-processId'].value;
+		$scope.taskId = element[0].attributes['data-taskId'].value;
+		$scope.cause = element[0].attributes['data-cause'].value;
+		$scope.processLabel = element[0].attributes['data-processLabel'].value;
+		$scope.taskName = element[0].attributes['data-taskName'].value;
+		// load justifications
+		$scope.getJustifications();
+		if($scope.justifications != null && $scope.justifications.length>0)
+			$scope.withEdit = false;
+		else
+			$scope.withEdit = true;
+		// showing modal justification
+		angular.element('#modal_justification').modal('show');
+	};
+	$scope.resetEditJustificationForm = function(){
+		$scope.formMsg = null;
+		if($scope.justificationId == null || $scope.justificationId <=0)
+			$scope.content = null;
+	};
+	$scope.editJustification = function(){
+		if($scope.content != null && $scope.cause != null){
+			$scope.formMsg = null;
+			$scope.isSuccessFormMsg = false;
+			$http({
+				url : '/Causality/editJustification/',
+				method : 'get',
+				params : {
+					data :{
+					    	 id : $scope.justificationId,
+					    	 taskId : $scope.taskId,
+					    	 processId : $scope.processId,
+					    	 content : $scope.content,
+					    	 cause : $scope.cause
+					     }
+					}
+			}).then(function(response) {
+				if (response.data != null){
+				    $scope.isSuccessFormMsg =response.data.status;
+					if(typeof response.data.msg  !== typeof undefined && response.data.msg.length>0){
+					    $scope.resetEditJustificationForm();
+						$scope.formMsg = response.data.msg;
+					}else{
+						$scope.formMsg =  "Echèc : opération échouée !";
+					}
+				}
+			});
+		}
+	};
+	
+	$scope.changeSeletctedJustification = function($event){
+		$scope.formMsg = null;
+		var element = angular.element($event.target);
+		var index = element[0].attributes['data-justificationIndex'].value;
+		$scope.selectedJustification = $scope.justifications[index];
+		$scope.page = index;
+		//$scope.getJustifications();
+	};
+	
+	$scope.delJustification = function(){
+		$http({
+			url : '/Causality/delJustification/',
+			method : 'get',
+			params : { id : $scope.selectedJustification.id}
+		}).then(function(response) {
+			$scope.getJustifications();
+		});
+	};
+	$scope.showEditJustificationForm = function($event){
+		$scope.formMsg = null;
+		$scope.content = $scope.selectedJustification.content;
+		$scope.justificationId = $scope.selectedJustification.id;
+		$scope.withEdit = true;
+	};
+	
+	$scope.showEditJustificationWithNewForm = function($event){
+		$scope.formMsg = null;
+		$scope.content = null;
+		$scope.justificationId = null;
+		$scope.withEdit = true;
+	};
+	
+	$scope.hideEditJustificationForm = function(){
+		$scope.getJustifications();
+		$scope.selectedJustification = $scope.justifications[$scope.page];
+		$scope.formMsg = null;
+		$scope.withEdit = false;
+	};
+	
+	$scope.translateCause = function(){
+		var translated = "";
+		if($scope.cause != null && typeof $scope.cause !== typeof undefined) {
+			if($scope.cause.toLowerCase().trim()=="finished_expired")
+				translated = "Process traité tardivement";
+			else if($scope.cause.toLowerCase().trim()=="unfinished_expired")
+				translated = "Process non traité et delaie expiré";
+			else if($scope.cause.toLowerCase().trim()=="process_canceld" || $scope.cause.toLowerCase().trim()=="canceled")
+				translated = "Process annulé";
+			else if($scope.cause.toLowerCase().trim()=="unlunched")
+				translated = "Process non démarré";
+			else if($scope.cause.toLowerCase().trim()=="t_canceled")
+				translated = "Tâche annulée";
+			else if($scope.cause.toLowerCase().trim()=="completed")
+				translated = "Tâche traité"; 
+			else if($scope.cause.toLowerCase().trim()=="t_finishedlate")
+				translated = "Tâche finie tardivement";
+			else if($scope.cause.toLowerCase().trim()=="t_unfinished")
+				translated = "Tâche démarrée et non términée";
+			else if($scope.cause.toLowerCase().trim()=="t_unlunched" || $scope.cause.toLowerCase().trim()=="valid")
+				translated = "Tâche non démarrée";    
+			else
+				translated = $scope.cause;
+		}
+		return translated;
+	};
+});
