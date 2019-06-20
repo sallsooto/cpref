@@ -89,6 +89,7 @@ public class PageController {
 						try {user.setPhoto(storageService.storeAvatar(form.getPhoto(),new String[] { "jpg", "jpeg", "png", "gif", "svg","ico" }));} catch (Exception e1) {e1.printStackTrace();}
 						if(user.getPhoto()== null || user.getPhoto().equals(""))
 							user.setPhoto("user.png");
+						user.setValid(false);
 					}
 					try {
 						// ajout

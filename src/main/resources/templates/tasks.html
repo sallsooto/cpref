@@ -21,7 +21,7 @@
 				<div class="col-sm-12">
 					<div class="card border-0 p-0 bg-transparent">
 						<div class="card-body p-0 bg-info">
-							<table class="table table-sm table-bordered mt-3 bg-light">
+							<table class="table table-sm table-responsive-sm table-hover table-bordered mt-3 bg-light">
 								<thead class="text-info text-uppercase text-left">
 								<tr>
 									<td colspan="30">
@@ -95,8 +95,8 @@
 											   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file-pdf"></i></a>
 										</td>
 										<td class="text-center">
-											<a data-ng-if="task.processLunched && task.startAt != null" href="#" title="Marquez comme traitement fini"
-												data-ng-class="{'d-none' : task.status != 'valid'}"
+											<a data-ng-if="task.processLunched && task.startAt != null && task.status == 'started'" href="#" title="Marquez comme traitement fini"
+												data-ng-class="{'d-none' : task.status != 'started'}"
 												class="text-decoration-none mr-3 border"  id="validTaskButton"
 												 data-taskId="{{task.id}}" data-taskNewStatus="completed">
 												<small class="task_status_changer" data-taskId="{{task.id}}" data-taskNewStatus="completed" 
@@ -104,32 +104,27 @@
 												<i class="fas fa-thumbs-up fa_table_link text-success p-1 border-left" data-taskId="{{task.id}}"
 												 data-taskNewStatus="completed"  data-ng-click="changeTaskStatus($event);"></i>	
 											</a>
-											<a data-ng-if="task.processLunched && task.startAt != null" href="#" title="Mettre en reprise de traitement"
-												data-ng-class="{'d-none' : task.status == 'valid'}" 
+											<a data-ng-if="task.processLunched && task.startAt != null && task.status == 'completed'" href="#" title="Mettre en reprise de traitement"
+												data-ng-class="{'d-none' : task.status != 'completed'}" 
 												class="text-decoration-none mr-3 border" id="completedTaskButton"
-												data-taskId="{{task.id}}" data-taskNewStatus="valid">
-												<small class="" data-taskId="{{task.id}}" data-taskNewStatus="valid"
-												 data-repalace="#validTaskButton" data-ng-click="changeTaskStatus($event);">Traitement Terminé</small>
-												<i class="fas fa-hourglass-start fa_table_link text-info p-1 border-left" data-taskId="{{task.id}}" 
-												data-taskNewStatus="valid" data-ng-click="changeTaskStatus($event);"></i>
+												data-taskId="{{task.id}}" data-taskNewStatus="started">
+												<small class="" data-taskId="{{task.id}}">Traitement Terminé</small>
 											</a>
-											<small data-ng-if="task.processLunched && task.startAt == null" class="text-danger">Tâche non démarrée !</small>
+											<small data-ng-if="task.processLunched && (task.startAt == null || task.status == 'valid')" class="text-danger">Tâche non démarrée !</small>
 											<small data-ng-if="!task.processLunched" class="text-danger">Process non démarré !</small>
 											<!-- validate status control -->
-											<span data-ng-if="task.validator && loged && task.validator.id==loged.id && task.status != 'valid'">
-												<small data-ng-if="task.statusValid" class="badge badge-danger cursor-pointer ml-2"
-												       title="Devalider ce stataus" data-ng-click="changeStatusValid(task.id, false);">Devalider</small>
-												<small data-ng-if="!task.statusValid" class="badge badge-success cursor-pointer ml-2" title="valider ce status"
-												       data-ng-click="changeStatusValid(task.id, true);">Valider</small>
+											<span data-ng-if="task.status == 'completed' || task.status == 'canceled'">
+												<small data-ng-if="task.status == 'completed'" class="badge badge-danger cursor-pointer ml-2"
+												       title="Relancez le traitement" data-ng-click="relunchTask(task.id);">Relancer</small>
 											</span>
 											<!-- validate status control -->
-											<div data-ng-if="task.processLunched && task.status == 'valid' && task.processExpired" class="d-inline-block text-right">
+											<!-- <div data-ng-if="task.processLunched && task.status == 'valid' && task.processExpired" class="d-inline-block text-right">
 												<small>Justifications({{task.justifications.length}})</small>
 												<i data-ng-if="task.justifications.length>0" class="fas fa-eye cursor-pointer" title="afficher"
 												data-processId="{{task.processId}}" data-taskId="{{task.id}}" data-ng-click="showModalEditJustificationWithOutNewForm($event)"></i>
 												<i class="fas fa-plus-circle cursor-pointer" title="Ajouter"
 												   data-processId="{{task.processId}}" data-taskId="{{task.id}}" data-ng-click="showModalEditJustificationWithNewForm($event)"></i>
-											</div>
+											</div> -->
 										</td>
 									</tr>
 									<tr data-ng-if="tasks.length<=0">

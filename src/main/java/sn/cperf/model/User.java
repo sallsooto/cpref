@@ -26,6 +26,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import javassist.bytecode.stackmap.TypeData.ClassName;
+
 @Entity
 @Table(name="users")
 public class User implements Serializable,UserDetails{
@@ -68,7 +70,7 @@ public class User implements Serializable,UserDetails{
 	public void setUsers(List<User> users) {
 		this.users = users;
 	}
-	@Column(columnDefinition = "boolean default false")
+	@Column(columnDefinition = "boolean default false", name="valid")
 	private boolean valid = false;
 	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "users_roles", 
@@ -112,26 +114,6 @@ public class User implements Serializable,UserDetails{
 		// TODO Auto-generated method stub
 		return this.username;
 	}
-	@Override
-	public boolean isAccountNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-	@Override
-	public boolean isAccountNonLocked() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-	@Override
-	public boolean isCredentialsNonExpired() {
-		// TODO Auto-generated method stub
-		return true;
-	}
-	@Override
-	public boolean isEnabled() {
-		// TODO Auto-generated method stub
-		return this.valid;
-	}
 	public User(Long id, String firstname, String lastname, String username, String password, String email,
 			String adresse, String phone, String photo, boolean valid, List<Role> roles) {
 		super();
@@ -149,7 +131,6 @@ public class User implements Serializable,UserDetails{
 	}
 	public User() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 	public Long getId() {
 		return id;
@@ -259,5 +240,25 @@ public class User implements Serializable,UserDetails{
 	}
 	public void setActivite(String activite) {
 		this.activite = activite;
+	}
+	@Override
+	public boolean isAccountNonExpired() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean isAccountNonLocked() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean isCredentialsNonExpired() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean isEnabled() {
+		// TODO Auto-generated method stub
+		return valid;
 	}
 }

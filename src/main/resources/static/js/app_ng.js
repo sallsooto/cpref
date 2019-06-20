@@ -309,6 +309,7 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 	$scope.orderFieldReverse = "-";
 	$scope.processLunshed = "true";
 	$scope.loged = null;
+	$scope.logedIsAdmin = false;
 	$scope.getTasks = function() {
 		var processLunshed = $scope.processLunshed == "true" ? true : false;
 		$scope.status = !processLunshed ? "all" : $scope.status;
@@ -329,6 +330,7 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 			for (var i = 0; i < response.data.totalPages; i++)
 				$scope.pages[i] = i;
 			$scope.loged = response.data.loged;
+			$scope.logedIsAdmin = response.data.logedIsAdmin;
 		});
 	};
 	$scope.replaceWithNullOrBlank = function(current_value, repalce_value) {
@@ -376,7 +378,15 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 				$scope.getTasks();
 		});
 	};
-
+	$scope.relunchTask = function(taskId){
+		$http({
+			url : '/Task/relunchTask',
+			method : 'get',
+			params : {tid : taskId}
+		}).then(function(response) {
+			$scope.getTasks();
+		});
+	};
 });
 
 // impact controller

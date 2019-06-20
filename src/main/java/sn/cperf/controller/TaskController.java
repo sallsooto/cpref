@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,7 +64,11 @@ public class TaskController {
 	@Autowired ProcessService processService;
 	@GetMapping("/")
 	public String getListTaskView(Model model) {
-		model.addAttribute("loged", cperfService.getLoged());
+		User loged =  cperfService.getLoged();
+		model.addAttribute("loged",loged);
+		boolean logedIsAdmin = false;
+		try { logedIsAdmin = loged.hasRole("admin") ? true : false;} catch (Exception e) {}
+		model.addAttribute("logedIsAdmin",logedIsAdmin);
 		return "tasks";
 	}
 
@@ -83,6 +88,9 @@ public class TaskController {
 			User loged = cperfService.getLoged();
 			datas.put("loged", loged);
 			if (loged != null) {
+				boolean logedIsAdmin = false;
+				try { logedIsAdmin = loged.hasRole("admin") ? true : false;} catch (Exception e) {}
+				datas.put("logedIsAdmin",logedIsAdmin);
 				status = (status.toLowerCase().equals(TaskStatus.CANCELED.toString()) && !loged.hasRole("admin"))
 						? "valid"
 						: status;
@@ -172,11 +180,8 @@ public class TaskController {
 				if (isTaskForUser(task, loged, task.isProcessLunched()) || loged.hasRole("admin")) {
 					// List<Task> tasks = loged.getTasks();
 					task.setLastStatus(task.getStatus());
-					if (loged.hasRole("admin") || (task.getValidator() != null && task.getValidator().getId() == loged.getId()))
-						task.setStatusValid(true);
-					else
-						task.setStatusValid(false);
 					task.setStatus(status);
+					task.setStatusValid(false);
 					// seting finish date
 					if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
 						if(task.getFinishAt() == null)
@@ -186,7 +191,7 @@ public class TaskController {
 						task.setFinishAt(null);
 					}
 					// set staring task date
-					if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+					if (!task.getStatus().toLowerCase().equals(TaskStatus.STARTED.toString().toLowerCase())) {
 						if(task.getStartAt() == null)
 							task.setStartAt(new Date());
 					}
@@ -195,25 +200,18 @@ public class TaskController {
 					}
 					// en setting start task date
 					if (taskRepository.save(task) != null) {
-						// luching chierld tasks
-						try {
-							if(status.toLowerCase().equals("completed")) {
-								for(Task taskChirld : task.getChirlds()) {
-									if(!taskChirld.isLunchingByProcess() 
-									   && taskChirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
-										taskChirld.setStartAt(new Date());
-										taskRepository.save(taskChirld);
-									}
-								}
-							}
-						} catch (Exception e1) {
-						}
+						
+						// lunching task chirlds if is necessary
+						processService.startChirldTaskStatusWhenIsNecessary(task);
+						
+						// store process finisAt date if is laste task completed
+						processService.finishProcessWhenIsTime(task.getSection().getProcess());
 						// storing notifications
 						try {
-							String title = (status.toLowerCase().equals("valid")) ? "Tâche relancée "
+							String title = (status.toLowerCase().equals("started")) ? "Tâche relancée "
 									: (status.toLowerCase().equals("completed")) ? " Tâche completée"
 											: "Tâche annulée!";
-							String noteSlug = (status.toLowerCase().equals("valid"))
+							String noteSlug = (status.toLowerCase().equals("started"))
 									? "a relancé le traitement de la tâche "
 									: (status.toLowerCase().equals("completed"))
 											? " a completé le traitement de la tâche "
@@ -229,25 +227,24 @@ public class TaskController {
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
-						// store process finisAt date if is laste task completed
-						try {
-							Processus processForTask = task.getSection().getProcess();
-							if (status.toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())
-									|| status.toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())) {
-								if (processForTask.getIsFinished()) {
-									processForTask.setFinishDate(new Date());
-									processRepository.save(processForTask);
-								}
-							} else {
-								if (processForTask.getFinishDate() != null) {
-									processForTask.setFinishDate(null);
-									processRepository.save(processForTask);
-								}
-							}
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+//						try {
+//							Processus processForTask = task.getSection().getProcess();
+//							if (status.toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())
+//									|| status.toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())) {
+//								if (processForTask.getIsFinished()) {
+//									processForTask.setFinishDate(new Date());
+//									processRepository.save(processForTask);
+//								}
+//							} else {
+//								if (processForTask.getFinishDate() != null) {
+//									processForTask.setFinishDate(null);
+//									processRepository.save(processForTask);
+//								}
+//							}
+//						} catch (Exception e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
 						return true;
 					}
 				}
@@ -325,7 +322,7 @@ public class TaskController {
 						// en process finishing op
 						data.put("status", true);
 						String textStatus = "";
-						if (task.getStatus().equals(TaskStatus.VALID.toString())) {
+						if (task.getStatus().equals(TaskStatus.STARTED.toString())) {
 							textStatus = "En état de traitement";
 						}
 						else if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
@@ -386,6 +383,24 @@ public class TaskController {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	@GetMapping("/relunchTask")
+	@ResponseBody
+	@Transactional
+	public void relunchTask(@RequestParam("tid") Long taskId) {
+		try {
+			Task task = taskRepository.getOne(taskId);
+			Processus process = processRepository.getOne(task.getProcessId());
+			task.setLastStatus(null);
+			task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+			task.setFinishAt(null);
+			process.setFinishDate(null);
+			taskRepository.save(task);
+			processRepository.save(process);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void deleteAllProcessSectionsWithoutTask() {

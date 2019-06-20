@@ -2,170 +2,212 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org"
 	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-	<title>Inscription</title>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-<!--===============================================================================================-->	
-	<link rel="icon" type="image/png" th:href="@{images/icons/favicon.ico}"/>
+<title>Inscription</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" th:href="@{/css/plugins/bootstrap.min.css}">
+<link rel="icon" type="image/png" th:href="@{images/icons/favicon.ico}" />
 <!--===============================================================================================-->
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" 
-		integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous"/>
-	<link rel="stylesheet" type="text/css" th:href="@{/fonts/font-awesome-4.7.0/css/font-awesome.min.css}">
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/plugins/bootstrap.min.css}">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" th:href="@{/fonts/iconic/css/material-design-iconic-font.min.css}">
+<link rel="stylesheet"
+	href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+	integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+	crossorigin="anonymous" />
+<link rel="stylesheet" type="text/css"
+	th:href="@{/fonts/font-awesome-4.7.0/css/font-awesome.min.css}">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" th:href="@{/css/animate.css}">
-<!--===============================================================================================-->	
-	<link rel="stylesheet" type="text/css" th:href="@{/css/hamburgers.min.css}">
+<link rel="stylesheet" type="text/css"
+	th:href="@{/fonts/iconic/css/material-design-iconic-font.min.css}">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" th:href="@{/css/animsition.min.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/css/animate.css}">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" th:href="@{/css/select2.min.css}">
-<!--===============================================================================================-->	
-	<link rel="stylesheet" type="text/css" th:href="@{/css/daterangepicker.css}">
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/hamburgers.min.css}">
 <!--===============================================================================================-->
-	<link rel="stylesheet" type="text/css" th:href="@{/css/util.css}">
-	<link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/animsition.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css" th:href="@{/css/select2.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/daterangepicker.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css" th:href="@{/css/util.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
 <!--===============================================================================================-->
 <style type="text/css">
-	.form-control::-webkit-input-placeholder { /* WebKit, Blink, Edge */
-    color:    #fff;
-}
-.form-control:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-   color:    #fff;
-   opacity:  1;
-}
-.form-control::-moz-placeholder { /* Mozilla Firefox 19+ */
-   color:    #fff;
-   opacity:  1;
-}
-.form-control:-ms-input-placeholder { /* Internet Explorer 10-11 */
-   color:    #fff;
-}
-.form-control::-ms-input-placeholder { /* Microsoft Edge */
-   color:    #fff;
+.form-control::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+	color: #fff;
 }
 
-.form-control::placeholder { /* Most modern browsers support this now. */
-   color:    #fff;
+.form-control:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+	color: #fff;
+	opacity: 1;
+}
+
+.form-control::-moz-placeholder { /* Mozilla Firefox 19+ */
+	color: #fff;
+	opacity: 1;
+}
+
+.form-control:-ms-input-placeholder { /* Internet Explorer 10-11 */
+	color: #fff;
+}
+
+.form-control::-ms-input-placeholder { /* Microsoft Edge */
+	color: #fff;
+}
+
+.form-control::placeholder {
+	/* Most modern browsers support this now. */
+	color: #fff;
 }
 </style>
 <!-- [--- scripts--] -->
-	
+
 <!--===============================================================================================-->
-	<script th:src="@{/js/plugins/jquery.js}"></script>
+<script th:src="@{/js/plugins/jquery.js}"></script>
 <!--===============================================================================================-->
-	<script th:src="@{/js/animsition.min.js}"></script>
+<script th:src="@{/js/animsition.min.js}"></script>
 <!--===============================================================================================-->
-	<script th:src="@{/js/plugins/popper.js}"></script>
-	<script th:src="@{/js/plugins/bootstrap.min.js}"></script>
+<script th:src="@{/js/plugins/popper.js}"></script>
+<script th:src="@{/js/plugins/bootstrap.min.js}"></script>
 <!--===============================================================================================-->
-	<script th:src="@{/js/select2.min.js}"></script>
+<script th:src="@{/js/select2.min.js}"></script>
 <!--===============================================================================================-->
-	<script th:src="@{/js/moment.min.js}"></script>
-	<script th:src="@{/js/daterangepicker.js}"></script>
+<script th:src="@{/js/moment.min.js}"></script>
+<script th:src="@{/js/daterangepicker.js}"></script>
 <!--===============================================================================================-->
-	<script th:src="@{/js/countdowntime.js}"></script>
+<script th:src="@{/js/countdowntime.js}"></script>
 <!--===============================================================================================-->
-	<script th:src="@{/js/plugins/mshz.form_validator.js}"></script>
+<script th:src="@{/js/plugins/mshz.form_validator.js}"></script>
 <!-- Angular JS -->
 <script th:src="@{/js/plugins/angular.min.js}"></script>
 </head>
-<body>
-	<div class="limiter">
-		<div class="container-login100 bg-img">
-			<div class="wrap-login100 container w-50">
-				<form class="login100-form validate-form row mshz-form-validate" 
-					 th:action="@{/register}" method="post" th:object="${user}" enctype="multipart/form-data">
-					<!-- <span class="login100-form-logo col-sm-12  col-md-2 offset-md-5">
+<body class="bg-img">
+	<div class="container-login100"></div>
+	<div class="container">
+		<div class="row">
+			<div class="d-none d-md-block col-md-2"></div>
+			<div class="col-sm-12 col-md-8 mt-5">
+				<div class="wrap-login100">
+					<form class="login100-form validate-form row mshz-form-validate"
+						th:action="@{/register}" method="post" th:object="${user}"
+						enctype="multipart/form-data">
+						<!-- <span class="login100-form-logo col-sm-12  col-md-2 offset-md-5">
 						<i class="zmdi zmdi-landscape"></i>
 					</span> -->
-					<span class="login100-form-logo col-sm-6 offset-sm-3 col-md-2 offset-md-5 insc_avatar p-0">
-                        <img th:src="@{/images/user.png}" alt="" class="rounded-circle m-0 p-0 border-light w-100 triggable_img"/>
-                        <i class="fas fa-camera text-white cursor-pointer trigger" style="font-size:25px;" data-trigger-hindler="#photo"></i>
-                    </span>
-					<span class="login100-form-title p-b-34 p-t-27 col-sm-12">
-						Inscription
-					</span>
-					<div th:if="${errorMsg}" class="col-sm-12">
-						<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
-					</div>
-					<div th:if="${successMsg}" class="col-sm-12"> 
-						<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
-					</div>
-					<input type="file" name="photo" class="d-none img_field_trigger" id="photo" accept="image/*" th:field="*{photo}"/>
-					<div class="wrap-input50 validate-input col-sm-12 col-md-5 form-group" data-validate = "Entrez votre prénom">
-						<input class="input100" type="text" name="firstname" placeholder="Prénom" th:field="*{firstname}">
-						<span class="focus-input100" data-placeholder="&#xf207;"></span>
-					</div>
-					<div class="d-none d-md-block col-md-1"></div>
-					<div class="wrap-input50 validate-input col-sm-12 col-md-6 form-group" data-validate = "Entrez votre prénom">
-						<input class="input100" type="text" name="lastname" placeholder="Nom" th:field="*{lastname}"/>
-						<span class="focus-input100" data-placeholder="&#xf207;"></span>
-					</div>
-					<div class="wrap-input100 validate-input col-sm-12 col-md-5" data-validate = "Entrez votre email">
-						<input class="input100" type="text" name="email" placeholder="Adrèsse email" th:field="*{email}"/>
-						<span class="focus-input100" data-placeholder="&#xf207;"></span>
-					</div>
-					<div class="d-none d-md-block col-md-1"></div>
-					<div class="wrap-input100 validate-input col-sm-12 col-md-6 form-group" data-validate = "Téléphone">
-						<input class="input100" type="text" name="phone" placeholder="Téléphone" th:field="*{phone}"/>
-						<span class="focus-input100" data-placeholder="&#xf207;"></span>
-					</div>
+						<span
+							class="login100-form-logo col-sm-6 offset-sm-3 col-md-2 offset-md-5 insc_avatar p-0">
+							<img th:src="@{/images/user.png}" alt=""
+							class="rounded-circle m-0 p-0 border-light w-100 triggable_img" />
+							<i class="fas fa-camera text-white cursor-pointer trigger"
+							style="font-size: 25px;" data-trigger-hindler="#photo"></i>
+						</span> <span class="login100-form-title p-b-34 p-t-27 col-sm-12">
+							Inscription </span>
+						<div th:if="${errorMsg}" class="col-sm-12">
+							<div class="text-center"
+								th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+						</div>
+						<div th:if="${successMsg}" class="col-sm-12">
+							<div class="text-center"
+								th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+						</div>
+						<input type="file" name="photo" class="d-none img_field_trigger"
+							id="photo" accept="image/*" th:field="*{photo}" />
+						<div
+							class="wrap-input50 validate-input col-sm-12 col-md-5 form-group"
+							data-validate="Entrez votre prénom">
+							<input class="input100" type="text" name="firstname"
+								placeholder="Prénom" th:field="*{firstname}"> <span
+								class="focus-input100" data-placeholder="&#xf207;"></span>
+						</div>
+						<div class="d-none d-md-block col-md-1"></div>
+						<div
+							class="wrap-input50 validate-input col-sm-12 col-md-6 form-group"
+							data-validate="Entrez votre prénom">
+							<input class="input100" type="text" name="lastname"
+								placeholder="Nom" th:field="*{lastname}" /> <span
+								class="focus-input100" data-placeholder="&#xf207;"></span>
+						</div>
+						<div class="wrap-input100 validate-input col-sm-12 col-md-5"
+							data-validate="Entrez votre email">
+							<input class="input100" type="text" name="email"
+								placeholder="Adrèsse email" th:field="*{email}" /> <span
+								class="focus-input100" data-placeholder="&#xf207;"></span>
+						</div>
+						<div class="d-none d-md-block col-md-1"></div>
+						<div
+							class="wrap-input100 validate-input col-sm-12 col-md-6 form-group"
+							data-validate="Téléphone">
+							<input class="input100" type="text" name="phone"
+								placeholder="Téléphone" th:field="*{phone}" /> <span
+								class="focus-input100" data-placeholder="&#xf207;"></span>
+						</div>
 
-					<div class="wrap-input100 validate-input col-sm-12 form-group" data-validate = "Entrez le login ou non d'utilisateur">
-						<input class="input100" id="username" type="text" name="username" placeholder="Login ou nom d'utilisateur"
-						th:field="*{username}"/>
-						<span class="focus-input100" data-placeholder="&#xf207;"></span>
-					</div>
+						<div class="wrap-input100 validate-input col-sm-12 form-group"
+							data-validate="Entrez le login ou non d'utilisateur">
+							<input class="input100" id="username" type="text" name="username"
+								placeholder="Login ou nom d'utilisateur" th:field="*{username}" />
+							<span class="focus-input100" data-placeholder="&#xf207;"></span>
+						</div>
 
-					<div class="wrap-input100 validate-input col-sm-12 col-md-5 form-group" data-validate="Entrez le mot de passe">
-						<input class="input100" id="password" type="password" name="password" placeholder="Mot de passe" th:field="*{password}"/>
-						<span class="focus-input100" data-placeholder="&#xf191;"></span>
-					</div>
-					<div class="d-none d-md-block col-md-1"></div>
-					<div class="wrap-input100 validate-input col-sm-12 col-md-6 form-group" data-validate="Confirmez le mot de passe">
-						<input class="form-control input100 border-0" id="passwordConf"
-						 type="password" name="passwordConf" placeholder="Confirmez le mot de passe"
-						data-mshz-equals="#password" data-mshz-required="true"/>
-						<span class="focus-input100" data-placeholder="&#xf191;"></span>
-						<div class="invalid-feedback"><small class="text-warning">Le mot de passe ne correspond pas </small></div>
-					</div>
+						<div
+							class="wrap-input100 validate-input col-sm-12 col-md-5 form-group"
+							data-validate="Entrez le mot de passe">
+							<input class="input100" id="password" type="password"
+								name="password" placeholder="Mot de passe"
+								th:field="*{password}" /> <span class="focus-input100"
+								data-placeholder="&#xf191;"></span>
+						</div>
+						<div class="d-none d-md-block col-md-1"></div>
+						<div
+							class="wrap-input100 validate-input col-sm-12 col-md-6 form-group"
+							data-validate="Confirmez le mot de passe">
+							<input class="form-control input100 border-0" id="passwordConf"
+								type="password" name="passwordConf"
+								placeholder="Confirmez le mot de passe"
+								data-mshz-equals="#password" data-mshz-required="true" /> <span
+								class="focus-input100" data-placeholder="&#xf191;"></span>
+							<div class="invalid-feedback">
+								<small class="text-warning">Le mot de passe ne
+									correspond pas </small>
+							</div>
+						</div>
 
-					<!-- <div class="contact100-form-checkbox">
+						<!-- <div class="contact100-form-checkbox">
 						<input class="input-checkbox100" id="ckb1" type="checkbox" name="remember-me">
 						<label class="label-checkbox100" for="ckb1">
 							Remember me
 						</label>
 					</div> -->
 
-					<div class="container-login100-form-btn">
-						<button type="submit" class="login100-form-btn">
-							Créer un compte
-						</button>
-					</div>
-					<div class="text-center mt-3">
-						<a class="txt1 text-center" th:href="@{/login}">
-							J'ai un compte !
-						</a>
-					</div>
-				</form>
+						<div class="container-login100-form-btn">
+							<button type="submit" class="login100-form-btn">Créer un
+								compte</button>
+						</div>
+						<div class="text-center mt-3">
+							<a class="txt1 text-center" th:href="@{/login}"> J'ai un
+								compte ! </a>
+						</div>
+					</form>
+				</div>
 			</div>
-	      <!-- Footer -->
-	        <div class="container my-auto">
-	          <div class="copyright text-center my-auto">
-	            <span>Copyright &copy; 2019 All Right Reserved designed by <a target="_blank" href="https://www.snsoftware.com" class="text-info">SnSoftware</a></span>
-	          </div>
-	        </div>
-	        <!-- Footer -->
+			<div class="d-none d-md-block col-md-2"></div>
+			<!-- Footer -->
+			<div class="col-sm-12 mt-5">
+				<div class="copyright text-center my-auto">
+					<span>Copyright &copy; 2019 All Right Reserved designed by <a
+						target="_blank" href="https://www.snsoftware.com" class="text-info">SnSoftware</a></span>
+				</div>
+			</div>
+			<!-- Footer -->
 		</div>
 	</div>
-	
-
 	<div id="dropDownSelect1"></div>
-<!--===============================================================================================-->
+	<!--===============================================================================================-->
 	<script th:src="@{/js/main.js}"></script>
 
 </body>

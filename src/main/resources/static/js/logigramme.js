@@ -1,5 +1,10 @@
 $(document).ready(function(){
  $(".svgPointerLink").mshzSvgLineLinkAndPointerDrawing({
+ 	labelColor : 'black',
+ 	labelTaskCompletedColor : '#FFFFFF',
+ 	labelTaskCanceledColor : '#FFFFFF',
+ 	labelTaskUnlunchedColor : 'black',
+ 	labelTaskStartedColor : '#2534FF',
 	 labelFontSize : 13,
 	 labelMarginTop :0,
 	 labelMarginLeft:0,

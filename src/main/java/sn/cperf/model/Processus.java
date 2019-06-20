@@ -97,15 +97,10 @@ public class Processus implements Serializable{
 							int totalNbHours = Math.abs(tmpCalender.get(Calendar.HOUR)-taskCalander.get(Calendar.HOUR)) + task.getNbHours();
 							int totalNbMinutes = Math.abs(tmpCalender.get(Calendar.MINUTE)-taskCalander.get(Calendar.MINUTE)) + task.getNbYears();
 				    		// set calander values 
-							System.err.println(task.getName() + " diff years : "+ totalNbYears);
 							calander.add(GregorianCalendar.YEAR,totalNbYears );
-							System.err.println(task.getName() + " diff months : "+totalNbMonths);
 							calander.add(GregorianCalendar.MONTH, totalNbMonths);
-							System.err.println(task.getName() + " diff days : "+ totalNbDays);
 							calander.add(GregorianCalendar.DAY_OF_MONTH, totalNbDays);
-							System.err.println(task.getName() + " diff hours : "+totalNbHours);
 							calander.add(GregorianCalendar.HOUR,totalNbHours );
-							System.err.println(task.getName() + " diff min : "+ totalNbMinutes);
 							calander.add(GregorianCalendar.MINUTE,totalNbMinutes);
 							tmpCalender = null;
 						}else {

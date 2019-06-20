@@ -539,19 +539,8 @@ public class ProcessController {
 					// storing notifications
 					notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),
 							"/Task/?tid=" + task.getId(), task.getAllUsers(), null);
-					// lunching task childs 
-					if(task.getChirlds() != null && !task.getChirlds().isEmpty() 
-							&& task.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())) {
-						for(Task chirld : task.getChirlds()) {
-							try {
-								if(chirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
-									chirld.setStatus(TaskStatus.STARTED.toString().toLowerCase());
-									chirld.setStartAt(new Date());
-								}
-							} catch (Exception e) {
-							}
-						}
-					}
+					// lunching task chirlds if is necessary
+					processService.startChirldTaskStatusWhenIsNecessary(task);
 					// finishing process if is necessary
 					 processService.finishProcessWhenIsTime(process);
 					// end finishing process op
@@ -714,7 +703,7 @@ public class ProcessController {
 						else {
 							dbTask.setStartAt(null);
 						}
-						// en setting start task date
+						// end setting start task date
 						if (taskRepository.save(dbTask) != null) {
 							try {
 								process = dbTask.getSection().getProcess();
@@ -749,6 +738,8 @@ public class ProcessController {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
+							// lunching task chirlds if is necessary
+							processService.startChirldTaskStatusWhenIsNecessary(dbTask);
 							// storing notifications
 							notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),
 									"/Task/?tid=" + dbTask.getId(), dbTask.getAllUsers(), null);
