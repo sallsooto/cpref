@@ -1,0 +1,26 @@
+.rect{
+	fill: url(#unlunchedGradiantColor) none;
+	stroke-width : 3px;
+	stroke : #2A252B;
+}
+/*started completed canceled valid*/
+.valid{
+	fill: url(#taskUnlunchedGradiantColor) none;
+	stroke-width : 2px;
+	stroke : #2A252B;
+}
+.started{
+	fill: url(#taskStartedGradiantColor) none;
+	stroke-width : 2px;
+	stroke : #AA9F1E;
+}
+.completed{
+	fill: url(#taskCompletedGradiantColor) none;
+	stroke-width : 2px;
+	stroke : #00ff00;
+}
+.canceled{
+	fill: url(#taskCanceldGradiantColor) none;
+	stroke-width : 2px;
+	stroke : #F37EA0;
+}

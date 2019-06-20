@@ -13,7 +13,10 @@
 		 	labelClassSelector : 'data-labelClasSelector',
 		 	labelFontSize : 15,
 		 	labelColor : 'black',
-		 	labelSuccessColor : '#AAAAAA',
+		 	labelTaskCompletedColor : '#AAAAAA',
+		 	labelTaskCanceledColor : '#AAAAAA',
+		 	labelTaskUnlunchedColor : '#000000',
+		 	labelTaskStartedColor : '#2534FF',
 		 	labelMarginTop : 15,
 		 	labelMarginLeft :15,
 		 },options);
@@ -197,6 +200,21 @@
 						cpt++;
 					});
 					$(labelSector).each(function(){
+						var taskStatus = ($(this).attr('data-status'));
+						color = params.labelColor;
+                        if(typeof taskStatus !== typeof undefined && taskStatus.length>0){
+                        	if(taskStatus.toLowerCase().trim() == "started")
+                        		color = params.labelTaskStartedColor;
+                        	else if(taskStatus.toLowerCase().trim() == "completed")
+                        		color = params.labelTaskCompletedColor;
+                        	else if(taskStatus.toLowerCase().trim() == "canceled")
+                        		color = params.labelTaskCanceledColor;
+                        	else if(taskStatus.toLowerCase().trim() == "valid")
+                        		color = params.labelTaskUnlunchedColor;
+                        	else
+                        		color = pparams.labelColor;
+                        		
+                        }
 						$(this).parent().css({
 							"position" : "absolute",
 							"z-index" : params.zIndex+300,
@@ -205,6 +223,7 @@
 							"margin-top" : labelMarginTop,
 							"margin-left" : params.labelMarginLeft,
 							"font-size" : fontSize+"px",
+							"color" : color,
 						});
 						//console.log($(this).parent());
 						i= i+ labelMarginTop;

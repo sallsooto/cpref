@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sn.cperf.dao.ProcessRepository;
+import sn.cperf.dao.TaskRepository;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.util.TaskStatus;
@@ -14,6 +15,7 @@ import sn.cperf.util.TaskStatus;
 @Service
 public class ProcessServiceImpl implements ProcessService{
     @Autowired ProcessRepository processRepository;
+    @Autowired TaskRepository taskRepository;
 	@Override
 	public void finishProcessWhenIsTime(Processus process) {
 		try {
@@ -37,5 +39,23 @@ public class ProcessServiceImpl implements ProcessService{
 		} catch (Exception e) {
 		}
 	}
-
+	@Override
+	public void startChirldTaskStatusWhenIsNecessary(Task task) {
+	  if(task != null && (task.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())
+			  || task.getStatus().toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase()))) {
+		  try {
+			List<Task> chirldsTasks = taskRepository.findByParent(task);
+			  for(Task chirld : chirldsTasks) {
+				  if(chirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+					  if(chirld.getStartAt() == null)
+						  chirld.setStartAt(new Date());
+					  chirld.setStatus(TaskStatus.STARTED.toString().toLowerCase()); 
+					  try {taskRepository.save(chirld);} catch (Exception e) {
+					}
+				  }
+			  }
+		} catch (Exception e) {
+		}
+	  }
+	}
 }
