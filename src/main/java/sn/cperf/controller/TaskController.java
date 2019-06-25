@@ -377,7 +377,7 @@ public class TaskController {
 					model.addAttribute("successMsg", session.getAttribute("successMsg"));
 					session.removeAttribute("successMsg");
 				}
-			  return "logigramme :: #taskForm";
+			  return "logigramme_with_raphael :: #taskForm";
 		  }
 		} catch (Exception e) {
 			e.printStackTrace();

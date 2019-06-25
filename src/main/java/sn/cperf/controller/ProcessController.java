@@ -2,11 +2,13 @@ package sn.cperf.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
@@ -354,6 +356,7 @@ public class ProcessController {
 			@RequestParam(name = "tid", defaultValue = "0") Long taskId, Model model) {
 		Task task = new Task();
 		List<Task> tasks = new ArrayList<>();
+		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
 		try {
 			if (processId != null && processId > 0) {
@@ -380,13 +383,20 @@ public class ProcessController {
 				if (opTask.isPresent()) {
 					task = opTask.get();
 					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
+					if(task.getParent() != null && task.getParent().getSection().getId() != task.getSection().getId())
+						sections.add(task.getParent().getSection());
+					sections.add(task.getSection());
+				}else {
+					try {sections.add(process.getSections().get(process.getSections().size()-1));} catch (Exception e) {e.printStackTrace();}
 				}
+			}else {
+				try {sections.add(process.getSections().get(process.getSections().size()-1));} catch (Exception e) {e.printStackTrace();}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		model.addAttribute("sections", process.getSections());
+		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
@@ -398,12 +408,13 @@ public class ProcessController {
 	@PostMapping("/Task/Edit")
 	public String editTask(@RequestParam("pid") Long processId,
 			@RequestParam("fileDescription") MultipartFile fileDescription,
-			@RequestParam(name = "tid", defaultValue = "0") Long taskId, @RequestParam("grouprodio") int withGroup,
+			@RequestParam(name = "tid", defaultValue = "0") Long taskId, @RequestParam(name="grouprodio",defaultValue="3") int withGroup,
 			@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
 		boolean isUpdateOperation = false;
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
+		int sectionFinded = 0;
 		try {
 			if (bind.hasErrors()) {
 				bind.getAllErrors().forEach(e -> System.out.println(e.getDefaultMessage()));
@@ -426,7 +437,7 @@ public class ProcessController {
 				}
 				if (process != null)
 					tasks = taskRepository.getByProcess(process.getId());
-				sections = processSectionRepository.findByProcess(process);
+				//sections = processSectionRepository.findByProcess(process);
 				try {
 					if (task.getValidator() != null) {
 						List<User> users = new ArrayList<>();
@@ -473,6 +484,7 @@ public class ProcessController {
 							if (p != null && p.getStartAt() != null) {
 								task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
 								task.setStartAt(new Date());
+								sections.add(p.getSections().get(p.getSections().size()-1));
 							}
 						} catch (Exception e) {
 						}
@@ -482,6 +494,28 @@ public class ProcessController {
 							task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
 						    task.setStartAt(new Date());
 						}
+					}
+					if(task.getParent() != null) {
+						sectionFinded = 0;
+						 for(ProcessSection section : sections) {
+							 if(section.getId() == task.getParent().getSection().getId()) {
+								 sectionFinded++;
+								 break;
+							 }
+						 }
+						 if(sectionFinded <=0)
+							 sections.add(task.getParent().getSection());
+					}
+					if(task.getSection() != null) {
+						sectionFinded = 0;
+						 for(ProcessSection section : sections) {
+							 if(section.getId() == task.getSection().getId()) {
+								 sectionFinded++;
+								 break;
+							 }
+						 }
+						 if(sectionFinded <=0)
+								sections.add(task.getSection());
 					}
 				}
 				// seting finish date
@@ -544,6 +578,15 @@ public class ProcessController {
 					// finishing process if is necessary
 					 processService.finishProcessWhenIsTime(process);
 					// end finishing process op
+					 sectionFinded = 0;
+					 for(ProcessSection section : sections) {
+						 if(section.getId() == task.getSection().getId()) {
+							 sectionFinded++;
+							 break;
+						 }
+					 }
+					 if(sectionFinded <=0)
+						 sections.add(task.getSection());
 				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
@@ -560,7 +603,8 @@ public class ProcessController {
 		return "task";
 	}
 
-	@GetMapping("/Logigramme")
+	// cette version n'est pas utilisée
+	@GetMapping("/UnusedLogigramme")
 	public String logigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
 			@RequestParam(name = "tid", defaultValue = "0") Long taskId, Model model) {
 		Processus p = null;
@@ -612,7 +656,6 @@ public class ProcessController {
 		model.addAttribute("process", p);
 		return "logigramme";
 	}
-	
 	@PostMapping("/Logigramme")
 	public String editTaskInLogigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
 			@RequestParam("fileDescription") MultipartFile fileDescription,
@@ -763,15 +806,8 @@ public class ProcessController {
 		
 		// suppressions des tasche vies 
 		deleteAllProcessSectionsWithoutTask();
-		if(tasSectionChanged && process != null)
-			return "redirect:/Process/Logigramme?pid="+process.getId()+"&tid="+taskId;
-		model.addAttribute("sections", sections);
-		model.addAttribute("tasks",tasks);
-		model.addAttribute("users", users);
-		model.addAttribute("groups", groups);
-		model.addAttribute("process", process);
-		
-		return "logigramme";
+		System.err.println("je suis redirigé");
+		return "redirect:/Process/Logigramme/?pid="+process.getId();
 	}
 	
 	private void deleteAllProcessSectionsWithoutTask() {
@@ -786,5 +822,108 @@ public class ProcessController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	/** Logigramme with flowchart.js and raphael.js **/
+
+
+	@GetMapping("/Logigramme")
+	public String svgLogigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
+			@RequestParam(name = "tid", defaultValue = "0") Long taskId, Model model) {
+		Processus p = null;
+		Task task = null;
+		List<Task> tasks = new ArrayList<>();
+		List<ProcessSection> sections = new ArrayList<>();
+		List<User> users = new ArrayList<>();
+		List<Group> groups = new ArrayList<>();
+		try {
+			if (processId != null && processId > 0) {
+				Optional<Processus> op = processRepository.findById(processId);
+				if (op.isPresent()) {
+					p = new Processus();
+					p = op.get();
+					sections = p.getSections();
+				}
+				model.addAttribute("pId", p.getId());
+	
+				if (taskId != null && taskId > 0) {
+					Optional<Task> opTask = taskRepository.findById(taskId);
+					if (opTask.isPresent()) {
+						task = new Task();
+						task = opTask.get();
+						tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), p.getId());
+					}else {
+						tasks = taskRepository.getByProcess(p.getId());
+					}
+				}
+				if (task == null) {
+					task = new Task();
+					tasks = p.getTasks();
+				}
+			}
+			users = userRepository.findAll();
+			groups = groupRepository.findAll();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// suppressions des tasche vies 
+		deleteAllProcessSectionsWithoutTask();
+		
+		model.addAttribute("sections", sections);
+		model.addAttribute("tasks", tasks);
+		model.addAttribute("users", users);
+		model.addAttribute("groups", groups);
+		model.addAttribute("task", task);
+		model.addAttribute("process", p);
+		model.addAttribute("raphaelCode", makeRaphaelJsCode(tasks));
+		return "logigramme_with_raphael";
+	}
+	
+	private String makeRaphaelJsCode(List<Task> tasks) {
+		String code = "", path="";
+		if(!tasks.isEmpty()) {
+			int nbTask = tasks.size();
+			try {tasks = tasks.stream().sorted(Comparator.comparingLong(Task::getId)).collect(Collectors.toList());} catch (Exception e1) {}
+			for(int i=0; i<nbTask; i++) {
+				Task task = tasks.get(i);
+				Task futureTask = null;
+				if(i < nbTask-1)
+					futureTask = tasks.get(i+1);
+				String key = "t"+task.getId();
+				String type = formateRaphaelTaskType(task.getType());
+				String orientation = "";
+				if(i < nbTask -1) {
+					orientation = "(right)->";
+					try {
+						if(futureTask != null && task.getSection().getId() !=  futureTask.getSection().getId()) {
+							orientation = "(bottom)->";
+						}
+					} catch (Exception e) {
+					}
+					//System.err.println(task.getName() + ": orientation => "+orientation);
+				}
+				code = code + " "+key+"=>"+type+": "+task.getName()+"|"+task.getStatus()+":$showTaskDetails  \n";
+				path = path+key+orientation;
+			}
+		}
+		return code +" "+path;
+	}
+	
+	private String formateRaphaelTaskType(String type) {
+		if(type != null) {
+			if(type.toLowerCase().equals("start"))
+				return "start";
+			else if(type.toLowerCase().equals("finish"))
+				return "end";
+			else if(type.toLowerCase().equals("sub_process"))
+				return "subroutine";
+			else if(type.toLowerCase().equals("doc"))
+				return "inputoutput";
+			else
+				return "operation";
+		}
+		return "operation";
 	}
 }

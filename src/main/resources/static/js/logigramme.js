@@ -9,10 +9,10 @@ $(document).ready(function(){
 	 labelMarginTop :0,
 	 labelMarginLeft:0,
  });
- $(window).resize(function(){
-	 //$(".svgPointerLink").mshzSvgLineLinkAndPointerDrawing();
-	 location.reload();
- });
+// $(window).resize(function(){
+//	 //$(".svgPointerLink").mshzSvgLineLinkAndPointerDrawing();
+//	 location.reload();
+// });
  // showing chrono
  var start_actual_time_text =$("#startDateContainer").val();
  var end_actual_time_text=$("#endDateContainer").val();
@@ -39,26 +39,100 @@ $(document).ready(function(){
 	$(".radiodescriptionFileAndText, .radiodescriptionText, .radiodescriptionFile").on("click",function(){
 		chowTextOrFileDescription();
 	});
-	
-	var selectedTaskIdFieald = $(".selectedTaskIdFiealdContainer").val();
-	if(selectedTaskIdFieald.length>0 && selectedTaskIdFieald > 0)
-		laodTaskInView(selectedTaskIdFieald);
-	
-	$(".taskEntity").on('click',function(){
-		var taskId = $(this).attr('data-taskId');
-		if(taskId.length>0 && taskId > 0)
-			laodTaskInView(taskId);
-	});
-	$(".photo-loader-label").on('click',function(){
-		console.log('ok');
-	})
+//	
+//	var selectedTaskIdFieald = $(".selectedTaskIdFiealdContainer").val();
+//	if(selectedTaskIdFieald.length>0 && selectedTaskIdFieald > 0)
+//		laodTaskInView(selectedTaskIdFieald);
+//	
+//	$(".taskEntity").on('click',function(){
+//		var taskId = $(this).attr('data-taskId');
+//		if(taskId.length>0 && taskId > 0)
+//			laodTaskInView(taskId);
+//	});
+//	$(".photo-loader-label").on('click',function(){
+//		console.log('ok');
+//	})
 	// end task form controlls
+	
+	/** raphael and flowchar.js oragnigramme section */
+	var code = $("#code").val();
+	/*'start',
+	'end',
+	'condition',
+	'inputoutput',
+	'operation',
+	'subroutine'*/
+	var chart = flowchart.parse(code);
+	chart.drawSVG('canvas', {
+	      'x': 0,
+	      'y': 0,
+	      'line-width': 1.8,
+	      'line-length': 50,
+	      'text-margin': 10,
+	      'font-size': 14,
+	      'font-color': 'black',
+	      'line-color': 'black',
+	      'element-color': 'black',
+	      'fill': 'white',
+	      'yes-text': 'Oui',
+	      'no-text': 'non',
+	      'arrow-end': 'block',
+	      'scale': 1.2,
+	      // style symbol types
+//	      'symbols': {
+//	        'start': {
+//	          'font-color': 'red',
+//	          'element-color': 'green',
+//	          'fill': 'yellow',
+//	        },
+//	        'end':{
+//	          'class': 'end-element'
+//	        }
+//	      },
+	      // even flowstate support ;-)
+
+	      'flowstate' : {
+	        'valid' : { 'fill' : 'white', 'font-size' : 12, 'font-color' : 'black'},
+	        'started' : {'fill' : '#EFDE0C', 'font-color' : 'blue'},
+	        'completed' : { 'fill' : '#28C723', 'font-color' : 'white'},
+	        'canceled' : { 'fill' : '#FF0000', 'font-color' : 'white'},
+	      }
+	    });
+	//$(".btnFormContainer")
+	$(".btnUserAndGroupContainer").on('click',function(e){
+		e.preventDefault();
+		activeUserContainer();
+	});
+	$(".btnFormContainer").on('click',function(e){
+		e.preventDefault();
+		activeFormContainer();
+	});
 });
+
+activeUserContainer = function(event){
+	btnUserAndGroupCotnainer = $("#btnUserAndGroupContainer");
+	btnFormContainer = $("#btnFormContainer");
+	$(".formContainer").addClass('d-none');
+	$(".userAndGroupCotnainer").removeClass('d-none');
+	btnUserAndGroupCotnainer.addClass('bg-info text-white');
+	btnFormContainer.removeClass('bg-info text-white');
+}
+activeFormContainer = function(event){
+	btnUserAndGroupCotnainer = $("#btnUserAndGroupContainer");
+	btnFormContainer = $("#btnFormContainer");
+	$(".userAndGroupCotnainer").addClass('d-none');
+	$(".formContainer").removeClass('d-none');
+	btnFormContainer.addClass('bg-info text-white');
+	btnUserAndGroupCotnainer.removeClass('bg-info text-white');
+}
+function showTaskDetails(event, node) {
+	taskId = node.key.substring(1,node.key.length);
+	taskId = parseInt(taskId,10);
+	laodTaskInView(taskId);
+  }
 function showChronos(start_actual_time_text,end_actual_time_text,chronoContainerSelector){
 	var chronoContainer = $(chronoContainerSelector);
 	if(typeof start_actual_time_text != typeof undefined && end_actual_time_text.length>0){
-		console.log(" start " + start_actual_time_text);
-		console.log(" end " +end_actual_time_text);
 		var start_actual_time = new Date(start_actual_time_text);
 		var end_actual_time = new Date(end_actual_time_text);
 		var current_time = new Date();

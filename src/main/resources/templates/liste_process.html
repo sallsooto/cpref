@@ -106,25 +106,7 @@
 												<tr th:each="task : ${p.tasks}">
 													<td th:text="${task.name}"></td>
 													<td class="text-center">
-														<span th:text="${(task.status == 'valid') ? 'En état de traitement' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}" th:id="${'textStausContainer'+task.id}"></span>
-														<div>
-															<div th:if="${task.status != 'valid'}" class="font-weight-bold">
-																<small th:class="${!task.statusValid ? 'text-warning' : 'text-warning d-none'}" th:id="${'invalidStatusTextContainer'+task.id}">En attente de validation </small>
-																<small th:class="${task.statusValid ? 'text-success' : 'text-success d-none'}" th:id="${'validStatusTextContainer'+task.id}">Validé </small>
-																<span th:if="${(task.validator == null or task.validator.id==loged.id)}">
-																	<small th:class="${task.statusValid ? 'badge badge-danger cursor-pointer ml-2 taskStatusChanger' : 'badge badge-danger cursor-pointer taskStatusChanger ml-2 d-none'}" 
-																		   data-newStatus="false" th:data-replace-btnId="${'#trueValidTaskStatusBtn'+task.id}" th:data-textStatusContainerIdSelecor="${'#textStausContainer'+task.id}"
-																		   th:data-taskId="${task.id}" th:id="${'falseValidTaskBtn'+task.id}"
-																		   th:data-inValidTextContainerIdSelector="${'#invalidStatusTextContainer'+task.id}"
-																		   th:data-validTextContainerIdSelector="${'#validStatusTextContainer'+task.id}">Devalider</small>
-																	<small th:class="${!task.statusValid ? 'badge badge-success cursor-pointer ml-2 taskStatusChanger' : 'badge badge-success cursor-pointer ml-2 d-none taskStatusChanger'}"
-																	       data-newStatus="true" th:data-replace-btnId="${'#falseValidTaskBtn'+task.id}" th:data-textStatusContainerIdSelecor="${'#textStausContainer'+task.id}"
-																	       th:data-taskId="${task.id}" th:id="${'trueValidTaskStatusBtn'+task.id}"
-																		   th:data-inValidTextContainerIdSelector="${'#invalidStatusTextContainer'+task.id}"
-																		   th:data-validTextContainerIdSelector="${'#validStatusTextContainer'+task.id}">Valider</small>
-																</span>
-															</div>
-														</div>
+														<span th:text="${(task.status == 'valid') ? 'Non démarrée' : (task.status == 'started') ? 'Démarrée et non terminée' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}" th:id="${'textStausContainer'+task.id}"></span>
 													</td>
 													<td th:text="${task.parent != null ? task.parent.name : 'Aucne'}"></td>
 													<td>
