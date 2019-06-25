@@ -80,12 +80,6 @@
 								<div class="row p-0">
 									<div class="col-sm-12 col-md-12 p-0">
 										<div class="row">
-											<!-- <div th:if="${errorMsg}" class="col-sm-12">
-													<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
-												</div>
-												<div th:if="${successMsg}" class="col-sm-12"> 
-													<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
-												</div> -->
 											<div class="form-group col-sm-12 col-md-6">
 												<label class="control-label"><small>Entrez
 														le libellé ou le nom de la tâche</small></label> <input type="text"
@@ -157,10 +151,6 @@
 												</label> <input type="file" id="file" name="fileDescription"
 													accept="application/pdf"
 													class="form-control form-control-sm" value="file.pdf" />
-												<!-- <a href="#" class="border form-control form-control-sm btn btn-sm in_edition file_filed_trigger">
-									<span class="photo-loader-label" th:text="${task.dbFileDescription != null ? task.dbFileDescription.name : task.fileDescriptionPath}"></span>
-									<i class="fas fa-file float-right mt-1 text-primary"  style="font-size:15px;"></i>
-								</a> -->
 												<div class="invalid-feedback">Le fichier n'est pas
 													valide!</div>
 											</div>
@@ -199,60 +189,6 @@
 														démarrage</option>
 												</select> <label class="ml-2">Etat initial</label>
 											</div>
-											<!-- user integration --
-								<div class="form-group col-sm-12 col-md-4"> 
-									Utilisateurs associés par : 
-								</div>
-								<div class="form-group col-sm-12 col-md-8 text-center">
-									<label>
-								      <input class="with-gap radioSectionWithGroupAndusers" type="radio" name="grouprodio" value="1"
-								      th:checked="!${task.id} or (${task.group} and ${task.users.size()>0})"/>
-								      <span>Groupe & utilisateurs</span>
-								    </label>
-									<label>
-								      <input class="with-gap radioSectionWithGroup" type="radio" name="grouprodio" value="2"
-								      th:checked="${task.id} and ${task.group} and ${task.users.size()<=0}"/>
-								      <span>Groupe</span>
-								    </label>
-									<label>
-								      <input class="with-gap radioSectionWithNotGroup" name="grouprodio" type="radio" value="3"
-								      th:checked="${task.id} and !${task.group} and ${task.users.size()>0}" />
-								      <span>utilisateurs</span>
-								    </label>
-								</div>
-								<div class="form-group col-sm-12 input-field sectionUserFormGroup col s12">
-									 <select th:field="*{users}" class="from-control form-control-sm" multiple>
-								      <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstname + ' '+user.lastname}"></option>
-								    </select>
-							    	<label>Selectionez les utilisateurs</label>
-								</div>
-								<div class="form-group col-sm-12 col-md-6 input-field col s12">
-									 <select th:field="*{validator}" class="from-control form-control-sm">
-								      <option value="">Selectionez le validateur du status de la tâche</option>
-								      <option th:each="user : ${users}" th:if="${user.firstname != null || user.lastname != null}" th:value="${user.id}" th:text="${user.firstname + ' '+user.lastname}"></option>
-								    </select>
-							    	<label>Validateur de la tâche</label>
-								</div>
-								<div class="form-group col-sm-12 col-md-6 input-field sectionGroupFormGrouop col s12">
-									 <select th:field="*{group}" class="from-control form-control-sm">
-								      <option th:each="group : ${groups}" th:value="${group.id}" th:text="${group.name}"></option>
-								    </select>
-								     <label>Séléctionnez le groupe des utilisateurs associé</label>
-								</div>
-							<!-- end users integration --
-							<div class="form-group col-sm-12 col-md-6 input-field col s12" th:if="${tasks.size()>0}"> 
-								 <select th:field="*{parent}" class="from-control form-control-sm">
-							      <option th:each="t: ${tasks}" th:value="${t.id}" th:text="${t.name}">Tache parente</option>
-							    </select>
-								 <label>Choisissez la tâche précédente</label>
-							</div>
-							<div class="form-group col-sm-12 col-md-6 input-field col s12" th:if="${tasks.size()>0}"> 
-								 <select th:field="*{lunchingByProcess}">
-							      <option value="true">Démarre en même temps que le process</option>
-							      <option value="false">Attendre que la tâche précédente soit traitée</option>
-							    </select>
-								 <label>Condition de démarrage de la tâche</label>
-							</div>-->
 											<div class="form-group col-sm-12">
 												<a th:href="@{/Process/Task/Edit(pid=${process.id},tid=${task.id})}"
 												   class="d-inline-block mt-2"><small>Afficher la page d'édition principale</small></a>
@@ -260,18 +196,6 @@
 											</div>
 										</div>
 									</div>
-									<!-- col  --
-					<div class="col-sm-12 col-md-6">
-						<div class="row">
-							<div class="form-group col-sm-12 input-field">
-								 <select th:field="*{noProcessId}" class="from-control form-control-sm">
-							      <option value="">Séléctionnez les intervenant du process</option>
-							      <option th:each="user : ${users}" th:value="${user.id}" th:text="${user.firstname + ' '+user.lastname}"></option>
-							    </select>
-							</div>
-						</div>
-					</div>
-					end col emps -->
 								</div>
 							</form>
 						</div>

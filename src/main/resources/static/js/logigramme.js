@@ -67,7 +67,7 @@ $(document).ready(function(){
 	      'x': 0,
 	      'y': 0,
 	      'line-width': 1.8,
-	      'line-length': 50,
+	      'line-length': 30,
 	      'text-margin': 10,
 	      'font-size': 14,
 	      'font-color': 'black',
