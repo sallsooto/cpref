@@ -21,11 +21,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import sn.cperf.dao.DBFileRepository;
 import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.NotificationRepository;
 import sn.cperf.dao.ParamRepository;
 import sn.cperf.dao.RoleRepository;
 import sn.cperf.dao.UserRepository;
+import sn.cperf.model.DBFile;
 import sn.cperf.model.Group;
 import sn.cperf.model.Parametre;
 import sn.cperf.model.Role;
@@ -42,6 +44,7 @@ public class AdminController {
 	@Autowired NotificationRepository notificationRepository;
 	@Autowired MailService mailService;
 	@Autowired ParamRepository paramRepository;
+	@Autowired DBFileRepository dBFileRepository;
 	
 	@GetMapping("/Role")
 	public String getRoleView(@RequestParam(name="id", defaultValue="0") Long id, Model model) {
@@ -164,7 +167,12 @@ public class AdminController {
 	}
 	
 	@GetMapping("/User")
-	public String getUserListView() {
+	public String getUserListView(Model model) {
+		DBFile dbFile = null;
+		try {dbFile = dBFileRepository.findTop1ByDefaultUserAvatarIsTrueOrderByIdDesc();} catch (Exception e) {}
+		if(dbFile == null)
+			dbFile =  new DBFile();
+		model.addAttribute("dbFile",dbFile);
 		return "users";
 	}
 	

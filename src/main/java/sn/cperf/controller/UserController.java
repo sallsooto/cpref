@@ -1,27 +1,21 @@
 package sn.cperf.controller;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,7 +26,6 @@ import sn.cperf.dao.FonctionRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.form.ProfileForm;
 import sn.cperf.model.DBFile;
-import sn.cperf.model.Task;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
 import sn.cperf.service.DBFileService;
@@ -162,7 +155,7 @@ public class UserController {
 
 	@RequestMapping(value = "/getUserPhoto", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<Resource> showProceduresPDf(@RequestParam(name = "uid", defaultValue = "0") Long userId) {
+	public ResponseEntity<Resource> getUserPhoto(@RequestParam(name = "uid", defaultValue = "0") Long userId) {
 		try {
 			User user = new User();
 			try {
@@ -192,6 +185,19 @@ public class UserController {
 			}
 		} catch (Exception e) {
 			System.err.println("monn erreur");
+			System.out.println(e);
+		}
+		return null;
+	}
+
+	@RequestMapping(value = "/getDefaultUserPhoto", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<Resource> getDefaultUserPhoto() {
+		try { 
+			if(dbFileService.getDefaultUserAvatar() != null) {
+			  return dbFileService.downloadImageFile(dbFileService.getDefaultUserAvatar());
+			}
+		} catch (Exception e) {
 			System.out.println(e);
 		}
 		return null;
