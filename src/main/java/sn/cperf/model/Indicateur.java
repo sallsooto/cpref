@@ -1,6 +1,7 @@
 package sn.cperf.model;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -73,7 +74,7 @@ public class Indicateur implements Serializable{
 	@Getter @Setter
 	private List<IndicatorDataCollector> dataCollectors;
 	@Transient
-	@Getter @Setter
+	@Setter
 	private boolean dataResultEditable = false;
 	@Transient
 	@Setter
@@ -81,7 +82,12 @@ public class Indicateur implements Serializable{
 	@Transient
 	@Setter
 	private Date  startDataEditionDate;
-	
+
+
+
+	public boolean isDataResultEditable() {
+		return (this.chirlds == null || this.chirlds.isEmpty());
+	}
 	
 	public Date getMaxDataEditionDate() {
 		if(isDataResultEditable()) {
@@ -123,6 +129,37 @@ public class Indicateur implements Serializable{
 			}
 		}
 		return null;
+	}
+	
+	public double getPerformancePurcente() {
+		return getPerformancePurcente(this);
+	}
+	
+	private double getPerformancePurcente(Indicateur indicator) {
+		double perform = 0;
+		if(indicator != null) {
+			try {
+				if(!indicator.isDataResultEditable()) {
+					for(Indicateur ind : indicator.getChirlds()) {
+						perform = getPerformancePurcente(ind);
+					}
+				}else {
+					if(indicator.expectedNumberResult > 0  && indicator.dataCollectors != null && !indicator.dataCollectors.isEmpty()) {
+						for(IndicatorDataCollector collector : indicator.dataCollectors) {
+							if(collector.getDataNumber() != null && collector.getDataNumber() > 0) {
+								perform = perform + ((collector.getDataNumber()  * 100) / indicator.expectedNumberResult);
+							}
+						}
+					}
+				}
+				DecimalFormat df = new DecimalFormat("#.##");
+				perform = Double.valueOf(df.format(perform));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return perform;
 	}
 	
 }

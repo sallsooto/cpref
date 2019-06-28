@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<title>Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->
+<link rel="icon" type="image/png" th:href="@{images/icons/favicon.ico}" />
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/plugins/bootstrap.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css"
+	th:href="@{/fonts/font-awesome-4.7.0/css/font-awesome.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css"
+	th:href="@{/fonts/iconic/css/material-design-iconic-font.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css" th:href="@{/css/animate.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/hamburgers.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/animsition.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css" th:href="@{/css/select2.min.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css"
+	th:href="@{/css/daterangepicker.css}">
+<!--===============================================================================================-->
+<link rel="stylesheet" type="text/css" th:href="@{/css/util.css}">
+<link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
+<!--===============================================================================================-->
+<!-- [--- scripts--] -->
+
+<!--===============================================================================================-->
+<script th:src="@{/js/plugins/jquery.js}"></script>
+<!--===============================================================================================-->
+<script th:src="@{/js/animsition.min.js}"></script>
+<!--===============================================================================================-->
+<script th:src="@{/js/plugins/popper.js}"></script>
+<script th:src="@{/js/plugins/bootstrap.min.js}"></script>
+<!--===============================================================================================-->
+<script th:src="@{/js/select2.min.js}"></script>
+<!--===============================================================================================-->
+<script th:src="@{/js/moment.min.js}"></script>
+<script th:src="@{/js/daterangepicker.js}"></script>
+<!--===============================================================================================-->
+<script th:src="@{js/countdowntime.js}"></script>
+<!--===============================================================================================-->
+<script th:src="@{/js/plugins/mshz.form_validator.js}"></script>
+<!-- Angular JS -->
+<script th:src="@{/js/plugins/angular.min.js}"></script>
+</head>
+<body class="bg-img">
+	<div class="container-login100"></div>
+		<div class="container">
+		<div class="row">
+		    <div class="d-none d-md-block col-md-3"></div>
+			<div class="col-sm-12 col-md-6 mt-5">
+				<div class="wrap-login100">
+					<form class="login100-form validate-form" th:action="@{/login}"
+						method="post">
+						<span class="login100-form-logo"> <i
+							class="zmdi zmdi-landscape"></i>
+						</span> <span class="login100-form-title p-b-34 p-t-27"> Log in
+						</span>
+
+						<div th:if="${param.error}" class="col-sm-12">
+							<div class="text-center"
+								th:replace="fragments/alert::flash-danger(body='Entrez les bonnes identifiants!')"></div>
+						</div>
+						<div class="wrap-input100 validate-input"
+							data-validate="Entrez un login ou nom d'utilisateur">
+							<input class="input100" type="text" name="username"
+								placeholder="Login"> <span class="focus-input100"
+								data-placeholder="&#xf207;"></span>
+						</div>
+
+						<div class="wrap-input100 validate-input"
+							data-validate="Entrez un mot de passe">
+							<input class="input100" type="password" name="password"
+								placeholder="Password"> <span class="focus-input100"
+								data-placeholder="&#xf191;"></span>
+						</div>
+
+						<!-- <div class="contact100-form-checkbox">
+					<input class="input-checkbox100" id="ckb1" type="checkbox" name="remember-me">
+					<label class="label-checkbox100" for="ckb1">
+						Remember me
+					</label>
+				</div> -->
+
+						<div class="container-login100-form-btn">
+							<button type="submit" class="login100-form-btn">
+								Connexion</button>
+						</div>
+
+						<div class="text-center p-t-90">
+							<a class="txt1" th:href="@{/register}"> Créer un nouveau
+								compte </a> <span class="mr-1 ml-1 txt1">|</span> <a class="txt1"
+								th:href="@{/resetPassword/email}"> Mot de passe oublié? </a>
+						</div>
+					</form>
+				</div>
+			</div>
+		    <div class="d-none d-md-block col-md-3"></div>
+			<!-- Footer -->
+			<div class="col-sm-12 mt-5">
+				<div class="copyright text-center my-auto">
+					<span>Copyright &copy; 2019 All Right Reserved designed by
+						<a target="_blank" href="https://www.snsoftware.com"
+						class="text-info">SnSoftware</a>
+					</span>
+				</div>
+			</div>
+			<!-- Footer -->
+		</div>
+	</div>
+	<div id="dropDownSelect1"></div>
+	<!--===============================================================================================-->
+	<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

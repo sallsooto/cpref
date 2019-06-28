@@ -106,7 +106,7 @@
 									</span>
 								</div>
 								<div class="card-body">
-									<ul class="list-group" data-ng-repeat="indicator in objectif.indicators">
+									<ul class="list-group" data-ng-repeat="indicator in objectif.indicators | orderBy:'id'">
 										<li class="list-group-item list-group-item-action flex-column align-items-start" data-in-if="indicator.valid">
 											<div class="row">
 												<div class="col-sm-12 col-md-8" data-ng-class="{'col-md-12' : !indicator.dataResultEditable}">
@@ -117,7 +117,7 @@
 																<thead class="alert-dark">
 																	<tr>
 																		<th class="text-primary">Données collectées</th>
-																		<th class="text-primary">Interval de collection</th>
+																		<th class="text-primary text-center">Date ou interval de collection</th>
 																		<th th:if="${isAdmin}" class="text-center text-primary">Perfomance maximale indiquée</th>
 																		<th th:if="${isAdmin}" class="text-primary">Perfomance(%)</th>
 																		<th class="text-primary">Action</th>
@@ -136,8 +136,8 @@
 																			</div>
 																		</td>
 																		<td>
-																			<span data-ng-if="collector.startDate != null"> {{ collector.startDate | date: 'dd/MM/yyyy'}}</span>
-														                     <span data-ng-if="collector.maxDate"> - {{ collector.maxDate | date: 'dd/MM/yyyy'}}</span>
+																			<span data-ng-if="collector.startDate != null"> {{ collector.startDate | date: 'dd/MM/yyyy'}} -</span>
+														                     <span data-ng-if="collector.maxDate"> {{ collector.maxDate | date: 'dd/MM/yyyy'}}</span>
 																		</td>
 																		<td th:if="${isAdmin}">
 																			<div class="text-center" data-ng-if="indicator.type.withExpectedNumberResult">
@@ -154,7 +154,7 @@
 																		<td th:if="${isAdmin}">
 																			<div class="" data-ng-if="indicator.type.withExpectedNumberResult">
 																				<span data-ng-if="indicator.expectedNumberResult != null && collector.dataNumber != null">
-																					 {{getPerformancePurcente(indicator.expectedNumberResult,collector.dataNumber)}} %
+																					 {{ indicator.performancePurcente }} %
 																				 </span> 
 																			</div>
 																			<div class="" data-ng-if="!indicator.type.withExpectedNumberResult">
@@ -278,10 +278,10 @@
 							  <div class="col-sm-12 form-group text-center">
 							  <small class="text-danger  w-100 font-wirght-bold">
 									<span>{{selectedIndicator.question}}</span>
-									<span data-ng-if="selectedDataCollector == null && selectedIndicator.startDataEditionDate != null">entre le {{ selectedIndicator.startDataEditionDate | date: 'dd/MM/yyyy'}}</span>
-									<span data-ng-if="selectedDataCollector == null && selectedIndicator.maxDataEditionDate != null"> et le {{ selectedIndicator.maxDataEditionDate | date: 'dd/MM/yyyy'}}</span>
-									<span data-ng-if="selectedDataCollector != null && selectedDataCollector.startDate != null">entre le {{ selectedDataCollector.startDate| date: 'dd/MM/yyyy'}}</span>
-									<span data-ng-if="selectedDataCollector != null && selectedDataCollector.maxDate != null"> et le {{ selectedDataCollector.maxDate | date: 'dd/MM/yyyy'}}</span>
+									<span data-ng-if="selectedDataCollector == null && selectedIndicator.startDataEditionDate != null">entre le {{ selectedIndicator.startDataEditionDate | date: 'dd/MM/yyyy'}} et </span>
+									<span data-ng-if="selectedDataCollector == null && selectedIndicator.maxDataEditionDate != null"> le {{ selectedIndicator.maxDataEditionDate | date: 'dd/MM/yyyy'}}</span>
+									<span data-ng-if="selectedDataCollector != null && selectedDataCollector.startDate != null">entre le {{ selectedDataCollector.startDate| date: 'dd/MM/yyyy'}} et </span>
+									<span data-ng-if="selectedDataCollector != null && selectedDataCollector.maxDate != null">et le {{ selectedDataCollector.maxDate | date: 'dd/MM/yyyy'}}</span>
 									<span>?</span>
 								</small>
 							  </div>

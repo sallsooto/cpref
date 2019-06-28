@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>logigramme</title>
+<link rel="stylesheet" type="text/css" th:href="@{/css/logigramme.css}"/>
+<script type="text/javascript" th:src="@{/js/plugins/raphael.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/plugins/jquery.js}"></script>
+<script type="text/javascript" th:src="@{/js/plugins/svg.js}"></script>
+<script type="text/javascript" th:src="@{/js/plugins/mshz-chart.js}"></script>
+<script type="text/javascript" th:src="@{/js/plugins/flowchart-latest.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/logigramme.js}"></script>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div
+			th:replace="fragments/main_content_heading::heading(heading_text='Logigramme',heading_link='/Process/List/',heading_link_text='Liste des process',heading_ico='fas fa-arrow-alt-circle-left')"></div>
+		<!--<h1 style="margin-top:150px; text-align:center"></h1>-->
+		<!-- <div class="text-center" th:if="${pocess}">
+			<input type="hidden" th:value="${pId}" id="pid_content"/>
+			<div id="drawing" style="margin: 30px auto; width: 900px;" class=""></div>
+		</div> -->
+		<!-- end static table -->
+		 <!-- task form row container -->
+			<div  class="row">
+				<div id="taskContent"  style="z-index:500000;">
+					<div  id="taskForm" th:if="${task}">
+						<input type="hidden" min="0" step="1" class="selectedTaskIdFiealdContainer" th:value="${task.id}" />
+						<div th:replace="fragments/raphaelLogigrammTaskModal::modal_logigramme_task_form"></div>
+					</div>
+				</div>
+		  </div>
+		  <!-- end task form row container -->
+		  <div class="row">
+		<div class="col-sm-12 text-center table-responsive" th:if="${process}" id="drawing" data-ng-app="Cperf" data-ng-controller="LogigrammeCtrl">
+			<table class="table table-sm table-bordered bg-white">
+				<thead>
+					<tr>
+						<th class="p-1 text-center">
+							<div class="row">
+								<div class="col-sm-12 d-block d-md-none text-center">
+									<span class="d-inline-block badge badge-info chrono_span"></span><br/>
+									<small class="chrono_span_text"></small>
+								</div>
+								<div class="col-sm-12 col-md-9 text-center">
+									<h5 th:text="${process.label}" class="text-info"></h5>
+									<small><span th:if="${process.description != null and process.description != ''}" th:text="${'( '+process.description+' )'}"></span></small>
+								</div>
+								<div class="d-none d-md-block col-md-3 text-center">
+									<div class="badge chrono_span w-50 mt-1"></div><br/>
+										<small class="chrono_span_text"></small>
+								</div>
+							</div>
+							<input type="hidden" th:value="${#dates.format(process.startAt, 'yyyy-MM-dd HH:mm')}" id="startDateContainer"/>
+							<input type="hidden" th:value="${#dates.format(process.maxDate, 'yyyy-MM-dd HH:mm')}" id="endDateContainer"/>
+							<input type="hidden" th:value="${process.isFinished}" id="isfinishContent"/>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="pt-5 pb-5">
+							<textarea id="code" th:text="${raphaelCode}" class="form-control d-none" rows="0"></textarea>
+							<div id="canvas" class="w-100"></div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		<!--</div>-->
+		<h5 class="text-center text-info" th:if="!${process}">Process introuvable</h5>
+	</div>
+	</div>
+	</div>
+	<div layout:fragment="addon-scripts-content"></div>
+</body>
+</html>

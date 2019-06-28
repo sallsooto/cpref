@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+	<title>ERREUR 500</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->	
+	<link rel="icon" type="image/png" th:href="@{images/icons/favicon.ico}"/>
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" th:href="@{/css/plugins/bootstrap.min.css}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" th:href="@{/fonts/font-awesome-4.7.0/css/font-awesome.min.css}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" th:href="@{/fonts/iconic/css/material-design-iconic-font.min.css}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" th:href="@{/css/animate.css}">
+<!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" th:href="@{/css/hamburgers.min.css}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" th:href="@{/css/animsition.min.css}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" th:href="@{/css/select2.min.css}">
+<!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" th:href="@{/css/daterangepicker.css}">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" th:href="@{/css/util.css}">
+	<link rel="stylesheet" type="text/css" th:href="@{/css/main.css}">
+<!--===============================================================================================-->
+<!-- [--- scripts--] -->
+	
+<!--===============================================================================================-->
+	<script th:src="@{/js/plugins/jquery.js}"></script>
+<!--===============================================================================================-->
+	<script th:src="@{/js/animsition.min.js}"></script>
+<!--===============================================================================================-->
+	<script th:src="@{/js/plugins/popper.js}"></script>
+	<script th:src="@{/js/plugins/bootstrap.min.js}"></script>
+<!--===============================================================================================-->
+	<script th:src="@{/js/select2.min.js}"></script>
+<!--===============================================================================================-->
+	<script th:src="@{/js/moment.min.js}"></script>
+	<script th:src="@{/js/daterangepicker.js}"></script>
+<!--===============================================================================================-->
+	<script th:src="@{js/countdowntime.js}"></script>
+<!--===============================================================================================-->
+	<script th:src="@{/js/plugins/mshz.form_validator.js}"></script>
+<!-- Angular JS -->
+<script th:src="@{/js/plugins/angular.min.js}"></script>
+</head>
+<body>
+	
+	<div class="limiter">
+		<div class="container-login100 bg-img">
+			<div class="container">
+				<div class="row">
+				    <div class="col-sm-1 col-md-3"></div>
+					<div class="col-sm-12 col-md-6">
+						<div class="card border-0" style="background:none;">
+							<div class="card-header text-danger" style="background:none;"><h1>Erreur survenu !</h1></div>
+							<div class="card-body text-center">
+								<span class="d-inline-block">Une erreur technique est survenu, 
+								veuillez contactez l'administrateur et
+							   lui mettre au courant de l'appariton de ce message et de ce que vous avez voulu faire juste avant son apparition !</span>
+							</div>
+							<div class="card-footer text-right">
+								<a th:href="@{/}" class="text-info">Cliquez ici pour aller à la page d'accueil</a>
+							</div>
+						</div>
+					</div>
+				    <div class="col-sm-1 col-md-3"></div>
+				</div>
+			</div>
+	      <!-- Footer -->
+	        <div class="container my-auto">
+	          <div class="copyright text-center my-auto">
+	            <span>Copyright &copy; 2019 All Right Reserved designed by <a target="_blank" href="https://www.snsoftware.com" class="text-info">SnSoftware</a></span>
+	          </div>
+	        </div>
+	        <!-- Footer -->
+		</div>
+	</div>
+	<div id="dropDownSelect1"></div>
+<!--===============================================================================================-->
+	<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

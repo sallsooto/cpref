@@ -332,10 +332,13 @@ public class ObjectifController {
 				}
 				model.addAttribute("selectedIndicator", selectedIndicator);
 				try {
-					if(selectedIndicator.getId() != null)
-						model.addAttribute("parentIndicators", indicateurRepository.findByParentNotAndIdNotOrderByIdDesc(selectedIndicator, selectedIndicator.getId()));
-					else
-						model.addAttribute("parentIndicators", indicateurRepository.findAll(Sort.by("id").descending()));
+					if(selectedIndicator.getId() != null) {
+						model.addAttribute("parentIndicators", indicateurRepository.findByObjectifAndIdNotOrderByIdDesc(objectif, selectedIndicator.getId()));
+						//model.addAttribute("parentIndicators", indicateurRepository.findByParentNotAndIdNotOrderByIdDesc(selectedIndicator, selectedIndicator.getId()));
+					}else {
+						model.addAttribute("parentIndicators", indicateurRepository.findByObjectifOrderByIdAsc(objectif));
+						//model.addAttribute("parentIndicators", indicateurRepository.findAll(Sort.by("id").descending()));
+					}
 				} catch (Exception e) {
 					model.addAttribute("parentIndicators", new ArrayList<>());
 				}
@@ -349,7 +352,9 @@ public class ObjectifController {
 	@PostMapping("/Indicator")
 	public String editIndicators(@RequestParam("objid") Long objectifId,@RequestParam(name="indid", defaultValue="0") Long indicatorId,
 								@Valid @ModelAttribute("selectedIndicator") Indicateur indicator, BindingResult bind, Model model) {
+		Objectif objectif = null;
 		try {
+			try {objectif = objectifRepository.getOne(objectifId);} catch (Exception e) {}
 			if(bind.hasErrors()) {
 				bind.getAllErrors().forEach(err ->System.err.println(err.getDefaultMessage()));
 				model.addAttribute("errorMsg", "la validation du formulaire a échoué,verifiez les données renseignées !");
@@ -393,10 +398,13 @@ public class ObjectifController {
 			model.addAttribute("objectif", indicator.getObjectif());
 			model.addAttribute("indicators", indicateurRepository.findByObjectifOrderByIdAsc(indicator.getObjectif()));
 			model.addAttribute("typeIndicators", typeIndicatorRepository.findByValid(true));
-			if(indicator.getId() != null)
-				model.addAttribute("parentIndicators", indicateurRepository.findByParentNotAndIdNotOrderByIdDesc(indicator, indicator.getId()));
-			else
-				model.addAttribute("parentIndicators", indicateurRepository.findAll(Sort.by("id").descending()));
+			if(indicator.getId() != null) {
+				model.addAttribute("parentIndicators", indicateurRepository.findByObjectifAndIdNotOrderByIdDesc(indicator.getObjectif(), indicator.getId()));
+				//model.addAttribute("parentIndicators", indicateurRepository.findByParentNotAndIdNotOrderByIdDesc(selectedIndicator, selectedIndicator.getId()));
+			}else {
+				model.addAttribute("parentIndicators", indicateurRepository.findByObjectifOrderByIdAsc(objectif));
+				//model.addAttribute("parentIndicators", indicateurRepository.findAll(Sort.by("id").descending()));
+			}
 		} catch (Exception e) {
 			model.addAttribute("parentIndicators", new ArrayList<>());
 		}

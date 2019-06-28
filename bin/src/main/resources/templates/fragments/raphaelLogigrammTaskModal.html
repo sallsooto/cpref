@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8" />
+<title>Insert title here</title>
+</head>
+<body>
+	<!-- modal alert archivage  -->
+	<div th:fragment="modal_logigramme_task_form"
+		class="modal fade border border-primary" id="takmodal" tabindex="-1"
+		role="dialog" aria-labelledby="takmodal" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg"
+			role="document">
+			<div class="modal-content">
+				<div class="modal-header bg-primary text-white">
+					<div class="modal-title row w-100">
+						<div class="col-sm-8 col-md-9">
+							<span th:if="${task.id}"
+								th:text="${' Mise à jour de la tâche : '+task.name}">Mise
+								à jour d'une tâche</span> <span th:if="!${task.id}"
+								th:text="${'Nouvelle tâche'}">Nouvelle tâche</span>
+						</div>
+						<div class="col-sm-4 col-md-3 text-right p-0">
+							<a href="#" class="text-decoration-none close"
+								data-dismiss="modal" aria-label="Close"> <i
+								class="fas fa-window-close btn btn-sm btn-outline-warning"
+								title="Fermer"></i>
+							</a> <a th:if="${task.id != null and task.dbFileDescription != null}"
+								th:href="@{/Task/File/Description/Show/{id}(id=${task.id})}"
+								target="_blank"
+								class="btn-floating waves-effect waves-light d-inline-block">
+								<i class="fas fa-file-pdf btn btn-sm btn-outline-success"
+								title="Afficher le fichier de description"></i>
+							</a>
+						</div>
+					</div>
+				</div>
+				<div class="modal-body pb-2">
+					<div class="card border-info">
+						<div class="card-header p-0">
+							<div class="row no-gutters">
+								<div class="col-sm-6 border-right border-white">
+									<a href="#" role="button" class="btn btn-sm btn-outline-info bg-info text-white form-control rounded-0 border-0"
+									onclick="activeUserContainer();" id="btnUserAndGroupContainer">Utilisateur(s) & groupe(s)</a>
+								</div>
+								<div class="col-sm-6 border-left border-white">
+									<a href="#" role="button" class="btn btn-sm btn-outline-info form-control rounded-0 border-0"
+										onClick="activeFormContainer();" id="btnFormContainer">Détails & formulaire</a>
+								</div>
+							</div>
+						</div>
+						<div class="card-body">
+							<div th:if="${task.id != null}" class="row no-gutters userAndGroupCotnainer">
+								<div class="col-sm-12">
+									<div class="col-sm-12">
+  										<ul class="list-group">
+  										    <li class="list-group-item text-success font-weight-bold d-flex justify-content-between align-items-center">
+												Utilisateurs assossié(e)
+ 												<span class="badge badge-success badge-pill" th:text="${task.users.size()}"></span>
+  										    </li>
+  											<li th:each="user : ${task.users}" class="list-group-item">
+  											    <img alt="" th:src="@{/User/getUserPhoto(uid=${user.id})}" style="width:30px; height:30px;"/>
+  												<span th:if="${user.firstname != null}" th:text="${user.firstname + ' '}"></span>
+  												<span th:if="${user.lastname != null}" th:text="${user.lastname}"></span>
+  											</li>
+  										    <li class="list-group-item text-danger font-weigth-bold d-flex justify-content-between align-items-center">
+												Groupe assossié
+ 												<span class="badge badge-danger badge-pill" th:text="${task.group != null ? task.group.name : 0}"></span>
+  										    </li>
+  										</ul>
+									</div>
+								</div>
+							</div><!-- end row users & group -->
+							<form th:action="@{/Process/Logigramme/(pid=${process.id})}"
+								th:object="${task}" method="post" enctype="multipart/form-data"
+								class="mshz-form-validate formContainer pb-0 d-none">
+								<input type="hidden" th:field="*{id}" />
+								<!-- <input type="hidden" th:field="*{section}"/> -->
+								<div class="row p-0">
+									<div class="col-sm-12 col-md-12 p-0">
+										<div class="row">
+											<div class="form-group col-sm-12 col-md-6">
+												<label class="control-label"><small>Entrez
+														le libellé ou le nom de la tâche</small></label> <input type="text"
+													name="label" th:field="*{name}" placeholder=""
+													class="form-control form-control-sm"
+													data-mshz-required="true" />
+												<div class="invalid-feedback">Donnez un nom à la tâche
+													!</div>
+											</div>
+											<div class="form-group col-sm-12 col-md-6"
+												th:if="${sections.size()>0}">
+												<label class="control-label"><small>Section
+														ou séquance</small></label> <select th:field="*{section}"
+													class="form-control form-control-sm">
+													<option th:each="sect : ${sections}" th:value="${sect.id}"
+														th:text="${sect.name}"></option>
+													<option value="">Nouvel section</option>
+												</select>
+											</div>
+											<div class="form-group col-sm-12">
+												<label class="font-weight-bold"><small>Renseignez
+														la durée effective de la tâche :</small></label>
+												<div class="row">
+													<div class="col-sm-6 col-md-3">
+														<small>Année(s) :</small> <input type="number" min="0"
+															step="1" name="nbYears" th:field="*{nbYears}"
+															placeholder="Entrez le nombre d'années.."
+															class="form-control form-control-sm" />
+													</div>
+													<div class="col-sm-6 col-md-2">
+														<small>Mois(s) :</small> <input type="number" min="0"
+															step="1" name="nbMonths" th:field="*{nbMonths}"
+															placeholder="Entrez le nombre de mois.."
+															class="form-control form-control-sm" />
+													</div>
+													<div class="col-sm-6 col-md-2">
+														<small>Jour(s) :</small> <input type="number" min="0"
+															step="1" name="nbDays" th:field="*{nbDays}"
+															placeholder="Entrez le nombre de jours.."
+															class="form-control form-control-sm" />
+													</div>
+													<div class="col-sm-6 col-md-2">
+														<small>Heure(s) :</small> <input type="number" min="0"
+															step="1" name="nbHours" th:field="*{nbHours}"
+															placeholder="Entrez le nombre d'heures.."
+															class="form-control form-control-sm" />
+													</div>
+													<div class="col-sm-6 col-md-3">
+														<small>Minutes(s) :</small> <input type="number" min="0"
+															step="1" name="nbMinuites" th:field="*{nbMinuites}"
+															placeholder="Entrez le nombre des minutes.."
+															class="form-control form-control-sm" />
+													</div>
+												</div>
+											</div>
+											<div class="form-grup col-sm-12  descriptionTextContainer">
+												<label class="control-label"><small>Description
+														textuelle :</small></label>
+												<textarea rows="2" cols="1"
+													placeholder="Tappez la description textuelle ici.."
+													th:field="*{description}"
+													class="form-control form-control-sm"></textarea>
+											</div>
+											<div class="form-group col-sm-12 descriptionFileContainer">
+												<label class="control-label"> <small>
+														Fichier de description : <span class="text-info"
+														th:text="${task.dbFileDescription != null ? task.dbFileDescription.name : task.fileDescriptionPath}"></span>
+												</small>
+												</label> <input type="file" id="file" name="fileDescription"
+													accept="application/pdf"
+													class="form-control form-control-sm" value="file.pdf" />
+												<div class="invalid-feedback">Le fichier n'est pas
+													valide!</div>
+											</div>
+											<!-- end description content manager -->
+											<div class="form-group col-sm-12 col-md-6">
+												<label class="control-label"><small>Type de
+														la tâche</small> </label> <select th:field="*{type}"
+													class="form-control form-control-sm">
+													<option value="process">Choisissez le type de la
+														tâche</option>
+													<option value="start">Debut</option>
+													<option value="process">Activité</option>
+													<option value="sub_process">Sous-activité</option>
+													<option value="doc">Document</option>
+													<option value="finish">Fin</option>
+												</select>
+											</div>
+											<div class="form-group col-sm-12 col-md-6"
+												th:if="${task.id != null and process.startAt != null}">
+												<label class="control-label"><small>Etat</small> </label> <select
+													th:field="*{status}" class="form-control form-control-sm">
+													<option value="valid">Séléctionner un status de la
+														tâche</option>
+													<option value="valid">Non démarrée</option>
+													<option value="started">Démarrée</option>
+													<option value="canceled">Annulée</option>
+													<option value="completed">Traitée</option>
+												</select>
+											</div>
+											<input type="hidden" th:field="*{status}"
+												th:if="${task.id != null and process.startAt == null}" />
+											<div class="form-group col-sm-12 col-md-6 s12 input-field"
+												th:if="!${task.id}">
+												<select th:field="*{status}">
+													<option value="valid" selected>En attente de
+														démarrage</option>
+												</select> <label class="ml-2">Etat initial</label>
+											</div>
+											<div class="form-group col-sm-12">
+												<a th:href="@{/Process/Task/Edit(pid=${process.id},tid=${task.id})}"
+												   class="d-inline-block mt-2"><small>Afficher la page d'édition principale</small></a>
+												<button type="submit" class="btn btn-sm btn-outline-info float-right">Enregistrer</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
