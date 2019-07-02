@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/martial.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Objectifs-Indicateurs</title>
+<script th:src="@{/js/jquery.scrollTo.min.js}"></script>
+<link href="http://www.jqueryscript.net/css/jquerysctipttop.css"
+	rel="stylesheet" type="text/css">
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:if="!${fonction}"
+			 th:replace="fragments/main_content_heading::heading(heading_text='Objectifs-Indicateurs',heading_link='/Organigramme/',heading_link_text='Organigramme',heading_ico='fas fa-sitemap')">
+		</div>
+		<!-- row content -->
+			<div class="row" th:if="${fonction}">
+				<input type="hidden" id="fonctionIdContainer" th:value="${fonction.id}"/>
+				<div class="col-sm-12">
+					<div class="card">
+						<div class="card-header bg-info text-white">
+							<div class="row">
+							<h5 class="text-center font-weight-bold p-1 col-sm-10 col-md-11">
+								<span th:text="${'Objectifs->'+fonction.name}"> </span>
+							</h5>
+							<div class="col-sm-2 col-md-1" th:if="${objectif != null && objectif.id != null}">
+								<a th:href="@{/Objectif/(fid=${param.fid})}" title="Actualisez la vue" class="btn btn-outline-warning btn-sm float-right mt-0">
+									<i class="fas fa-sync"></i>
+								</a>
+							</div>
+							</div>
+						</div>
+						<div class="card-body pb-0">
+							<div class="row">
+								<div class="col-sm-12 col-md-8">
+										  <!-- objectif content -->
+										  	<ul th:if="${objectifs.size()>0}" class="list-group">
+										  		<li class="list-group-item active">Liste des Objectifs
+										  			<a th:if="${objectif != null && objectif.id != null}"
+										  				 th:href="@{/Objectif/(fid=${param.fid})}" title="Actualisez la vue"
+										  				 class="btn btn-outline-warning btn-sm float-right mt-0">
+														<i class="fas fa-sync"></i>
+													</a>
+										  		</li>
+										  		<li th:each="obj : ${objectifs}" class="list-group-item list-group-item-action"
+										  			th:class="${obj.id==objectif.id ? 'list-group-item list-group-item-action border-warning' : 'list-group-item list-group-item-action'}">
+										  			<div class="row align-items-center">
+										  				<div class="col-sm-12 col-md-9 cursor-pointer">
+												  			<a th:href="@{/Objectif/(fid=${fonction.id},objid=${obj.id})}" class="text-decoration-none font-wieght-bold text-secondary">
+												  				<span th:text="${obj.name}" class="text-capitalize font-weight-bold"></span>
+												  			</a>
+										  				</div>
+										  				<div class="col-sm-12 col-md-3 text-center">
+										  					<div class="row align-items-center">
+										  						<div class="col-sm-6 col-md-3 text-left">
+											  					    <a th:href="@{/Objectif/Indicator/(objid=${obj.id})}" class=" text-decoration-none font-wieght-bold text-info">
+													  					<i class="fas fa-book"
+													  					   th:title="${(obj.indicators != null ? ' '+obj.indicators.size() : ' 0') +' indicateur(s)'}"
+													  					    th:text="${obj.indicators != null ? ' '+obj.indicators.size() : ' 0'}">
+													  					</i>
+													  				</a>
+												  			   </div>
+										  						<div class="col-sm-6 col-md-3 text-center">
+											  					    <a title="Details" data-toggle="collapse" href="#" role="button" 
+											  					    	th:data-target="${'#detailObject'+obj.id}" aria-expanded="false" aria-controls="collapseExample">
+													  					<i class="fas fa-eye"></i>
+													  				</a>
+												  				</div>
+										  						<!-- div edit button -->
+										  						<div class="col-sm-6 col-md-3 text-center">
+														  			<a th:href="@{/Objectif/(fid=${fonction.id},objid=${obj.id})}" class="text-decoration-none text-secondary d-inline-block">
+												  						<i class="fas fa-edit" title="modifier"></i>
+														  			</a>
+										  						</div>
+										  						<!-- div delete button -->
+										  						<div class="col-sm-6 col-md-3 text-right">
+														  			<a th:href="@{/Objectif/{id}/del(id=${obj.id})}" class="text-decoration-none text-danger d-inline-block">
+												  						<i class="fas fa-minus-circle" title="supprimer"></i>
+														  			</a>
+										  						</div>
+										  					</div>
+										  				</div>
+										  			</div>
+								  					<!-- row details -->
+							  						<div class="row collapse" th:id="${'detailObject'+obj.id}">
+							  							<div class="col-sm-6 col-md-5">
+							  								<div class="text-secondary">
+								  								<small class="text-danger font-weight-bold">Type : </small>
+								  								<small class="text-capitalize" th:text="${obj.type != null ? obj.type.description : ' Inconnu'}"></small>
+							  								</div>
+							  							</div>
+							  							<div class="col-sm-6 col-md-2">
+							  								<div class="text-secondary">
+								  								<small class="text-danger font-weight-bold">Collectif : </small>
+								  								<small class="text-capitalize" th:text="${obj.group != null ? ' Oui' : ' Non'}"></small>
+							  								</div>
+							  							</div>
+							  							<div class="col-sm-6 col-md-2">
+							  								<div class="text-secondary">
+								  								<small class="text-danger font-weight-bold">Tâches : </small>
+								  								<small class="text-capitalize" th:text="${obj.task != null ? obj.task.name + ' ( process : '+obj.task.section.process.label+' )' : ' 0'}"></small>
+							  								</div>
+							  							</div>
+							  							<div class="col-sm-6 col-md-3 text-right">
+							  								<div class="text-secondary">
+								  								<small class="text-danger font-weight-bold">Evalution</small>
+								  								<small class="text-capitalize" th:text="${ obj.deley != null ? '/'+obj.deley : '/0'}"></small>
+								  								<small class="text-capitalize" th:text="${ obj.type != null && obj.type.unite != null ? ' '+ obj.type.unite : ''}"></small>
+							  								</div>
+							  							</div>
+							  							<div class="col-sm-12 mt-3" th:if="${obj.group != null}">
+							  								<div class="row">
+								  								<div class="col-sm-12 col-md-3">
+								  									<span class="text-secondary">Groupe associé :</span>
+								  								</div>
+								  								<div class="col-sm-12 col-md-9" th:text="${obj.group.name}"></div>
+							  								</div>
+							  							</div>
+							  							<div class="col-sm-12 mt-2" th:if="${obj.task != null}">
+							  								<div class="row">
+							  								   <div class="col-sm-12 col-md-3"><span >Tâche associée : </span></div>
+							  									<div class="col-sm-12 col-md-9  text-center">
+							  										<h5 class="badge badge-secondary mr-2 p-1" th:text="${obj.task.name + ' ( process : '+obj.task.section.process.label+' )'}"></h5>
+							  									</div>
+							  								</div>
+							  							</div>
+							  						</div>
+								  					<!-- end row details -->
+										  		</li>
+										  	</ul>
+										  <!-- end objectif content -->
+										<div class="row" th:if="${objectifs.size()<=0}">
+											<div class="col-sm-12 col-md-8 offset-md-2">
+												<div class="alert alert-info mt-5">
+													<div class="alert-body">Acun Objectif définit pour le moment !</div>
+												</div>
+											</div>
+										</div>
+								</div><!-- end col table -->
+								<div class="col-sm-12 col-md-4">
+								<div class="row">
+									<!-- col objectifs -->
+									<div class="col-sm-12 border-right">
+										<div class="card-body p-0 m-0">
+										  <form class="card PerformanceForm mshz-form-validate p-0 m-0" th:object="${objectif}"
+										   		th:action="@{/Objectif/(fid=${param.fid},objid=${param.objid})}" method="post">
+										      <div class="card-header bg-info text-white font-weight-bold pb-0 pt-0">
+										        <h5 class="card-title m-1" th:text="${(objectif != null and objectif.id != null) ? 'Edition de l''objectif : ' + objectif.name: 'Nouvel objectif' }"></h5>
+										      </div>
+										      <div class="card-body row m-0">
+												<div th:if="${errorMsg}" class="col-sm-12">
+													<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg},id='errorObjectAlert')"></div>
+												</div>
+												<div th:if="${successMsg}" class="col-sm-12"> 
+													<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg},id='successObjectAlert')"></div>
+												</div>
+										        <input type="hidden" id="fonctionId" th:field="*{fonction}"/>
+										        <input type="hidden" th:field="*{id}" id="id"/>
+										        <div class="col-sm-12 form-group input-field col s12">
+										        	<label class="control-label" for="name">Nom de l'objectif <span class="text-danger">*</span> :</label>
+										        	<input type="text" th:field="*{name}" id="name" class="form-control form-control-sm"
+										        	 placeholder="Entrez le nom de l'objectif..." data-mshz-required="true"/>
+										        	 <div class="invalid-feedback"><small>Ce champs est obligatoire!</small></div>
+										        </div>
+										        <div class="col-sm-12 form-group input-field col s12">
+										        	<select th:field="*{type}" id="type" class="selectTypeObjectif"  data-mshz-required="true">
+										        		<option th:each="tObj : ${typeObjectifs}" th:value="${tObj.id}" th:text="${tObj.description}"
+										        		th:data-unite="${tObj.unite}">name</option>
+										        	</select>
+										        	<label>Type d'objectif <span class="text-danger">*</span> :</label>
+										        </div>
+										        <div class="col-sm-12 form-group input-field col s12 deley_container">
+										        	<label class="control-label deley_label" for="deley"></label>
+										        	<input type="number" min="1" step="1" th:field="*{deley}" id="deley" 
+										        	 class="form-control form-control-sm" placeholder="Entrez un delaie d'evaluation..."/>
+										        </div>
+											<!-- collectif group integration -->
+												<div class="form-group col-sm-7 col s7"> 
+													Objectif collectif : 
+												</div>
+												<div class="form-group col-sm-5 col s5">
+													<label>
+												      <input class="with-gap radioNoWithEffectif" type="radio" name="collectif" value="false"
+												      th:checked="!${collectifObjectif}"/>
+												      <span>Non</span>
+												    </label>
+													<label>
+												      <input class="with-gap radioWithEffectif" type="radio" name="collectif" value="true"
+												      th:checked="${collectifObjectif}"/>
+												      <span>Oui</span>
+												    </label>
+												</div>
+										        <div th:class="${collectifObjectif ? 'col-sm-12 form-group input-field col s12 withEfectifContainer' : 'col-sm-12 form-group input-field col s12 withEfectifContainer d-none'}">
+										        	<select th:field="*{group}" id="group" class="">
+										        		<option th:each="group : ${groups}" th:value="${group.id}" th:text="${group.name}">name</option>
+										        	</select>
+										        	<label>Choisissez un groupe :</label>
+										        </div>
+											<!-- tasks integrations integration -->
+												<div class="form-group col-sm-7 col s7"> 
+													Avec tâche(s) associée(s) : 
+												</div>
+												<div class="form-group col-sm-5 col s5">
+													<label>
+												      <input class="with-gap radioNoWithtask" type="radio" name="withTask" value="false"
+												      th:checked="!${withTask}"/>
+												      <span>Non</span>
+												    </label>
+													<label>
+												      <input class="with-gap radioWithtask" type="radio" name="withTask" value="true" th:checked="${withTask}"/>
+												      <span>Oui</span>
+												    </label>
+												</div>
+										        <div th:class="${withTask ? 'col-sm-12 form-group input-field col s12 withTaskcontainer' : 'd-none col-sm-12 form-group input-field col s12 withTaskcontainer'}">
+										        	<select th:field="*{task}" id="group" class="">
+										        		<option th:each="task : ${tasks}" th:value="${task.id}" th:text="${task.name+' (process : '+task.section.process.label+' )'}">name</option>
+										        	</select>
+										        	<label>Selectionner la tâche spécifique assosiée :</label>
+										        </div>
+										        <div class="col-sm-12 col s12 mt-2">
+										        	<button type="submit" class="btn btn-outline-info form-control">Valider</button>
+										        </div>
+										      </div>
+										  </form>
+										</div>
+									</div>
+									<!-- end col objectif -->
+									</div>
+								</div><!-- end col form -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" th:if="!${fonction}">
+				<div class="col-sm-12 col-md-4 offset-md-4">
+					<div class="alert alert-info mt-5 text-center">
+						<div class="alert-body">Acune fonction trouvée, editez d'abord la fonction de l'acteur dans l'organigramme !</div>
+					</div>
+				</div>
+			</div>
+		<!-- row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".radioNoWithEffectif").on("click",function(){
+					$(".withEfectifContainer").addClass("d-none");
+				});
+				$(".radioWithEffectif").on("click",function(){
+					$(".withEfectifContainer").removeClass("d-none");
+				});
+				
+				$(".radioNoWithtask").on("click",function(){
+					$(".withTaskcontainer").addClass("d-none");
+				});
+				$(".radioWithtask").on("click",function(){
+					$(".withTaskcontainer").removeClass("d-none");
+				});
+				
+				getTypeObjectJson();
+				$(".selectTypeObjectif").on('change',function(){
+					getTypeObjectJson();
+				});
+			});
+			
+			function getTypeObjectJson(){
+				var id = $(".selectTypeObjectif").val();
+				if(typeof id != typeof undefinded && id.length>0 && id >0){
+					$.ajax({
+						url : "/Objectif/getTypeObjectifById/?id="+id,
+						method: 'get',
+						contentType : 'json',
+						success : function(object){
+							if(object != null && object.unite != null){
+								$(".deley_container").removeClass("d-none");
+								$(".deley_label").text("Par "+object.unite+" : ");
+							}else{
+								$(".deley_container").addClass("d-none");
+								$(".deley_label").text("");
+							}
+						},
+						error : function(e){
+							console.log(e);
+						}
+					});
+				}
+			};
+		</script>
+	</div>
+</body>
+</html>

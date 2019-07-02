@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Perfomances</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content" data-ng-controller="ObjectifIndicatorCtrl" data-ng-init="getObjectifs()">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Objectifs indiqués')"></div>
+		<!-- Content Row -->
+		<div class="row">
+			<div class="col-sm-12">
+				<ul class="list-group list-group-flussh">
+					<li class="list-group-item active">
+						<div class="row">
+							<div class="col-sm-8 col-md-10"><h5 class="">Liste des objectifs</h5></div>
+							<div class="col-sm-4 col-md-2 text-right">
+								<div class="row">
+									<label class="text-white col-sm-6">Entrée(s)</label>
+									<input type="number"  min="1" step="1" data-ng-model="size" class="col-sm-6 mt-1"
+										   style="height:18px;" data-ng-change="changeSize();"/>
+								</div>
+							</div>
+						</div>
+					</li>
+					<li th:if="${isAdmin}" class="list-group-item" data-ng-init="getUsers();getTypeObjectifs();">
+						<div class="row">
+							<div class="form-group col-sm-4 col-md-4" data-ng-if="users.length>0">
+								<div class="row no-gutters">
+									<label class="control-label col-sm-12 col-md-2 pt-1">Acteur : </label>
+									<div class="col-sm-9 col-md-10 center">
+										<input type="text" class="form-control form-control-sm rounded-0" placeholder="Entrez le nom ou prenom d'un acteur.."
+												data-ng-model="$parent.userFirstOrLastname" data-ng-change="searchUserByLastOrFirstname()"/>
+										<ul class="list-group rounded-0 position-absolute" data-ng-if="showOthersUsers" style="max-height:360px;overflow:auto;">
+											<li class="list-group-item d-flex justify-content-between align-items-center rounded-0" style="z-index:100"
+											 	data-ng-repeat="user in users" data-ng-if="user.fonction != null">
+												{{user.firstname + ' '+user.lastname+' ( '+user.fonction.name+' )'}}
+												<a class="badge badge-primary badge-pill" href="#" data-userId="{{user.id}}" data-ng-click="changeSelectedUser($event)">choisir</a>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							<div class="form-group col-sm-4 col-md-4" data-ng-if="typeObjectifs.length>0">
+								<div class="row no-gutters">
+									<label class="control-label col-sm-12 col-md-4 pt-1">Type d'objectif : </label>
+									<div class="col-sm-9 col-md-8 center">
+										<select class="form-control form-control-sm" data-ng-model="$parent.selectedTypeObjectifId"
+											data-ng-change="changeTypeObjectifs();">
+											<option value="0">Tous les types</option>
+											<option data-ng-repeat="tObj in typeObjectifs" value="{{tObj.id}}">{{tObj.description}}</option>
+										</select>
+									</div>
+							   </div>
+							</div>
+							<div th:if="isAdmin" class="col-sm-4 col-md-4">
+								<button data-ng-if="staticView" class="btn btn-sm btn-info float-right"
+									 title="Afficher la vue static" data-ng-click="changeStaticViewStatus(true)">
+									<i class="fas fa-tree fa-lg  text-warning fa_table_link shadow" data-ng-click="changeStaticViewStatus(true)"></i>
+								</button>
+								<button data-ng-if="staticView" class="btn btn-sm btn-warning float-right"
+									 title="Afficher la vue normale" data-ng-click="changeStaticViewStatus(false)">
+									<i class="fas fa-th-large  fa-lg  text-primary fa_table_link shadow" data-ng-click="changeStaticViewStatus(false)"></i>
+								</button>
+								<h5 class="d-inline-block border float-right pt-1 mr-5">
+									<span class="badge badge-default text-primray">Perfomance globale : </span>
+									<span class="badge badge-default text-success">{{getGlobalPerformance()}}</span>
+								</h5>
+							</div>
+						</div>
+					</li>
+					<li class="list-group-item" data-ng-if="!staticView" data-ng-repeat="objectif in objectifs">
+						<h4 class="font-weight-bold text-info">{{objectif.name}}</h4>
+						<span class="ml-2 border-right border-secondary" data-ng-if="objectif.group != null">
+							<span class="badge badge-default text-danger">Collectif du groupe </span>: 
+							<span class="badge badge-default text-info">{{objectif.group.name}}</span>
+						</span> 
+						<span class="ml-2  border-right border-secondary" data-ng-if="objectif.task != null">
+							<span class="badge badge-default text-danger">Lié à la tâche</span> : 
+							<span class="badge badge-default text-info">{{objectif.task.name}}</span>
+						</span>
+						<span class="ml-2" data-ng-if="objectif.type != null">
+							<span class="badge badge-default text-danger">De type </span>: 
+							<span class="badge badge-default text-info">{{objectif.type.description}}</span>
+						</span>
+						<a href="#indicators{{objectif.id}}" class="badge badge-primary badge-pill float-right text-decoration-none fa_table_link"
+							data-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapse indicators">
+							{{objectif.indicators.length}} indicateur(s) <i data-ng-if="objectif.indicators.length>0" class="fas fa-eye"></i>
+						</a>
+						<div class="collapse" id="indicators{{objectif.id}}" data-ng-if="objectif.indicators.length>0">
+							<div class="card rounded-0">
+								<div class="card-header bg-secondary">
+									<h5 class="text-warning d-inline-block">Indicateur(s)</h5>
+									<span class="ml-2 float-right" th:if="${isAdmin}">
+										<span class="badge badge-default text-warning">Performances générale :</span> 
+										<span class="badge badge-default text-success">{{getObjectifPerfomancePurcentage(objectif) }} / {{sumPurcente}} % </span>
+									</span>
+								</div>
+								<div class="card-body">
+									<ul class="list-group" data-ng-repeat="indicator in objectif.indicators">
+										<li class="list-group-item list-group-item-action flex-column align-items-start" data-in-if="indicator.valid">
+											<div class="row">
+												<div class="col-sm-12 col-md-8" data-ng-class="{'col-md-12' : !indicator.dataResultEditable}">
+													<span class="d-inline-block w-100 m-0 p-2 well text-warning font-weight-bold"><i class="fas fa-flag-checkered"></i> {{ indicator.label}}</span>
+													<div data-ng-if="indicator.dataCollectors.length>0" class="d-flex justify-content-start align-items-start">
+														<div class="flex-grow-1">
+															<table class="table table-responsive-sm table-hover">
+																<thead class="alert-dark">
+																	<tr>
+																		<th class="text-primary">Données collectées</th>
+																		<th class="text-primary">Interval de collection</th>
+																		<th th:if="${isAdmin}" class="text-center text-primary">Perfomance maximale indiquée</th>
+																		<th th:if="${isAdmin}" class="text-primary">Perfomance(%)</th>
+																		<th class="text-primary">Action</th>
+																	</tr>
+																</thead>
+																<tbody>
+																	<tr class="" data-ng-repeat="collector in indicator.dataCollectors | orderBy: '-id'">
+																		<td>
+																			<div class="" data-ng-if="indicator.type.withExpectedNumberResult">
+																				<span data-ng-if="collector.dataNumber != null">{{collector.dataNumber}}</span> 
+																				<span data-ng-if="indicator.expectedResultUnite != null">{{indicator.expectedResultUnite}}</span>
+																			</div>
+																			<div class="" data-ng-if="!indicator.type.withExpectedNumberResult">
+																				<span data-ng-if="collector.dataText != null">{{collector.dataText}}</span> 
+																				<span data-ng-if="indicator.expectedResultUnite != null">{{indicator.expectedResultUnite}}</span>
+																			</div>
+																		</td>
+																		<td>
+																			<span data-ng-if="collector.startDate != null"> {{ collector.startDate | date: 'dd/MM/yyyy'}}</span>
+														                     <span data-ng-if="collector.maxDate"> - {{ collector.maxDate | date: 'dd/MM/yyyy'}}</span>
+																		</td>
+																		<td th:if="${isAdmin}">
+																			<div class="text-center" data-ng-if="indicator.type.withExpectedNumberResult">
+																				<span data-ng-if="indicator.expectedNumberResult != null"> {{indicator.expectedNumberResult}} </span> 
+																				<span data-ng-if="indicator.expectedResultUnite != null">{{indicator.expectedResultUnite}}</span>
+												  								<span class="font-wight-bold">{{objectif.deley != null ? '/'+objectif.deley : ' reguillièrement'}}</span>
+												  								<span class="font-wight-bold">{{objectif.type != null && objectif.type.unite != null ? ' '+ objectif.type.unite : ''}}</span>
+																			</div>
+																			<div class="" data-ng-if="!indicator.type.withExpectedNumberResult">
+																				<span data-ng-if="indicator.expectedTextResult != null">{{indicator.expectedTextResult}}</span> 
+																				<span data-ng-if="indicator.expectedResultUnite != null">{{indicator.expectedResultUnite}}</span>
+																			</div>
+																		</td>
+																		<td th:if="${isAdmin}">
+																			<div class="" data-ng-if="indicator.type.withExpectedNumberResult">
+																				<span data-ng-if="indicator.expectedNumberResult != null && collector.dataNumber != null">
+																					 {{getPerformancePurcente(indicator.expectedNumberResult,collector.dataNumber)}} %
+																				 </span> 
+																			</div>
+																			<div class="" data-ng-if="!indicator.type.withExpectedNumberResult">
+																				<span data-ng-if="collector.dataNumber != null">{{collector.dataNumber}}%</span> 
+																			</div>
+																		</td>
+																		<td>
+																			<!-- upate icone -->
+																			<i class="fas fa-edit text-primary cursor-pointer ml-2" title="modifier"
+																			   data-indicatorId="{{indicator.id}}" data-ng-if="!collector.archive"
+																			  data-indicatorCollectorId="{{collector.id}}" data-ng-click="showDataIndicatorCollectorForm($event)"></i>
+																			  <!-- archive icone -->
+																			  <span class="d-inline-block" th:if="${isAdmin}">
+																				<i class="fas fa-lock text-success cursor-pointer ml-2" title="Archiver"
+																				   data-ng-if="!collector.archive" data-status="true"
+																				  data-indicatorCollectorId="{{collector.id}}" data-ng-click="shangeArchiveStatus($event)"></i>
+																				  <!-- desarchive icone -->
+																				<i th:if="${isAdmin}" class="fas fa-lock-open text-info cursor-pointer ml-2" title="Désarchiver"
+																				  data-ng-if="collector.archive" data-status="false"
+																				  data-indicatorCollectorId="{{collector.id}}" data-ng-click="shangeArchiveStatus($event)"></i>
+																			  </span>
+																		</td>
+																	</tr>
+																</tbody>
+															</table>
+														</div>
+														<div><!-- div containeur des différentes data --></div>
+													</div>
+												</div>
+												<div class="col-sm-12 col-md-4 text-center border-left" data-ng-if="indicator.dataResultEditable">
+													<small class="d-inline-blok w-100 text-primary">
+														<span>{{indicator.question}}</span><br/>
+														<span data-ng-if="indicator.startDataEditionDate != null">{{indicator.maxDataEditionDate != null ? ' entre le ' : ' du ' }} {{ indicator.startDataEditionDate | date: 'dd/MM/yyyy'}}</span>
+														<span data-ng-if="indicator.maxDataEditionDate != null"> {{indicator.startDataEditionDate != null ? ' et le  ' : ' jusqu\'au ' }}{{ indicator.maxDataEditionDate | date: 'dd/MM/yyyy'}}</span>
+														<span>?</span>
+														<i class="fas fa-reply fa-lg text-success cursor-pointer ml-2" title="répondre"
+														 data-indicatorId="{{indicator.id}}" data-indicatorCollectorId="0" data-ng-click="showDataIndicatorCollectorForm($event)"></i>
+													</small>
+												</div>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
+					<!-- stativ view -->
+						<li data-ng-if="staticView" class="list-group-item">
+							<!-- stat card -->
+							<div class="card shadow mb-4">
+								<!-- Card Header - Dropdown -->
+								<div
+									class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+									<h6 class="m-0 font-weight-bold text-primary">Earnings
+										Overview</h6>
+									<div class="dropdown no-arrow">
+										<a class="dropdown-toggle" href="#" role="button"
+											id="dropdownMenuLink" data-toggle="dropdown"
+											aria-haspopup="true" aria-expanded="false"> <i
+											class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+										</a>
+										<div
+											class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+											aria-labelledby="dropdownMenuLink">
+											<div class="dropdown-header">Dropdown Header:</div>
+											<a class="dropdown-item" href="#">Action</a> <a
+												class="dropdown-item" href="#">Another action</a>
+											<div class="dropdown-divider"></div>
+											<a class="dropdown-item" href="#">Something else here</a>
+										</div>
+									</div>
+								</div>
+								<!-- Card Body -->
+								<div class="card-body">
+									<div class="chart-area">
+										<canvas id="myAreaChart"></canvas>
+									</div>
+								</div>
+							</div>
+						</li>
+					<!-- end static view -->
+					<li class="list-group-item" data-ng-if="objectifs.length<=0">
+						<div class="row">
+							<div class="col-sm-12 col-md-4 offset-md-4">
+								<div class="alert alert-info w-100 text-center">Aucun objectif trouvé !</div>
+							</div>
+						</div>
+					</li>
+					<li class="list-group-item bg-primary" data-ng-if="pages.length>=1">
+						<!-- =========== PAGINATION ============= -->
+						<nav aria-label="..." class="m-0 p-0">	
+							<ul class="pagination float-right" style="margin:-13px -21px -12px 0;">
+								<!--<li class="page-item" data-ng-if="{pages.length-$parent.page>1}">
+									<a class="page-link" href="#" tabindex="-1">Previous</a>
+								</li> -->
+							   <li data-ng-repeat="p in pages" class="page-item rounded-0" 
+							   	     data-ng-class="{'active border border-warning shadow': page==p}">
+							   		<button  type="button" class="page-link" data-pageIndex="{{p}}" 
+							   		data-ng-click="changePage($event)">{{p+1}}</button>
+							   </li>
+							   <!-- <li class="page-item"><a class="page-link" data-ng-if="false">Next</a></li> -->
+							</ul>
+						</nav>
+						<!-- ================ AND PAGINATION -->
+					</li>
+				</ul>
+			</div>
+		</div>
+		<!-- modal indicator -->
+			<div class="modal fade" tabindex="-1" role="dialog" id="dataCollecotrModal">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<div class="modal-header bg-info text-light">
+							<h5 class="modal-title">Indicateur :  {{selectedIndicator.label}}</h5>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+						<div class="modal-body">
+							<div class="row">
+							  <div class="col-sm-12 form-group text-center">
+							  <small class="text-danger  w-100 font-wirght-bold">
+									<span>{{selectedIndicator.question}}</span>
+									<span data-ng-if="selectedDataCollector == null && selectedIndicator.startDataEditionDate != null">entre le {{ selectedIndicator.startDataEditionDate | date: 'dd/MM/yyyy'}}</span>
+									<span data-ng-if="selectedDataCollector == null && selectedIndicator.maxDataEditionDate != null"> et le {{ selectedIndicator.maxDataEditionDate | date: 'dd/MM/yyyy'}}</span>
+									<span data-ng-if="selectedDataCollector != null && selectedDataCollector.startDate != null">entre le {{ selectedDataCollector.startDate| date: 'dd/MM/yyyy'}}</span>
+									<span data-ng-if="selectedDataCollector != null && selectedDataCollector.maxDate != null"> et le {{ selectedDataCollector.maxDate | date: 'dd/MM/yyyy'}}</span>
+									<span>?</span>
+								</small>
+							  </div>
+							   <div data-ng-if="errorMsg" class="col-sm-12">
+									<div class="text-center" th:replace="fragments/alert::flash-danger(body='{{errorMsg}}',id='errorFormlert')"></div>
+								</div>
+								<div data-ng-if="successMsg" class="col-sm-12"> 
+									<div class="text-center" th:replace="fragments/alert::flash-success(body='{{successMsg}}',id='successFormAlert')"></div>
+								</div>
+								<div class="col-sm-12 form-group" data-ng-if="!selectedIndicator.type.withExpectedNumberResult">
+									<label for="resultText" class="control-label">Resultat textuel : </label>
+									<textarea rows="2" class="form-control form-control-sm" data-ng-model="$parent.collectorResultText"
+									id="resultText" placeholder="Décrivez les qualités de l'acteur ici"></textarea>
+								</div>
+								<div class="form-group col-sm-12">
+									<div class="input-group input-group-sm">
+									  <div class="input-group-prepend">
+									    <span class="input-group-text" data-ng-if="selectedIndicator.type.withExpectedNumberResult">Resultat</span>
+									    <span class="input-group-text" data-ng-if="!selectedIndicator.type.withExpectedNumberResult">Perfomance</span>
+									  </div>
+									  <input type="number" min="0" step="1" class="form-control"
+									   data-ng-if="selectedIndicator.type.withExpectedNumberResult" data-ng-model="$parent.collectorResultNumber"
+									  aria-label="entrez le résultat ou performance ici.." placeholder="entrez le resultat ici..">
+									  <input type="number" min="0" step="1" class="form-control"
+									   data-ng-if="!selectedIndicator.type.withExpectedNumberResult" data-ng-model="$parent.collectorResultNumber"
+									  aria-label="entrez le résultat ou performance ici.." placeholder="entrez le nombre de pourcentage estimé pour l'acteur ici..">
+									  <div class="input-group-append">
+									    <span class="input-group-text" 
+									    	data-ng-if="selectedIndicator.expectedResultUnite != null && selectedIndicator.type.withExpectedNumberResult">
+									    	{{selectedIndicator.expectedResultUnite}}
+									    </span>
+									    <span class="input-group-text" data-ng-if="!selectedIndicator.type.withExpectedNumberResult">%</span>
+									  </div>
+									</div>
+								</div>
+								<div class="form-group col-sm-12 col-md-12">
+									<button class="btn btn-sm btn-outline-info form-control" data-ng-click="editDatatIndicatorcollecorForm();">Valider</button>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+				        	<button type="button" class="btn btn-secondary" data-dismiss="modal" data-ng-click="closeModal();">Fermer</button>
+				        </div>
+					</div>
+				</div>
+			</div>
+		<!-- end modal indicator -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<!-- Page level plugins -->
+		<script th:src="@{/lib/chart.js/Chart.min.js}"></script>
+
+		<!-- Page level custom scripts -->
+		<script th:src="@{/js/demo/chart-area-demo.js}"></script>
+		<script th:src="@{/js/demo/chart-pie-demo.js}"></script>
+	</div>
+</body>
+</html>

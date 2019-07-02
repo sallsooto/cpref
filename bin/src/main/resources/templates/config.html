@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/martial.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Configurations</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<!-- row content -->
+		<div class="row">
+			<div class="col-sm-12 col-md-12">
+				<div class="card  border-info">
+					<div class="card-header"><h4 class="text-info text-uppercase">System-Configs</h4></div>
+					<div class="card-body">
+						<div class="row">
+							<!-- col form -->
+							<div class="col-sm-12 col-md-4 border-right border-info">
+								<form th:object="${config}" th:action="@{/Admin/Config}" method="POST" class="row mshz-form-validate">
+									<div class="form-group col-sm-12 text-right" th:if="${config.id}">
+										<a th:href="@{/Admin/Config}" title="Actualiser"><i class="fas fa-sync-alt"></i></a>
+									</div>
+									<input type="hidden" th:field="*{id}"/>
+									<input type="hidden" th:field="*{slug}" th:if="${config.id}" data-mshz-required="true"/>
+									<div th:if="${errorMsg}" class="col-sm-12">
+										<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+									</div>
+									<div th:if="${successMsg}" class="col-sm-12"> 
+										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+									</div>
+									<div class="form-group col-sm-12 col s12">
+										<label>Libellé ou d'escription :</label>
+										<input type="text" id="label" th:field="*{label}" 
+										 placeholder="Entrez le nom du type ici.." class="form-control form-control-sm" data-mshz-required="true" />
+										 <div class="invalid-feedback">Ce champs est obligatoire!</div>
+									</div>
+									<div class="form-group col-sm-12 col s12" th:if="!${config.id}">
+										<label>Slugan:</label>
+										<input type="text" id="slug" th:field="*{slug}"
+										 placeholder="entrez le slogan du paramêtre de configuration ici.." 
+										 class="form-control form-control-sm" data-mshz-required="true"/>
+										 <div class="invalid-feedback">Ce champs est obligatoire!</div>
+									</div>
+									<div class="form-group col-sm-12 col s12">
+										<label>Valeur :</label>
+										<input type="text" id="param" th:field="*{param}"
+										 placeholder="entrez la du paramêtre de configuration ici.." 
+										 class="form-control form-control-sm" data-mshz-required="true"/>
+										 <div class="invalid-feedback">Ce champs est obligatoire!</div>
+									</div>
+									<div class="form-group col-sm-12" th:if="!${config.id}">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm">Enregistrer</button>
+									</div>
+									<div class="form-group col-sm-12" th:if="${config.id}">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm">Mofidier</button>
+									</div>
+								</form>
+							</div>
+							<!-- col table list -->
+							<div class="col-sm-12 col-md-8 border-left border-info border">
+								<table class="table table-hover table-responsive-sm" th:if="${params.size()>0}">
+									<thead class="">
+										<tr>
+											<th class="text-left">Slogan</th><th class="text-center">Libellé ou Description</th>
+											<th class="text-center">Valeur du paramêtre</th>
+										</tr>
+									</thead>
+									<tbody>
+									<tr th:each="p : ${params}">
+										<td class="" th:text="${p.slug}"></td>
+										<td class="" th:text="${p.label}"></td>
+										<td class="" th:text="${p.param}"></td>
+										<td class="">
+										  <a th:href="@{/Admin/Config/(paramId=${p.id})}" class="fa_table_link" title="modifier">
+										  	<i class="fas fa-edit fa-lg"></i>
+										  </a>
+										</td>
+									</tr>
+									</tbody>
+								</table>
+							</div>
+							<!-- end col table -->
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".swithStatInput").on('click',function(){
+					var typeObjectifId = $(this).attr('data-typeObjectifId');
+					var textContainerClassNameSelector = ".statusTextContent"+typeObjectifId;
+					$.ajax({
+						url : '/Objectif/Type/changeValidStatus/?tid='+typeObjectifId+'&valid='+$(this).is(':checked'),
+						method : 'get',
+						contentType : 'json',
+						success : function(res){
+							if(res.status == true){
+								$(textContainerClassNameSelector).text(res.msg);
+							}
+						},
+						error : function(e){
+							console.log(e);
+						}
+					});
+				});
+			});
+		</script>
+	</div>
+</body>
+</html>

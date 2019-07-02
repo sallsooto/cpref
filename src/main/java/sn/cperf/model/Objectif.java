@@ -1,9 +1,9 @@
 package sn.cperf.model;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,13 +11,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -56,4 +53,22 @@ public class Objectif implements Serializable{
 	@OneToMany(fetch=FetchType.LAZY, mappedBy="objectif")
 	@JsonManagedReference(value="objectif-indicators-mov")
 	private List<Indicateur> indicators;
+	
+	public double getPerformPercente() {
+		double perform = 0;
+		try {
+			for(Indicateur indicator : indicators) {
+				// check if is a parent indicator
+				if(!indicator.isDataResultEditable()) { 
+					perform = perform + indicator.getPerformancePurcente();
+				}
+			}
+			DecimalFormat df = new DecimalFormat("#.##");
+			perform = Double.valueOf(df.format(perform));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return perform;
+	}
 }

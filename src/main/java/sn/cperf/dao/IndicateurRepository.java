@@ -15,4 +15,6 @@ public interface IndicateurRepository extends JpaRepository<Indicateur, Long>{
 	@Query(value="update indicateurs set parent_id=:parentId where id=:id", nativeQuery=true)
 	Indicateur nativeUpdateIndicatorParentId(@Param("parentId") Long parentId, @Param("id") Long id);
 	List<Indicateur> findByParentNotAndIdNotOrderByIdDesc(Indicateur parent, Long id);
+	List<Indicateur> findByObjectifAndIdNotOrderByIdDesc(Objectif objectif,Long id);
+	List<Indicateur> findByObjectifOrderByIdDesc(Objectif objectif);
 }

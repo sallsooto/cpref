@@ -209,9 +209,10 @@
 							        </div>
 							        <div th:if="${parentIndicators.size()>0}" class="col-sm-12 form-group input-field col s12">
 							        	<select th:field="*{parent}" id="parent" class="">
+							        	    <option value="">Sans indicateur parent</option>
 							        		<option th:each="parent : ${parentIndicators}" th:value="${parent.id}" th:text="${parent.label}">label</option>
 							        	</select>
-							        	<label>Séléctionner son indicateur supérieur :</label>
+							        	<label>Séléctionner son indicateur parent :</label>
 							        </div>
 							        <div class="col-sm-12 col s12 mt-2">
 							        	<button type="submit" class="btn btn-outline-info form-control">Valider</button>

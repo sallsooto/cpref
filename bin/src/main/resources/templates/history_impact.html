@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Impact-Historique</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content" data-ng-controller="ImpactCtrl" data-ng-init="getProcess();getImpacts();">
+		<div class="row">
+			<div class="col-sm-12 col-md-10 offset-md-1">
+				<div class="card">
+					<div class="card-header">
+						<div class="row">
+							<div class="col-sm-12 text-center text-info text-uppercase">
+								<h5 class="font-weight-bold">Choisissez deux dates pour lister les process compris</h5><hr/>
+							</div>
+								<div class="d-none d-md-block col-md-1"></div>
+							  <div class="form-group col-sm-6 col-md-2">
+		                      	<label class="control-label">Max Lignes/Page  : </label>
+		                      	<div class="input-group input-group-sm">
+		                              <div class="input-group-prepend">
+		                                  <div class="input-group-text bg-info text-white"></div>
+		                              </div>
+		                              <input type="number" min="0" step="1" class="form-control form-control-sm" data-ng-model="size" data-ng-change="getProcess();"/>
+		                          </div>
+							  </div>
+							  <div class="form-group col-sm-6 col-md-2">
+		                      	<label class="control-label">Catégorie : </label>
+		                        <select class="form-control form-control-sm" data-ng-model="status" data-ng-change="getProcess();">
+		                        	<option value="finished_expired">Traitement finit tardivement</option>
+		                        	<option value="unfinished_expired">Non traités et delaie dépassé</option>
+		                        	<option value="canceled">Anulés</option>
+		                        	<option value="unlunched">Non Démarrés</option>
+		                        </select>
+							  </div>
+		                      <div class="form-group col-sm-6 col-md-3">
+		                      	<label class="control-label">Date début : </label>
+								<datepicker date-format="dd/MM/yyyy" selector="startDateInput">
+		                          <div class="input-group input-group-sm">
+		                              <input type="text" class="form-control form-control-sm startDateInput" 
+		                              		data-ng-model="startDate" data-ng-change="getProcess();"/>
+		                              <div class="input-group-append">
+		                                  <div class="input-group-text bg-info text-white"><i class="far fa-calendar-alt"></i></div>
+		                              </div>
+		                          </div>
+		                          </datepicker>
+		                      </div>
+		                      <div class="form-group col-sm-6 col-md-3">
+		                      	<label class="control-label">Date fin : </label>
+								<datepicker date-format="dd/MM/yyyy" selector="endDateInput">
+			                          <div class="input-group date input-group-sm">
+			                             <div class="input-group-prepend">
+										  </div>
+			                              <input type="text" class="form-control form-control-sm endDateInput"
+			                                  data-ng-model="endDate" data-ng-change="getProcess();"/>
+			                              <div class="input-group-append">
+			                                  <div class="input-group-text bg-info text-white"><i class="far fa-calendar-alt"></i></div>
+			                              </div>
+			                          </div>
+		                          </datepicker>
+		                      </div>
+	                      </div>
+					</div>
+					<div class="card-body">
+						<ul data-ng-if="process != null && process.length>0" class="list-group">
+							<li class="list-group-item" data-ng-repeat="p in process">
+								<div class="row">
+									<div class="col-sm-12 col-md-10">
+										<span>{{p.label}}</span>
+									</div>
+									<div class="col-sm-12 col-md-2 text-right">
+										<small>Justifications({{p.justifications.length}})</small>
+										<i data-ng-if="p.justifications.length>0" class="fas fa-eye cursor-pointer" title="afficher"
+										data-processId="{{p.id}}" data-taskId="0" data-ng-click="showModalEditJustificationWithOutNewForm($event)"></i>
+										<i class="fas fa-plus-circle cursor-pointer" title="Ajouter"
+										   data-processId="{{p.id}}" data-taskId="0" data-ng-click="showModalEditJustificationWithNewForm($event)"></i>
+									</div>
+								</div>
+							</li>
+							<li class="list-group-item p-0 pt-3 bg-secondary">	
+								<!-- =========== PAGINATION ============= -->
+								<nav aria-label="..." data-ng-if="pages.length>0" class="">
+									<ul class="pagination float-right" style="margin:-12px 1px 3px 1px;">
+										<!--<li class="page-item" data-ng-if="{pages.length-$parent.page>1}">
+											<a class="page-link" href="#" tabindex="-1">Previous</a>
+										</li> -->
+									   <li data-ng-repeat="p in pages" class="page-item" 
+									   	     data-ng-class="{'active': $parent.page==p}">
+									   		<button  type="button" class="page-link" data-pageIndex="{{p}}" 
+									   		data-ng-click="changePage($event)">{{p+1}}</button>
+									   </li>
+									   <!-- <li class="page-item"><a class="page-link" data-ng-if="false">Next</a></li> -->
+									</ul>
+								</nav>
+								<!-- ================ AND PAGINATION -->
+							</li>
+						</ul>
+						<h5 class="text-center mt-3" data-ng-if="process == null || process.length<=0">
+							 Aucun process trouvé !
+						</h5>
+					</div>
+				</div>
+			</div>
+		</div>
+	    <!-- moadal edit or show justification-->
+	  	<div th:replace="fragments/modal_justification::modal_justification"></div>
+	</div>
+	<div layout:fragment="addon-scripts-content">
+	</div>
+</body>
+</html>
