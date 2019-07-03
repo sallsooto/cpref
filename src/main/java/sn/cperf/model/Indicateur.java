@@ -136,12 +136,13 @@ public class Indicateur implements Serializable{
 	}
 	
 	private double getPerformancePurcente(Indicateur indicator) {
-		double perform = 0;
+		double perform = 0,nbChirld=0;
 		if(indicator != null) {
 			try {
 				if(!indicator.isDataResultEditable()) {
 					for(Indicateur ind : indicator.getChirlds()) {
-						perform = getPerformancePurcente(ind);
+						perform = perform + getPerformancePurcente(ind);
+						nbChirld++;
 					}
 				}else {
 					if(indicator.expectedNumberResult > 0  && indicator.dataCollectors != null && !indicator.dataCollectors.isEmpty()) {
@@ -152,6 +153,8 @@ public class Indicateur implements Serializable{
 						}
 					}
 				}
+				if(perform > 0 && nbChirld>0)
+					perform = perform/nbChirld;
 				DecimalFormat df = new DecimalFormat("#.##");
 				perform = Double.valueOf(df.format(perform));
 			} catch (Exception e) {
@@ -160,6 +163,10 @@ public class Indicateur implements Serializable{
 			}
 		}
 		return perform;
+	}
+	
+	public int getChirldsSize() {
+		return this.getChirlds().size();
 	}
 	
 }
