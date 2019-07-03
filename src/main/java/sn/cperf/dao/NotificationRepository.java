@@ -25,4 +25,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 	public Page<Notification> findByTargetAndTypeNotAndSeenOrderById(User target,String type,boolean seen, Pageable page);
 	public Page<Notification> findByTargetAndTypeAndSeenOrderById(User target,String type,boolean seen, Pageable page);
 	public List<Notification> findByStoreAtLessThanEqualAndSeenTrue(Date date);
+	public List<Notification> findBySenderIsOrTargetIs(User sender, User target);
 }

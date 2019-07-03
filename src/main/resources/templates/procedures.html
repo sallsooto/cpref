@@ -71,7 +71,7 @@
 									<tr>
 										<th class="text-left pl-3">Nom du procédure</th>
 										<th>Fichier assosié</th>
-										<th class="text-center">Action</th>
+										<th class="text-center" sec:authorize="hasRole('ROLE_admin')">Action</th>
 									</tr>
 								</thead>
 								<tbody class="text-center">
@@ -82,7 +82,7 @@
 										<a th:href="@{/Procedure/Show/{{procedure.id}}/}" target="_blank" title="Lire fichier">
 										 {{replaceWithNullOrBlank(procedure.filePath,"")}} {{replaceWithNullOrBlank(procedure.dbFile.name,"")}}</a></td>
 										<td data-ng-if="procedure.filePath == null && procedure.dbFile == null">Sans fichier</td>
-										<td class="text-center">
+										<td sec:authorize="hasRole('ROLE_admin')" class="text-center">
 											<a th:href="@{/Procedure/Edit?pid={{procedure.id}}}" title="Modfier" class="text-decoration-none mr-3">
 												 <i class="fas fa-edit fa_table_link text-info p-1"></i>
 											</a>

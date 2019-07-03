@@ -9,6 +9,7 @@
     });
     
     $('.img_field_trigger').on('change',function(e){
+    	console.log("chsdgfdhsf")
         img_field_trigger_value = $(this).val();
         show_uploaded_img($(this),".insc_avatar",true);
     });
@@ -125,7 +126,10 @@
         
     });
 
-
+     $(".dialogShower").on('click',function(e){
+    	e.preventDefault(); 
+    	showConfirmDialog($(this),"#modalConfirmDialog");
+     });
 })(jQuery);
 
 function seenAllUsersNotifications(url){
@@ -219,7 +223,33 @@ function changeTaskStatus(taskId, status, callback){
 		}
 	});
 };
-
-function showAlertModal(){
-	console.log("ok");
+function showconfirmDialog(event,element){
+	event.preventDefault();
+	showConfirmDialog($(element),"#modalConfirmDialog");
+}
+function showConfirmDialog(triggerElement,dialogElementSelector){
+	var dialogElement = $(dialogElementSelector);
+	
+	if(typeof triggerElement !== typeof undefined && triggerElement.length>0 && typeof dialogElement !== typeof undefined && dialogElement.length>0){
+		
+		var dialogTitle = triggerElement.attr('data-dialogConfirmTitle');
+		if(typeof dialogTitle !== typeof undefined && dialogTitle !== false)
+			$(dialogElementSelector + ' .dialogTitle').text(dialogTitle);
+		
+		var dialogBody =  triggerElement.attr('data-dialogConfirmBody');
+		if(typeof dialogBody !== typeof undefined && dialogBody !== false)
+			$(dialogElementSelector + ' .dialogBody').text(dialogBody);
+		
+		var confirmLink = triggerElement.attr('data-dialogConfirmLink');
+		if(typeof confirmLink !== typeof undefined && confirmLink !== false){
+			$(dialogElementSelector + ' .dialogConfirmBtn').attr("href",confirmLink);
+		}else{
+			confirmLink = triggerElement.attr('href');
+			if(typeof confirmLink !== typeof undefined && confirmLink !== false)
+				$(dialogElementSelector + ' .dialogConfirmBtn').attr("href",confirmLink);
+			else
+				$(dialogElementSelector + ' .dialogConfirmBtn').attr("href","#");
+		}
+		dialogElement.modal("show");
+	}
 };

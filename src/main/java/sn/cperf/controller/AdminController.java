@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import sn.cperf.dao.DBFileRepository;
 import sn.cperf.dao.GroupRepository;
@@ -32,7 +33,10 @@ import sn.cperf.model.Group;
 import sn.cperf.model.Parametre;
 import sn.cperf.model.Role;
 import sn.cperf.model.User;
+import sn.cperf.service.DBFileService;
 import sn.cperf.service.MailService;
+import sn.cperf.service.StorageService;
+import sn.cperf.service.UserService;
 
 @Controller
 @RequestMapping("/Admin")
@@ -45,6 +49,9 @@ public class AdminController {
 	@Autowired MailService mailService;
 	@Autowired ParamRepository paramRepository;
 	@Autowired DBFileRepository dBFileRepository;
+	@Autowired DBFileService dbFileService;
+	@Autowired StorageService storageService;
+	@Autowired UserService userService;
 	
 	@GetMapping("/Role")
 	public String getRoleView(@RequestParam(name="id", defaultValue="0") Long id, Model model) {
@@ -168,12 +175,28 @@ public class AdminController {
 	
 	@GetMapping("/User")
 	public String getUserListView(Model model) {
-		DBFile dbFile = null;
-		try {dbFile = dBFileRepository.findTop1ByDefaultUserAvatarIsTrueOrderByIdDesc();} catch (Exception e) {}
-		if(dbFile == null)
-			dbFile =  new DBFile();
-		model.addAttribute("dbFile",dbFile);
 		return "users";
+	}
+	
+	@PostMapping("/User/changeDefaultPhoto")
+	public String changeDefaultPhoto(@RequestParam(name="photo", required=false) MultipartFile photo) {
+		try {
+			if(photo != null) {
+				DBFile dbFile = null;
+				try {dbFile = dBFileRepository.findTop1ByDefaultUserAvatarIsTrueOrderByIdDesc();} catch (Exception e) {}
+				if(dbFile == null)
+					dbFile =  new DBFile();
+				if (dbFileService.checkExtensions(photo.getOriginalFilename(),new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" })) {
+					try {dbFile = dbFileService.storeOrUpdateFile(photo, dbFile.getId(), true);} catch (Exception e) {}
+					// storing on disk
+					if(dbFile == null) {
+						try {storageService.storeAvatar(photo,new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" });} catch (Exception e1) {}
+					}
+				}
+			}
+		} catch (Exception e) {
+		}
+		return "redirect:/Admin/User";
 	}
 	
 	// gets users in json datas
@@ -298,5 +321,14 @@ public class AdminController {
 		}
 		model.addAttribute("params", paramRepository.findAll(Sort.by("id").descending()));
 		return "config";
+	}
+	@GetMapping("/User/del")
+	public String deleteUser(@RequestParam("uid") Long userId) {
+		try {
+			userService.deleteUser(userId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "redirect:/Admin/User";
 	}
 }

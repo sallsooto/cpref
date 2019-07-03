@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import sn.cperf.model.Processus;
+import sn.cperf.model.User;
 
 public interface ProcessRepository extends JpaRepository<Processus, Long> {
 //	List<Processus> findByYesProcessNullAndNoProcessNullOrderByIdDesc();
@@ -30,5 +31,6 @@ public interface ProcessRepository extends JpaRepository<Processus, Long> {
 			+ "and p.startAt BETWEEN :startDate AND :endDate and p.totalTime>=:limitDate")
 	Page<Processus> getNofinishedAndNoExpiredProcess(@Param("startDate") Date startDate,@Param("endDate") Date endDate, @Param("limitDate") Date limitDate,Pageable page);
 	Page<Processus> findByValidFalse(Pageable page);
+	List<Processus> findByEditorIs(User editor);
 	
 }

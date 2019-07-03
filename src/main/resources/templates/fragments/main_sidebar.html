@@ -63,7 +63,7 @@
           </div>
         </div>
       </li>
-      <li class="nav-item" sec:authorize="hasRole('ROLE_admin')">
+      <li class="nav-item" sec:authorize="hasRole('ROLE_admin') ||  hasRole('ROLE_procedure_explorer')">
         <a class="nav-link" th:href="@{/Procedure/}">
           <i class="fas fa-procedures"></i>
           <span>Procedures</span>
@@ -128,7 +128,7 @@
         <div id="collpaseSettings" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
            <!--  <h6 class="collapse-header">Custom Components:</h6> -->
-           <a class="collapse-item" th:href="@{/Admin/Role/}">Géstion des profiles</a>
+           <a class="collapse-item" th:href="@{/Admin/Role/}">Géstion des roles</a>
            <a class="collapse-item" th:href="@{/Admin/Group/}">Géstion des groupes</a>
            <a class="collapse-item" th:href="@{/Admin/User/}">Géstion des utilisateurs</a>
            <a class="collapse-item" th:href="@{/Admin/Config/}">Géstion des configurations</a>

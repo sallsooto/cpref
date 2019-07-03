@@ -63,6 +63,7 @@
   											    <img alt="" th:src="@{/User/getUserPhoto(uid=${user.id})}" style="width:30px; height:30px;"/>
   												<span th:if="${user.firstname != null}" th:text="${user.firstname + ' '}"></span>
   												<span th:if="${user.lastname != null}" th:text="${user.lastname}"></span>
+  												<span th:if="${user.fonction != null and  user.fonction.name != null}" th:text="${' : ' +user.fonction.name}"></span>
   											</li>
   										    <li class="list-group-item text-danger font-weigth-bold d-flex justify-content-between align-items-center">
 												Groupe assossié

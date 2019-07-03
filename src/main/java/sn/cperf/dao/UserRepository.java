@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -26,4 +27,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	Page<User> findByValid(boolean valid, Pageable page);
 	Page<User> findByFirstnameLikeOrLastnameLikeIgnoreCase(String firstname,String lastname, Pageable page);
 	List<User> findByFirstnameLikeIgnoreCaseOrLastnameLikeIgnoreCase(String firstname,String lastname);
+	List<User> findByUserSup(User userSup);
 }

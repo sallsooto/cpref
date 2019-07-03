@@ -72,7 +72,7 @@ loadOrganigramme = function(data){
         updateNodeEvent : updateNodeEvent,
         removeNodeEvent: removeNodeEvent,
         renderNodeEvent : renderNodeEvent,
-        dataSource: data
+        dataSource: data,
 	};
 	var orgChart = new getOrgChart(peopleElement,orgChartPara);
 };

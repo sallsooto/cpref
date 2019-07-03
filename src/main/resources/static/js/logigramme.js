@@ -95,6 +95,7 @@ $(document).ready(function(){
 	        'valid' : { 'fill' : 'white', 'font-size' : 12, 'font-color' : 'black'},
 	        'started' : {'fill' : '#EFDE0C', 'font-color' : 'blue'},
 	        'completed' : { 'fill' : '#28C723', 'font-color' : 'white'},
+	        'finishedLate' : { 'fill' : '#77AB95', 'font-color' : 'white'},
 	        'canceled' : { 'fill' : '#FF0000', 'font-color' : 'white'},
 	      }
 	    });
@@ -137,6 +138,8 @@ function showChronos(start_actual_time_text,end_actual_time_text,chronoContainer
 		var end_actual_time = new Date(end_actual_time_text);
 		var current_time = new Date();
 		var current_seondes = current_time.getSeconds();
+		start_actual_time.setSeconds(current_seondes);
+		end_actual_time.setSeconds(current_seondes);
 		var isFinish = $("#isfinishContent").val();
 		var expiredDate = false;
 		if(end_actual_time - current_time <0){
@@ -156,7 +159,8 @@ function showChronos(start_actual_time_text,end_actual_time_text,chronoContainer
 		HH = (HH<0)? (HH*(-1)) : HH;
 		MM = MM.toFixed(0);
 		var formatted = ((Math.abs(HH) < 10)?("0" + Math.abs(HH)):Math.abs(HH)) + "h et " + ((Math.abs(MM) < 10)?("0" + Math.abs(MM)+"mm"):Math.abs(MM) + "mm");
-		formatted = formatted + " et " + current_seondes + " S";
+		text_secondes = (expiredDate) ? current_seondes : (60-current_seondes);
+		formatted = formatted + " et " + text_secondes + " S";
 		var chono_text = (!expiredDate) ?  "Retante(s)" :  " dépassée(s)";
 		if(typeof chronoContainer != typeof undefined && chronoContainer.length>0){
 			if(isFinish == true || isFinish=='true'){

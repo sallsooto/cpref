@@ -30,11 +30,16 @@
 					          <span aria-hidden="true">&times;</span>
 					        </button>
 					      </div>
-					      <div class="modal-body">
-					        ...
+					      <div class="modal-body text-center insc_avatar">
+							 <img alt="" th:src="@{/User/getDefaultUserPhoto}" class="circle w-50"/>
 					      </div>
 					      <div class="modal-footer">
-					       	<form action=""></form>
+					       	<form th:action="@{/Admin/User/changeDefaultPhoto}" method="post" enctype="multipart/form-data" class="form-control border-0 mshz-form-validate">
+					       		<div class="form-group">
+				       				<input type="file" name="photo" class="float-left w-75 img_field_trigger" accept="image/*"  data-mshz-required="true"/>
+				       				<button type="submit" class="btn btn-sm btn-outline-info float-right w-25">Valider</button>
+					       		</div>
+					       	</form>
 					      </div>
 					    </div>
 					  </div>
@@ -133,7 +138,8 @@
 												<i class="fas fa-pen-alt" style="font-size:13px;"></i>
 											</a>
 										</td>
-										<td class="text-center"><a href="#"
+										<td class="text-center">
+										<a href="#"
 											class="text-decoration-none mr-3" title="Débloquer"
 											data-ng-if="!user.valid" data-userId="{{user.id}}"
 											data-status="true" data-ng-click="chageUserStatus($event)">
@@ -142,6 +148,11 @@
 												class="fas fa-key fa_table_link text-success p-1"
 												data-userId="{{user.id}}" data-status="true"
 												data-ng-click="chageUserStatus($event)"></i>
+										</a>
+										<a data-ng-if="!user.valid" th:href="@{/Admin/User/del?uid={{user.id}}}" title="Supprimer"
+										     class="text-decoration-none mr-3" onclick="showconfirmDialog(event, this);"
+										     data-dialogConfirmTitle="Attention" data-dialogConfirmBody="Souhaitez-vous vraiment supprimer cet utilisateur ?">
+											 <i class="fas fa-trash-alt fa_table_link text-danger p-1 dialogShower"></i>
 										</a>
 										 <a href="#" class="text-decoration-none mr-3"
 											data-ng-if="user.valid" title="bloquer"
@@ -184,6 +195,7 @@
 		<!-- content -->
 	</div>
 	<div layout:fragment="addon-scripts-content">
+		<script th:src="@{/js/main.js}"></script>
 	</div>
 </body>
 </html>

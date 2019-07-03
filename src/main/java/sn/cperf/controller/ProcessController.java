@@ -904,7 +904,11 @@ public class ProcessController {
 					}
 					//System.err.println(task.getName() + ": orientation => "+orientation);
 				}
-				code = code + " "+key+"=>"+type+": "+task.getName()+"|"+task.getStatus()+":$showTaskDetails  \n";
+				String taskStatus = task.getStatus();
+                if(taskStatus != null && taskStatus.toLowerCase().trim().equals(TaskStatus.COMPLETED.toString().toLowerCase().trim()))
+                	if(task.isFinishedLate())
+                		taskStatus = "finishedLate";
+				code = code + " "+key+"=>"+type+": "+task.getName()+"|"+taskStatus+":$showTaskDetails  \n";
 				path = path+key+orientation;
 			}
 		}

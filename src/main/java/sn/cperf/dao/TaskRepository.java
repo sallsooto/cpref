@@ -39,6 +39,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 	Page<Task> getUserTasks(@Param("userId") Long userId, @Param("name") String name, @Param("status") String status,
 			Pageable page);
 
+	@Query(value = "SELECT DISTINCT * from tasks t inner join users_tasks ut on t.id = ut.task_id where ut.user_id = :userId or t.validator_id = :userId", nativeQuery = true)
+	List<Task> getUserTasks(@Param("userId") Long userId);
+
 	List<Task> findByStatusIgnoreCaseOrderByIdDesc(String status);
 
 	@Query("select t from Task t where UPPER(t.status) =UPPER(:status) and (UPPER(t.name) LIKE UPPER(:name) OR UPPER(t.description) LIKE UPPER(:description))")

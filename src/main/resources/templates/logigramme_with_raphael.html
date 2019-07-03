@@ -22,14 +22,7 @@
 <body>
 	<div class="container-fluid" layout:fragment="content">
 		<!-- Page Heading -->
-		<div
-			th:replace="fragments/main_content_heading::heading(heading_text='Logigramme',heading_link='/Process/List/',heading_link_text='Liste des process',heading_ico='fas fa-arrow-alt-circle-left')"></div>
-		<!--<h1 style="margin-top:150px; text-align:center"></h1>-->
-		<!-- <div class="text-center" th:if="${pocess}">
-			<input type="hidden" th:value="${pId}" id="pid_content"/>
-			<div id="drawing" style="margin: 30px auto; width: 900px;" class=""></div>
-		</div> -->
-		<!-- end static table -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Logigramme',heading_link='/Process/List/',heading_link_text='Liste des process',heading_ico='fas fa-arrow-alt-circle-left')"></div>
 		 <!-- task form row container -->
 			<div  class="row">
 				<div id="taskContent"  style="z-index:500000;">

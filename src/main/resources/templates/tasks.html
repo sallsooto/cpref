@@ -53,7 +53,7 @@
 								</div>
 								<div class="col-sm-6 col-md-2  form-group">
 									<label class="control-label"><small>Status process :</small></label>
-									 <select data-ng-model="processLunshed" class="form-control form-control-sm"
+									 <select data-ng-model="$parent.processLunshed" class="form-control form-control-sm"
 										data-ng-change="getTasks();">
 										<option value="true">Process démarrés</option>
 										<option value="false">Process non démarrés</option>
@@ -61,9 +61,8 @@
 								</div>
 								<div class="col-sm-6 col-md-3  form-group">
 									<label class="control-label"><small>Catégorie :</small></label>
-									 <select data-ng-model="status" class="form-control form-control-sm"
+									 <select data-ng-model="$parent.status" class="form-control form-control-sm"
 										data-ng-change="getTasks();">
-										<option value="valid">En cours de traitement</option>
 										<option value="completed">Traitement terminé</option>
 										<option value="all">Toutes les tâches</option>
 									</select>
@@ -91,7 +90,7 @@
 										<td class="text-left pl-3">{{replaceWithNullOrBlank(task.name,"Sans nom")}}</td>
 										<td> 
 											{{replaceWithNullOrBlank(task.description,"Aucune description textuelle")}}
-											<a data-ng-if="task.fileDescriptionPath != null || task.dbFileDescription != null" th:href="@{/Task/File/Description/Show/{{task.id}}}" 
+											<a data-ng-if="task.dbFileDescription != null" th:href="@{/Task/File/Description/Show/{{task.id}}}" 
 											   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file-pdf"></i></a>
 										</td>
 										<td class="text-center">

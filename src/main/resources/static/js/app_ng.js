@@ -312,6 +312,7 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 	$scope.logedIsAdmin = false;
 	$scope.getTasks = function() {
 		var processLunshed = $scope.processLunshed == "true" ? true : false;
+		console.log(" status" + $scope.status + " processLunched "+$scope.processLunshed)
 		$scope.status = !processLunshed ? "all" : $scope.status;
 		$http({
 			url : '/Task/userTasksJson/',

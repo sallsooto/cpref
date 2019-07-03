@@ -52,7 +52,7 @@ public class User implements Serializable,UserDetails{
 	@JsonManagedReference
 	private Fonction fonction;
 	private String photo;
-	@ManyToOne(cascade=CascadeType.PERSIST)
+	@ManyToOne(cascade=CascadeType.PERSIST, fetch=FetchType.LAZY)
 	@JsonManagedReference
 	private User userSup;
 	@OneToMany(fetch=FetchType.LAZY,mappedBy="userSup")
