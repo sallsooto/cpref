@@ -106,28 +106,28 @@
 									</span>
 								</div>
 								<div class="card-body">
-									<ul class="list-group" data-ng-repeat="indicator in objectif.indicators | orderBy:'id'">
-										<li class="list-group-item list-group-item-action flex-column align-items-start" data-in-if="indicator.valid">
+									<ul class="list-group" data-ng-repeat="indicator in objectif.indicators | orderBy:'parentId'">
+										<li class="list-group-item list-group-item-action flex-column align-items-start table-responsive-sm" data-in-if="indicator.valid">
 											<div class="row">
 												<div class="col-sm-12 col-md-8" data-ng-class="{'col-md-12' : !indicator.dataResultEditable}">
 													<span class="d-inline-block w-100 m-0 p-2 well text-warning font-weight-bold">
 													 <i class="fas fa-flag-checkered"></i> {{ indicator.label}} &nbsp;
 													<span th:if="${isAdmin}" class="d-inline-block float-right"
 													      data-ng-if="!indicator.dataResultEditable && indicator.type.withExpectedNumberResult">
-													 		<small class="d-inline-blok text-primary">{{ indicator.chirldsSize}} enfant(s) </small>
+													 		<small data-ng-if="indicator.chirldsSize" class="d-inline-blok text-primary">{{ indicator.chirldsSize}} enfant(s) </small>
 													 		<small class="d-inline-blok text-primary">perfomance, {{ indicator.performancePurcente}} %</small>
 													 </span>
 													</span>
 													<div data-ng-if="indicator.dataCollectors.length>0" class="d-flex justify-content-start align-items-start">
 														<div class="flex-grow-1">
-															<table class="table table-responsive-sm table-hover">
+															<table class="table table-sm table-hover">
 																<thead class="alert-dark">
 																	<tr>
-																		<th class="text-primary">Données collectées</th>
-																		<th class="text-primary text-center">Date ou interval de collection</th>
-																		<th th:if="${isAdmin}" class="text-center text-primary">Perfomance maximale indiquée</th>
-																		<th th:if="${isAdmin}" class="text-primary">Perfomance(%)</th>
-																		<th class="text-primary">Action</th>
+																		<th class="text-primary"><small>Données collectées</small></th>
+																		<th class="text-primary text-center"><small>Date ou interval de collection</small></th>
+																		<th th:if="${isAdmin}" class="text-center text-primary"><small>Perfomance maximale indiquée</small></th>
+																		<th th:if="${isAdmin}" class="text-primary"><small>Perfomance(%)</small></th>
+																		<th class="text-primary"><small>Action</small></th>
 																	</tr>
 																</thead>
 																<tbody>

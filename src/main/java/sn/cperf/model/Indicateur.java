@@ -1,9 +1,8 @@
 package sn.cperf.model;
 
 import java.io.Serializable;
-import java.text.DecimalFormat;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -155,10 +154,12 @@ public class Indicateur implements Serializable{
 				}
 				if(perform > 0 && nbChirld>0)
 					perform = perform/nbChirld;
-				DecimalFormat df = new DecimalFormat("#.##");
-				perform = Double.valueOf(df.format(perform));
+				// formattage du nombre 
+				BigDecimal bdec, bdec2;
+				bdec = new BigDecimal(Double.toString(perform));
+				bdec2 = bdec.setScale(2,RoundingMode.FLOOR);
+				perform = bdec2.doubleValue();
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -167,6 +168,13 @@ public class Indicateur implements Serializable{
 	
 	public int getChirldsSize() {
 		return this.getChirlds().size();
+	}
+	
+	// return the parent id utils pour l'affichage ordonée avec angularjs
+	public Long getParentId() {
+		if(this.parent != null)
+			return this.parent.getId();
+		return +this.getId();
 	}
 	
 }

@@ -1,7 +1,8 @@
 package sn.cperf.model;
 
 import java.io.Serializable;
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -59,17 +60,20 @@ public class Objectif implements Serializable{
 		try {
 			for(Indicateur indicator : indicators) {
 				// check if is a parent indicator
-				if(!indicator.isDataResultEditable()) { 
+				if(indicator.isDataResultEditable()) { 
 					perform = perform + indicator.getPerformancePurcente();
 					sumParentIndicator++;
 				}
 			}
 			if(perform > 0 && sumParentIndicator > 0)
 				perform = perform / sumParentIndicator;
-			DecimalFormat df = new DecimalFormat("#.##");
-			perform = Double.valueOf(df.format(perform));
+			// formattage du nombre 
+			BigDecimal bdec, bdec2;
+			bdec = new BigDecimal(Double.toString(perform));
+			bdec2 = bdec.setScale(2,RoundingMode.FLOOR);
+			perform = bdec2.doubleValue();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
+			System.out.println("cest ici l'exception");
 			e.printStackTrace();
 		}
 		return perform;

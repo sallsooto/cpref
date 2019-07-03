@@ -982,11 +982,14 @@ cperfModule
 						$scope.globalSumPercente = 0;
 						if($scope.objectifs.length>0){
 							for(var i=0; i<$scope.objectifs.length; i++){
-								objectifsPerfomance = objectifsPerfomance + parseFloat($scope.getObjectifPerfomancePurcentage($scope.objectifs[i]));
+								objectifsPerfomance = objectifsPerfomance + parseFloat($scope.objectifs[i].performPercente);
+								$scope.globalSumPercente = $scope.globalSumPercente +1;
 							}
 						}
-						console.log(objectifsPerfomance);
-						return objectifsPerfomance.toFixed(2) +" / " +$scope.globalSumPercente +" %";
+						if(objectifsPerfomance>0 && $scope.globalSumPercente >0)
+							return ((objectifsPerfomance/$scope.globalSumPercente).toFixed(2)) + " %";
+						//return objectifsPerfomance.toFixed(2) +" / " +$scope.globalSumPercente +" %";
+						return "0 %";
 					};
 					$scope.changeStaticViewStatus= function(stat){
 						$scope.staticView = stat;
