@@ -102,7 +102,7 @@
 									<h5 class="text-warning d-inline-block">Indicateur(s)</h5>
 									<span class="ml-2 float-right" th:if="${isAdmin}">
 										<span class="badge badge-default text-warning">Performances générale :</span> 
-										<span class="badge badge-default text-success">{{getObjectifPerfomancePurcentage(objectif) }} / {{sumPurcente}} % </span>
+										<span class="badge badge-default text-success">{{(objectif.performPercente) }} % </span>
 									</span>
 								</div>
 								<div class="card-body">
@@ -110,7 +110,14 @@
 										<li class="list-group-item list-group-item-action flex-column align-items-start" data-in-if="indicator.valid">
 											<div class="row">
 												<div class="col-sm-12 col-md-8" data-ng-class="{'col-md-12' : !indicator.dataResultEditable}">
-													<span class="d-inline-block w-100 m-0 p-2 well text-warning font-weight-bold"><i class="fas fa-flag-checkered"></i> {{ indicator.label}}</span>
+													<span class="d-inline-block w-100 m-0 p-2 well text-warning font-weight-bold">
+													 <i class="fas fa-flag-checkered"></i> {{ indicator.label}} &nbsp;
+													<span th:if="${isAdmin}" class="d-inline-block float-right"
+													      data-ng-if="!indicator.dataResultEditable && indicator.type.withExpectedNumberResult">
+													 		<small class="d-inline-blok text-primary">{{ indicator.chirldsSize}} enfant(s) </small>
+													 		<small class="d-inline-blok text-primary">perfomance, {{ indicator.performancePurcente}} %</small>
+													 </span>
+													</span>
 													<div data-ng-if="indicator.dataCollectors.length>0" class="d-flex justify-content-start align-items-start">
 														<div class="flex-grow-1">
 															<table class="table table-responsive-sm table-hover">

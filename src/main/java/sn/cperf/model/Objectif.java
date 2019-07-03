@@ -55,14 +55,17 @@ public class Objectif implements Serializable{
 	private List<Indicateur> indicators;
 	
 	public double getPerformPercente() {
-		double perform = 0;
+		double perform = 0, sumParentIndicator = 0;
 		try {
 			for(Indicateur indicator : indicators) {
 				// check if is a parent indicator
 				if(!indicator.isDataResultEditable()) { 
 					perform = perform + indicator.getPerformancePurcente();
+					sumParentIndicator++;
 				}
 			}
+			if(perform > 0 && sumParentIndicator > 0)
+				perform = perform / sumParentIndicator;
 			DecimalFormat df = new DecimalFormat("#.##");
 			perform = Double.valueOf(df.format(perform));
 		} catch (Exception e) {
