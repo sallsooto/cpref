@@ -363,7 +363,23 @@ public class TaskController {
 		  Task t = taskRepository.getOne(taskId);
 		  if(t != null) {
 			    Processus process = processRepository.getOne(t.getProcessId());
-				model.addAttribute("sections", process.getSections());
+			  	List<ProcessSection> sections = new ArrayList<>();
+			  	System.err.println( " parent " +t.getParent().toString());
+			  	if(t.getParent() != null && t.getParent().getSection() != null && 
+			  		t.getSection() != null && t.getParent().getSection().getId() != t.getSection().getId()) {
+			  		ProcessSection parentSection = t.getParent().getSection();
+			  		parentSection.setName("Section précédente");
+			  		sections.add(parentSection);
+			  	}
+			  	if(t.getParent() != null && t.getParent().getSection() != null && t.getSection().getId() == t.getParent().getSection().getId()) {
+			  		ProcessSection newSection = new ProcessSection();
+			  		newSection.setName("Nouvelle section");
+			  		sections.add(newSection);
+			  	}
+			  	sections.add(t.getSection());
+			  	if(sections.isEmpty())
+			  		sections = process.getSections();
+				model.addAttribute("sections", sections);
 				model.addAttribute("tasks", taskRepository.getByProcessAndTaskIdIsNot(process.getId(), t.getId()));
 				model.addAttribute("users", userRepository.findAll());
 			    model.addAttribute("task", t);

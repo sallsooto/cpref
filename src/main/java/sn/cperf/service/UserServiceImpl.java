@@ -18,6 +18,9 @@ import sn.cperf.model.Notification;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
+import sn.cperf.util.ProcessTasks;
+import sn.cperf.util.ProcessUtil;
+import sn.cperf.util.TaskUtil;
 
 @Service
 @Transactional
@@ -28,6 +31,7 @@ public class UserServiceImpl implements UserService{
 	@Autowired TaskRepository taskRepository;
 	@Autowired FonctionRepository fonctionRepository;
 	@Autowired NotificationRepository notificationRepository;
+	@Autowired CperfService cperfService;
 	@Override
 	public boolean deleteUser(Long id) {
 		try {
@@ -114,6 +118,88 @@ public class UserServiceImpl implements UserService{
 			}
 		}
 		return newList;
+	}
+
+	@Override
+	public User getLoged() {
+		return cperfService.getLoged();
+	}
+
+	@Override
+	public List<ProcessTasks> getUserProcessTasks(Long userId) {
+		try {
+			User user = userRepository.getOne(userId);
+			return getUserProcessTasks(user);
+		} catch (Exception e) {
+			System.err.println("in UserserviceImpl on getUserProcessTasks methode");
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
+	}
+	
+	@Override
+	public List<ProcessTasks> getUserProcessTasks(User user) {
+		List<ProcessTasks> usersProcessTasks = new ArrayList<>();
+		if(user !=null) {
+			List<Task> usersTasks = null;
+			try {
+				if(user.getGroupes() != null && !user.getGroupes().isEmpty())
+				usersTasks = taskRepository.findByGroupIn(user.getGroupes());
+			} catch (Exception e) {}
+			if(usersTasks == null)
+				usersTasks = new ArrayList<>();
+			if(! usersTasks.isEmpty() && user.getTasks() != null && !user.getTasks().isEmpty()) {
+				for(Task task : user.getTasks()) {
+					int taskFounded = 0;
+					for(Task utask : usersTasks) {
+						if(task.getId() == utask.getId())
+							taskFounded++;
+					}
+					if(taskFounded <=0)
+						usersTasks.add(task);
+				}
+				user.setTasks(usersTasks);
+			}
+			List<Processus> userProcess = new ArrayList<>();
+			// All process gettings
+			for(Task t : user.getTasks()) {
+				if(t.getSection() != null && t.getSection().getProcess() != null) {
+					Processus process = t.getSection().getProcess();
+					int processFinded = 0;
+					for(Processus p : userProcess) {
+						if(p.getId() == process.getId()) {
+							processFinded++;
+							break;
+						}
+					}
+					if(processFinded <=0)
+						userProcess.add(process);
+				}
+			}
+			// tasks grouping for process
+			for(Processus p : userProcess) {
+				ProcessTasks pt = new ProcessTasks();
+				ProcessUtil pu = new ProcessUtil();
+				pu.setId(p.getId());
+				pu.setLabel(p.getLabel());
+				pt.setProcess(pu);
+				List<TaskUtil> tasks = new ArrayList<>();
+				for(Task t : user.getTasks()) {
+					if(t.getSection() != null && t.getSection().getProcess() != null) {
+						if(t.getProcessId() == p.getId()) {
+							TaskUtil tu = new TaskUtil();
+							tu.setId(t.getId());
+							tu.setName(t.getName());
+							tasks.add(tu);
+						}
+					}
+				}
+				pt.setTasks(tasks);
+				// adding processTasks
+				usersProcessTasks.add(pt);
+			}
+		}
+		return usersProcessTasks;
 	}
 
 }

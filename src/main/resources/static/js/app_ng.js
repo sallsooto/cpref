@@ -143,6 +143,8 @@ cperfModule.controller("AdminCtrl", function($scope, $http, $timeout) {
 	$scope.isSadmin = false;
 	$scope.orderField = "firstname";
 	$scope.orderFieldReverse = "-";
+	$scope.selectedUser = null;
+	$scope.userProcess = [];
 
 	$scope.getUsers = function() {
 		$http({
@@ -162,7 +164,30 @@ cperfModule.controller("AdminCtrl", function($scope, $http, $timeout) {
 			}
 		});
 	};
-
+	
+	$scope.getUserProcess = function(id){
+		$scope.selectedUser = null;
+		if($scope.users.content.length>0){
+			var users = $scope.users.content;
+			for(var i=0; i< users.length; i++){
+				if(users[i].id == id)
+					$scope.selectedUser = users[i];
+			}
+		}
+		if($scope.selectedUser != null){
+			$scope.userProcess = [];
+			$http({
+				url : '/Admin/User/getProcessAndTasksJson/',
+				method : 'get',
+				params : { uid : $scope.selectedUser.id}
+			}).then(function(response) {
+				$scope.userProcess = response.data;
+				console.log($scope.userProcess);
+				angular.element('#userProcessModal').modal('show');
+			});
+		}
+	}
+	
 	$scope.changePage = function($event) {
 		var element = angular.element($event.target)
 		var selectedPageIndex = element[0].attributes['data-pageIndex'].value;

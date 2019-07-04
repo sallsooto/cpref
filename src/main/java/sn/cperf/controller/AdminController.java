@@ -1,5 +1,7 @@
 package sn.cperf.controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +39,7 @@ import sn.cperf.service.DBFileService;
 import sn.cperf.service.MailService;
 import sn.cperf.service.StorageService;
 import sn.cperf.service.UserService;
+import sn.cperf.util.ProcessTasks;
 
 @Controller
 @RequestMapping("/Admin")
@@ -322,6 +325,7 @@ public class AdminController {
 		model.addAttribute("params", paramRepository.findAll(Sort.by("id").descending()));
 		return "config";
 	}
+	
 	@GetMapping("/User/del")
 	public String deleteUser(@RequestParam("uid") Long userId) {
 		try {
@@ -330,5 +334,12 @@ public class AdminController {
 			e.printStackTrace();
 		}
 		return "redirect:/Admin/User";
+	}
+	
+	@GetMapping("/User/getProcessAndTasksJson")
+	@ResponseBody
+	public List<ProcessTasks> getProcessAndTasksJson(@RequestParam("uid") Long userId){
+		try {return userService.getUserProcessTasks(userId);} catch (Exception e) {}
+		return new ArrayList<>();
 	}
 }

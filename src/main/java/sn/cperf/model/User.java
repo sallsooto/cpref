@@ -24,6 +24,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javassist.bytecode.stackmap.TypeData.ClassName;
@@ -58,6 +59,10 @@ public class User implements Serializable,UserDetails{
 	@OneToMany(fetch=FetchType.LAZY,mappedBy="userSup")
 	@JsonBackReference
 	private List<User> users;
+	
+	@JsonBackReference
+	@ManyToMany(fetch=FetchType.LAZY,mappedBy="users")
+	private List<Task> tasks;
 	public User getUserSup() {
 		return userSup;
 	}
@@ -260,5 +265,11 @@ public class User implements Serializable,UserDetails{
 	public boolean isEnabled() {
 		// TODO Auto-generated method stub
 		return valid;
+	}
+	public List<Task> getTasks() {
+		return tasks;
+	}
+	public void setTasks(List<Task> tasks) {
+		this.tasks = tasks;
 	}
 }

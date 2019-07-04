@@ -15,6 +15,8 @@
 </head>
 <body data-ng-app="Cperf" data-ng-controller="AdminCtrl">
 	<div class="container-fluid" layout:fragment="content" data-ng-init="getUsers();">
+		<!-- chargement du fragment du modal qui affiche les process d'un utilisateur -->
+		<div th:replace="fragments/userProcessModal::userProcessModal"></div>
 		<!-- Page Heading -->
 		<div th:replace="fragments/main_content_heading::heading(heading_text='Gestion des comptes utilisateurs')"></div>
 		<!-- content -->
@@ -114,7 +116,8 @@
 										<th>Prénom & Nom</th>
 										<th>Fonction</th>
 										<th>Superieur hierachique</th>
-										<th>Groupe</th><th>Profile</th>
+										<th>Groupe</th><th>Rôles</th>
+										<th>Process & tâches</th>
 										<th class="text-center">Status</th>
 									</tr>
 								</thead>
@@ -137,6 +140,9 @@
 											<a th:href="@{/Admin/User/Edit/?uid={{user.id}}}" title="Modifier" class="float-right">
 												<i class="fas fa-pen-alt" style="font-size:13px;"></i>
 											</a>
+										</td>
+										<td class="text-center">
+											<i class="fa fa-eye fa-lg cursor-pointer text-primary" title="Afficher les process" data-ng-click="getUserProcess(user.id)"></i>
 										</td>
 										<td class="text-center">
 										<a href="#"

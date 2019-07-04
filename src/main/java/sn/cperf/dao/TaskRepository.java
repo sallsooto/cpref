@@ -29,6 +29,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
 	List<Task> findByGroupInAndNameLikeIgnoreCase(List<Group> groups, String name);
 
+	List<Task> findByGroupIn(List<Group> groups);
+
 	@Query(value = "SELECT * from tasks t inner join users_tasks ut on t.id = ut.task_id where "
 			+ "(t.group_id in :groupIds OR ut.user_id = :userId) and t.name Like :name and t.status = :status", nativeQuery = true)
 	Page<Task> getUserTasks(@Param("groupIds") List<Long> groupIds, @Param("userId") Long userId,
