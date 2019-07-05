@@ -23,7 +23,7 @@
 						<div class="card-body">
 							<div class="row">
 								<div class="col-sm-12 col-md-4 border-right text-left user_img">
-									<img alt="" th:src="@{/User/getUserPhoto(uid=${param.uid})}" class="w-75 circle"/>
+									<img alt="" th:src="@{/User/getUserPhoto(uid=${user.id})}" class="w-75 circle"/>
 									<h5 th:text="${user.firstname + ' '+user.lastname}"></h5>
 									<div class="">
 										<span th:if="${user.fonction}">Fonction : <span th:text="${user.fonction.name}"></span></span>
