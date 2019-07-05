@@ -364,7 +364,6 @@ public class TaskController {
 		  if(t != null) {
 			    Processus process = processRepository.getOne(t.getProcessId());
 			  	List<ProcessSection> sections = new ArrayList<>();
-			  	System.err.println( " parent " +t.getParent().toString());
 			  	if(t.getParent() != null && t.getParent().getSection() != null && 
 			  		t.getSection() != null && t.getParent().getSection().getId() != t.getSection().getId()) {
 			  		ProcessSection parentSection = t.getParent().getSection();
@@ -396,6 +395,7 @@ public class TaskController {
 			  return "logigramme_with_raphael :: #taskForm";
 		  }
 		} catch (Exception e) {
+			System.err.println("un exception ici");
 			e.printStackTrace();
 		}
 		return null;
