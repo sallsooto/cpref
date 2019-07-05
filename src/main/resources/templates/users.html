@@ -112,7 +112,7 @@
 									</td>
 								</tr>
 									<tr>
-										<th>Photo</th>
+										<th>Photo & Profil</th>
 										<th>Prénom & Nom</th>
 										<th>Fonction</th>
 										<th>Superieur hierachique</th>
@@ -124,7 +124,12 @@
 								<tbody class="text-center">
 									<tr data-ng-if="users.content.length>0"
 										data-ng-repeat="user in users.content | orderBy:orderFieldReverse+orderField">
-										<td><img alt="" th:src="@{/User/getUserPhoto?uid={{user.id}}}" class="circle" style="max-height:50px;max-height:50px;"></td>
+										<td>
+											<img alt="" th:src="@{/User/getUserPhoto?uid={{user.id}}}" class="circle" style="max-height:50px;max-height:50px;">
+											<a th:href="@{/User/Profile/?uid={{user.id}}}">
+												<i class="fas fa-user-tag border-0 border-left pl-3 cursor-pointer text-primary" title="Profil infos"></i>
+											</a>
+										</td>
 										<td>{{reoplaceWithNullOrBlank(user.firstname,"Non renseigné") + ' '+reoplaceWithNullOrBlank(user.lastname,"")}}</td>
 										<td>{{reoplaceWithNullOrBlank(user.fonction.name,"Non rensignée")}}</td>
 										<td data-ng-if="user.userSup != null">{{reoplaceWithNullOrBlank(user.userSup.lastname,"Non renseigné") + ' '+reoplaceWithNullOrBlank(user.userSup.lastname,"")}}</td>

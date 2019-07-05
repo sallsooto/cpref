@@ -11,6 +11,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -56,6 +57,8 @@ public class UserController {
 				if (optUser.isPresent()) {
 					user = optUser.get();
 					userForm.setId(user.getId());
+					userForm.setUsername(user.getUsername());
+					userForm.setPassword(user.getPassword());
 					userForm.setLastname(user.getLastname());
 					userForm.setFirstname(user.getFirstname());
 					userForm.setFonction(user.getFonction());
@@ -66,6 +69,8 @@ public class UserController {
 				}
 			} else {
 				userForm.setId(loged.getId());
+				userForm.setUsername(loged.getUsername());
+				userForm.setPassword(loged.getPassword());
 				userForm.setLastname(loged.getLastname());
 				userForm.setFirstname(loged.getFirstname());
 				userForm.setFonction(loged.getFonction());
@@ -98,51 +103,66 @@ public class UserController {
 			} else {
 				User user = userRepository.getOne(userForm.getId());
 				User userByEmail = userRepository.findByEmail(userForm.getEmail());
+				User userByUsername = userRepository.findByUsername(userForm.getUsername());
 				if (userByEmail == null || (userByEmail != null && user.getId() == userByEmail.getId())) {
-					if (userForm.getFirstname() != null && !userForm.getFirstname().equals(""))
-						user.setFirstname(userForm.getFirstname());
-					if (userForm.getLastname() != null && !userForm.getLastname().equals(""))
-						user.setLastname(userForm.getLastname());
-					if (userForm.getEmail() != null && !userForm.getEmail().equals(""))
-						user.setEmail(userForm.getEmail());
-					if (userForm.getPhone() != null && !userForm.getPhone().equals(""))
-						user.setPhone(userForm.getPhone());
-					if (isAdmin) {
-						if (userForm.getFonction() != null)
-							user.setFonction(userForm.getFonction());
-					}
-					if (userForm.getFile() != null) {
-						if (dbFileService.checkExtensions(userForm.getFile().getOriginalFilename(),
-								new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" })) {
-							DBFile dbPhoto = null;
-							try { dbPhoto = dbFileService.find(user.getDbPhoto() != null ? user.getDbPhoto().getId() : null);} catch (Exception e) {}
-							user.setDbPhoto(dbFileService.storeOrUpdateFile(userForm.getFile(),
-									dbPhoto != null ? dbPhoto.getId() : null,
-									dbPhoto != null ? dbPhoto.isDefaultUserAvatar() : false));
-							// storing on disk
-							if(user.getDbPhoto() == null) {
+					if (userByUsername == null || (userByUsername != null && user.getId() == userByUsername.getId())) {
+						if (userForm.getFirstname() != null && !userForm.getFirstname().equals(""))
+							user.setFirstname(userForm.getFirstname());
+						if (userForm.getLastname() != null && !userForm.getLastname().equals(""))
+							user.setLastname(userForm.getLastname());
+						if (userForm.getEmail() != null && !userForm.getEmail().equals(""))
+							user.setEmail(userForm.getEmail());
+						if (userForm.getPhone() != null && !userForm.getPhone().equals(""))
+							user.setPhone(userForm.getPhone());
+						if (isAdmin) {
+							if (userForm.getFonction() != null)
+								user.setFonction(userForm.getFonction());
+						}
+						if(userForm.getUsername() != null && !userForm.getUsername().equals(""))
+							user.setUsername(userForm.getUsername().trim());
+						if(userForm.getPassword() != null && !userForm.getPassword().equals("")
+							&& !userForm.getPassword().toLowerCase().trim().equals(user.getPassword().toLowerCase().trim())) {
+							user.setPassword(new BCryptPasswordEncoder().encode(userForm.getPassword()));
+						}
+						if (userForm.getFile() != null) {
+							if (dbFileService.checkExtensions(userForm.getFile().getOriginalFilename(),
+									new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" })) {
+								DBFile dbPhoto = null;
 								try {
-									user.setPhoto(storageService.storeAvatar(userForm.getFile(),
-											new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" }));
-								} catch (Exception e1) {
-									e1.printStackTrace();
+									dbPhoto = dbFileService
+											.find(user.getDbPhoto() != null ? user.getDbPhoto().getId() : null);
+								} catch (Exception e) {
 								}
-								if (user.getPhoto() == null || user.getPhoto().equals("")) {
-									if (userForm.getPhoto() == null || userForm.getPhoto().equals(""))
-										user.setPhoto("user.png");
-									else
-										user.setPhoto(userForm.getPhoto());
+								user.setDbPhoto(dbFileService.storeOrUpdateFile(userForm.getFile(),
+										dbPhoto != null ? dbPhoto.getId() : null,
+										dbPhoto != null ? dbPhoto.isDefaultUserAvatar() : false));
+								// storing on disk
+								if (user.getDbPhoto() == null) {
+									try {
+										user.setPhoto(storageService.storeAvatar(userForm.getFile(),
+												new String[] { "jpg", "jpeg", "png", "gif", "svg", "ico" }));
+									} catch (Exception e1) {
+										e1.printStackTrace();
+									}
+									if (user.getPhoto() == null || user.getPhoto().equals("")) {
+										if (userForm.getPhoto() == null || userForm.getPhoto().equals(""))
+											user.setPhoto("user.png");
+										else
+											user.setPhoto(userForm.getPhoto());
+									}
 								}
 							}
 						}
+						userForm.setPhoto(user.getDbPhoto() != null ? user.getDbPhoto().getName() : user.getPhoto());
+						if (userRepository.save(user) != null)
+							model.addAttribute("successMsg", "Mise à jour du profile appliquée !");
+						else
+							model.addAttribute("errorMsg", "Mise à jour échouée, veuillez recommencer!");
+					} else {
+						model.addAttribute("errorMsg", "Vous ne pouvez pas utiliser ce nom d'utilisateur ou login !");
 					}
-					userForm.setPhoto(user.getDbPhoto() != null ? user.getDbPhoto().getName() : user.getPhoto());
-					if (userRepository.save(user) != null)
-						model.addAttribute("successMsg", "Mise à jour du profile appliquée !");
-					else
-						model.addAttribute("errorMsg", "Mise à jour échouée, veuillez recommencer!");
 				} else {
-					model.addAttribute("errorMsg", "Vous ne pouvez pas utiliser cette adresse email");
+					model.addAttribute("errorMsg", "Vous ne pouvez pas utiliser cette adresse email !");
 				}
 			}
 		} catch (Exception e) {
@@ -168,11 +188,12 @@ public class UserController {
 				}
 			} catch (Exception e) {
 			}
-			if (user.getDbPhoto() != null && user.getDbPhoto().getId() != null && dbFileService.find(user.getDbPhoto().getId()) != null) {
+			if (user.getDbPhoto() != null && user.getDbPhoto().getId() != null
+					&& dbFileService.find(user.getDbPhoto().getId()) != null) {
 				return dbFileService.downloadImageFile(user.getDbPhoto());
-			}else if(dbFileService.getDefaultUserAvatar() != null){
-			  return dbFileService.downloadImageFile(dbFileService.getDefaultUserAvatar());
-			}else {
+			} else if (dbFileService.getDefaultUserAvatar() != null) {
+				return dbFileService.downloadImageFile(dbFileService.getDefaultUserAvatar());
+			} else {
 				String fileName = (user != null && user.getPhoto() != null) ? user.getPhoto() : "user.png";
 				Path file = storageService.getResolveFilePathWithEnDirConfig("spring.file.avatar-dir", fileName);
 				System.out.println(file);
@@ -193,9 +214,9 @@ public class UserController {
 	@RequestMapping(value = "/getDefaultUserPhoto", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<Resource> getDefaultUserPhoto() {
-		try { 
-			if(dbFileService.getDefaultUserAvatar() != null) {
-			  return dbFileService.downloadImageFile(dbFileService.getDefaultUserAvatar());
+		try {
+			if (dbFileService.getDefaultUserAvatar() != null) {
+				return dbFileService.downloadImageFile(dbFileService.getDefaultUserAvatar());
 			}
 		} catch (Exception e) {
 			System.out.println(e);
