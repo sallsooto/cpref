@@ -40,7 +40,7 @@
 								<input type="hidden" th:field="*{id}"/>
 								<!-- <input type="hidden" th:field="*{section}"/> -->
 								<div class="row p-0">
-									<div class="col-sm-12 col-md-12 p-0">
+									<div class="col-sm-12 col-md-12 p-0 align-items-end">
 										<div class="row">
 											<div th:if="${errorMsg}" class="col-sm-12">
 												<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
@@ -194,9 +194,46 @@
 											<!-- end users integration -->
 											<div class="form-group col-sm-12 col-md-6 input-field col s12" th:if="${tasks.size()>0}"> 
 												 <select th:field="*{parent}" class="from-control form-control-sm">
+												  <option value="">Sans tâche précédente</option>
 											      <option th:each="t: ${tasks}" th:value="${t.id}" th:text="${t.name}">Tache parente</option>
 											    </select>
 												 <label>Choisissez la tâche précédente</label>
+											</div>
+											<div class="form-group col-sm-12 col-md-6 input-field col s12">
+												<div class="row">
+													<div class="col-sm-12 col-md-6"><label>Tâche liée à une condition</label></div>
+													<div class="col-sm-12 col-md-6">
+														<label>
+													      <input class="with-gap radioWithoutStartCondition" type="radio" th:field="*{startConditional}" value="false"/>
+													      <span>Non</span>
+													    </label>
+														<label>
+													      <input class="with-gap radioWithStartCondition" type="radio" th:field="*{startConditional}" value="true"/>
+													      <span>Oui</span>
+													    </label>
+													</div>
+												</div>
+											</div>
+											<div th:class="${task.startConditional ? 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12' : 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12 d-none'}">
+												<div class="row">
+													<div class="col-sm-12 col-md-5"><label>Type de condition ?</label></div>
+													<div class="col-sm-12 col-md-7">
+														<label>
+													      <input class="with-gap" type="radio" th:field="*{yesCondition}" value="true"/>
+													      <span>Si oui</span>
+													    </label>
+														<label>
+													      <input class="with-gap" type="radio" th:field="*{yesCondition}" value="false"/>
+													      <span>Sinon</span>
+													    </label>
+													</div>
+												</div>
+											</div>
+											<div th:class="${task.startConditional ? 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12' : 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12 d-none'}">
+												<label class="ml-2" for="textCondition">Entrez le text à afficher sur la condition</label>
+												<input type="text" name="textCondition" th:field="*{textCondition}"
+												class="form-control form-control-sm" id="textCondition"/>
+												<div class="invalid-feedback">Donnez un text de la condition !</div>
 											</div>
 											<div class="form-group col-sm-12 col-md-6 input-field col s12" th:if="${tasks.size()>0}"> 
 												 <select th:field="*{lunchingByProcess}">
@@ -242,6 +279,10 @@
 				$(".radiodescriptionFileAndText, .radiodescriptionText, .radiodescriptionFile").on("click",function(){
 					chowTextOrFileDescription();
 				});
+				showSectionGroupCondition();
+				$(".radioWithoutStartCondition, .radioWithStartCondition").on('click',function(){
+					showSectionGroupCondition();
+				});
 			});
 			
 			function chowgroupOrUserSection(){
@@ -259,6 +300,14 @@
 					$(".sectionUserFormGroup").removeClass("d-none");
 				}
 				
+			}
+			
+			function showSectionGroupCondition(){
+				if(!$(".radioWithoutStartCondition").is(":checked")){
+					$(".sectionGroupCondition").removeClass("d-none");
+				}else{
+					$(".sectionGroupCondition").addClass("d-none");
+				}
 			}
 			
 			function chowTextOrFileDescription(){

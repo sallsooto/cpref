@@ -45,8 +45,19 @@
 									<small class="chrono_span_text"></small>
 								</div>
 								<div class="col-sm-12 col-md-9 text-center">
-									<h5 th:text="${process.label}" class="text-info"></h5>
-									<small><span th:if="${process.description != null and process.description != ''}" th:text="${'( '+process.description+' )'}"></span></small>
+								   <div class="row">
+								   		<div class="col-sm-12 col-md-3 pt-1">
+								   		 <select class="form-control form-control-sm" th:data-pid="${process.id}" onChange="showUserTasks(this);">
+								   		 	<option value="0">Toutes les tâches du process</option>
+								   		 	<option th:each="u : ${userTasks}" th:value="${u.id}" th:selected="${userId == u.id}"
+								   		 		    th:text="${'Tâche(s) pour '+u.firstname+' '+u.lastname}"></option>
+								   		 </select>
+								   		</div>
+								   		<div class="col-sm-12 col-md-9">
+											<h5 th:text="${process.label}" class="text-info"></h5>
+											<small><span th:if="${process.description != null and process.description != ''}" th:text="${'( '+process.description+' )'}"></span></small>
+								   		</div>
+								   </div>
 								</div>
 								<div class="d-none d-md-block col-md-3 text-center">
 									<div class="badge chrono_span w-50 mt-1"></div><br/>
@@ -62,7 +73,7 @@
 				<tbody>
 					<tr>
 						<td class="pt-5 pb-5">
-							<textarea id="code" th:text="${raphaelCode}" class="form-control d-none" rows="0"></textarea>
+							<textarea id="code" th:text="${raphaelCode}" class="form-control d-none" rows="10"></textarea>
 							<div id="canvas" class="w-100"></div>
 						</td>
 					</tr>

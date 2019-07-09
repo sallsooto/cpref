@@ -50,6 +50,8 @@ import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
 import sn.cperf.service.ProcessService;
 import sn.cperf.service.StorageService;
+import sn.cperf.service.TaskService;
+import sn.cperf.service.UserService;
 import sn.cperf.util.NotificationType;
 import sn.cperf.util.TaskStatus;
 
@@ -81,8 +83,13 @@ public class ProcessController {
 	IndicateurRepository indicatorRepository;
 	@Autowired
 	ObjectifRepository ObjectifRepository;
-	
-	@Autowired ProcessService processService;
+
+	@Autowired
+	ProcessService processService;
+	@Autowired
+	UserService userSservice;
+	@Autowired
+	TaskService taskService;
 
 	@GetMapping("/Edit")
 	public String process(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
@@ -269,7 +276,7 @@ public class ProcessController {
 							null);
 				} catch (Exception e) {
 				}
-				// update process total_time 
+				// update process total_time
 				process.setTotalTime(process.getMaxDate());
 				processRepository.save(process);
 			}
@@ -383,18 +390,36 @@ public class ProcessController {
 				if (opTask.isPresent()) {
 					task = opTask.get();
 					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
-					if(task.getParent() != null && task.getParent().getSection().getId() != task.getSection().getId())
+					if (task.getParent() != null && task.getParent().getSection().getId() != task.getSection().getId())
 						sections.add(task.getParent().getSection());
 					sections.add(task.getSection());
-				}else {
-					try {sections.add(process.getSections().get(process.getSections().size()-1));} catch (Exception e) {e.printStackTrace();}
+				} else {
+					try {
+						sections.add(process.getSections().get(process.getSections().size() - 1));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-			}else {
-				try {sections.add(process.getSections().get(process.getSections().size()-1));} catch (Exception e) {e.printStackTrace();}
+			} else {
+				try {
+					sections.add(process.getSections().get(process.getSections().size() - 1));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		// filter tasks to limite chirlds on 2 (for yes condition and no conditons)
+		if (tasks != null && !tasks.isEmpty()) {
+			try {
+				Task currentTask = task;
+				tasks = tasks.stream().filter(t -> t.getChirlds().size() < 2 || (currentTask != null
+						&& currentTask.getParent() != null && t.getId() == currentTask.getParent().getId()))
+						.collect(Collectors.toList());
+			} catch (Exception e) {
+			}
 		}
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
@@ -408,7 +433,8 @@ public class ProcessController {
 	@PostMapping("/Task/Edit")
 	public String editTask(@RequestParam("pid") Long processId,
 			@RequestParam("fileDescription") MultipartFile fileDescription,
-			@RequestParam(name = "tid", defaultValue = "0") Long taskId, @RequestParam(name="grouprodio",defaultValue="3") int withGroup,
+			@RequestParam(name = "tid", defaultValue = "0") Long taskId,
+			@RequestParam(name = "grouprodio", defaultValue = "3") int withGroup,
 			@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
 		boolean isUpdateOperation = false;
 		List<Task> tasks = new ArrayList<>();
@@ -437,7 +463,7 @@ public class ProcessController {
 				}
 				if (process != null)
 					tasks = taskRepository.getByProcess(process.getId());
-				//sections = processSectionRepository.findByProcess(process);
+				// sections = processSectionRepository.findByProcess(process);
 				try {
 					if (task.getValidator() != null) {
 						List<User> users = new ArrayList<>();
@@ -481,59 +507,65 @@ public class ProcessController {
 					if (task.isLunchingByProcess()) {
 						try {
 							Processus p = processRepository.getOne(task.getProcessId());
-							if (p != null && p.getStartAt() != null) {
-								task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
-								task.setStartAt(new Date());
-								sections.add(p.getSections().get(p.getSections().size()-1));
+							if (p != null) {
+								if (p.getStartAt() != null) {
+									task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+									task.setStartAt(new Date());
+									sections.add(p.getSections().get(p.getSections().size() - 1));
+								}
 							}
+
 						} catch (Exception e) {
 						}
 					} else {
 						if (task.getParent() != null && task.getParent().getStatus().toLowerCase()
 								.equals(TaskStatus.COMPLETED.toString().toLowerCase())) {
 							task.setStatus(TaskStatus.STARTED.toString().toLowerCase());
-						    task.setStartAt(new Date());
+							task.setStartAt(new Date());
 						}
 					}
-					if(task.getParent() != null) {
+					if (task.getParent() != null) {
 						sectionFinded = 0;
-						 for(ProcessSection section : sections) {
-							 if(section.getId() == task.getParent().getSection().getId()) {
-								 sectionFinded++;
-								 break;
-							 }
-						 }
-						 if(sectionFinded <=0)
-							 sections.add(task.getParent().getSection());
+						for (ProcessSection section : sections) {
+							if (section.getId() == task.getParent().getSection().getId()) {
+								sectionFinded++;
+								break;
+							}
+						}
+						if (sectionFinded <= 0)
+							sections.add(task.getParent().getSection());
 					}
-					if(task.getSection() != null) {
+					if (task.getSection() != null) {
 						sectionFinded = 0;
-						 for(ProcessSection section : sections) {
-							 if(section.getId() == task.getSection().getId()) {
-								 sectionFinded++;
-								 break;
-							 }
-						 }
-						 if(sectionFinded <=0)
-								sections.add(task.getSection());
+						for (ProcessSection section : sections) {
+							if (section.getId() == task.getSection().getId()) {
+								sectionFinded++;
+								break;
+							}
+						}
+						if (sectionFinded <= 0)
+							sections.add(task.getSection());
 					}
 				}
 				// seting finish date
 				if (task.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase())) {
-					if(task.getFinishAt() == null)
+					if (task.getFinishAt() == null)
 						task.setFinishAt(new Date());
-				}
-				else {
+				} else {
 					task.setFinishAt(null);
 				}
 				// set staring task date
 				if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
-					if(task.getStartAt() == null)
+					if (task.getStartAt() == null)
 						task.setStartAt(new Date());
-				}
-				else {
+				} else {
 					task.setStartAt(null);
 				}
+
+				// normalize task condition tasks or set task parent on null if it is the first
+				// task
+				task = taskService.normalizechirldTasksConditions(task);
+
 				// en setting start task date
 				if (taskRepository.save(task) != null) {
 					model.addAttribute("task", task);
@@ -561,9 +593,10 @@ public class ProcessController {
 					try {
 						Processus p = task.getSection().getProcess();
 						p.setTotalTime(p.getMaxDate());
-						if(!task.getStatus().toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())
-								   && !task.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase()))
-									process.setFinishDate(null);
+						if (!task.getStatus().toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())
+								&& !task.getStatus().toLowerCase()
+										.equals(TaskStatus.COMPLETED.toString().toLowerCase()))
+							process.setFinishDate(null);
 						processRepository.save(p);
 						System.out.println("total time " + p.getTotalTime().toString());
 					} catch (Exception e) {
@@ -576,17 +609,17 @@ public class ProcessController {
 					// lunching task chirlds if is necessary
 					processService.startChirldTaskStatusWhenIsNecessary(task);
 					// finishing process if is necessary
-					 processService.finishProcessWhenIsTime(process);
+					processService.finishProcessWhenIsTime(process);
 					// end finishing process op
-					 sectionFinded = 0;
-					 for(ProcessSection section : sections) {
-						 if(section.getId() == task.getSection().getId()) {
-							 sectionFinded++;
-							 break;
-						 }
-					 }
-					 if(sectionFinded <=0)
-						 sections.add(task.getSection());
+					sectionFinded = 0;
+					for (ProcessSection section : sections) {
+						if (section.getId() == task.getSection().getId()) {
+							sectionFinded++;
+							break;
+						}
+					}
+					if (sectionFinded <= 0)
+						sections.add(task.getSection());
 				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
@@ -594,6 +627,16 @@ public class ProcessController {
 		} catch (Exception e) {
 			model.addAttribute("errorMsg", "Opération échouée, veuillez recommncer !");
 			e.printStackTrace();
+		}
+		// filter tasks to limite chirlds on 2 (for yes condition and no conditons)
+		if (tasks != null && !tasks.isEmpty()) {
+			try {
+				Task currentTask = task;
+				tasks = tasks.stream().filter(t -> t.getChirlds().size() < 2 || (currentTask != null
+						&& currentTask.getParent() != null && t.getId() == currentTask.getParent().getId()))
+						.collect(Collectors.toList());
+			} catch (Exception e) {
+			}
 		}
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
@@ -622,14 +665,14 @@ public class ProcessController {
 					sections = p.getSections();
 				}
 				model.addAttribute("pId", p.getId());
-	
+
 				if (taskId != null && taskId > 0) {
 					Optional<Task> opTask = taskRepository.findById(taskId);
 					if (opTask.isPresent()) {
 						task = new Task();
 						task = opTask.get();
 						tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), p.getId());
-					}else {
+					} else {
 						tasks = taskRepository.getByProcess(p.getId());
 					}
 				}
@@ -644,10 +687,9 @@ public class ProcessController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		// suppressions des tasche vies 
+
+		// suppressions des tasche vies
 		deleteAllProcessSectionsWithoutTask();
-		
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
 		model.addAttribute("users", users);
@@ -656,33 +698,36 @@ public class ProcessController {
 		model.addAttribute("process", p);
 		return "logigramme";
 	}
+
 	@PostMapping("/Logigramme")
 	public String editTaskInLogigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
-			@RequestParam("fileDescription") MultipartFile fileDescription,
-			@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model,HttpSession session) {
-		    List<Task> tasks = new ArrayList<>();
-			List<ProcessSection> sections = new ArrayList<>();
-			List<User> users = new ArrayList<>();
-			List<Group> groups = new ArrayList<>();
-			Long taskId = null;
-			boolean tasSectionChanged = false;
+			@RequestParam("fileDescription") MultipartFile fileDescription, @Valid @ModelAttribute("task") Task task,
+			BindingResult bind, Model model, HttpSession session) {
+		List<Task> tasks = new ArrayList<>();
+		List<ProcessSection> sections = new ArrayList<>();
+		List<User> users = new ArrayList<>();
+		List<Group> groups = new ArrayList<>();
+		Long taskId = null;
+		boolean tasSectionChanged = false;
 		Processus process = null;
 		try {
 			if (bind.hasErrors()) {
 				bind.getAllErrors().forEach(e -> System.out.println(e.getDefaultMessage()));
 			} else {
 				try {
-					if(session.getAttribute("successMsg") != null)
+					if (session.getAttribute("successMsg") != null)
 						session.removeAttribute("successMsg");
-					if(session.getAttribute("errorMsg") != null)
-					 session.removeAttribute("errorMsg");
+					if (session.getAttribute("errorMsg") != null)
+						session.removeAttribute("errorMsg");
 					Task dbTask = taskRepository.getOne(task.getId());
-					if(dbTask != null) {
-						tasSectionChanged = task.getSection() != null && task.getSection().getId() == dbTask.getSection().getId() ? false : true;
+					if (dbTask != null) {
+						tasSectionChanged = task.getSection() != null
+								&& task.getSection().getId() == dbTask.getSection().getId() ? false : true;
 						taskId = dbTask.getId();
 						process = dbTask.getSection().getProcess();
 						dbTask.setGroup(task.getGroup());
-						dbTask.setName(task.getName() != null && !task.getName().equals("") ? task.getName() : dbTask.getName());
+						dbTask.setName(task.getName() != null && !task.getName().equals("") ? task.getName()
+								: dbTask.getName());
 						dbTask.setNbYears(task.getNbYears());
 						dbTask.setNbMonths(task.getNbMonths());
 						dbTask.setNbDays(task.getNbDays());
@@ -691,7 +736,8 @@ public class ProcessController {
 						dbTask.setDescription(task.getDescription());
 						dbTask.setType(task.getType());
 						dbTask.setStatus(task.getStatus());
-						if(dbTask.getStartAt() == null && dbTask.getStatus().toLowerCase().equals(TaskStatus.STARTED.toString().toLowerCase()))
+						if (dbTask.getStartAt() == null
+								&& dbTask.getStatus().toLowerCase().equals(TaskStatus.STARTED.toString().toLowerCase()))
 							dbTask.setStartAt(new Date());
 						// traitement du fichier
 						if (fileDescription != null) {
@@ -699,7 +745,8 @@ public class ProcessController {
 								if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),
 										new String[] { "pdf" })) {
 									task.setDbFileDescription(dbFileService.storeOrUpdateFile(fileDescription,
-											task.getDbFileDescription() != null ? task.getDbFileDescription().getId() : null,
+											task.getDbFileDescription() != null ? task.getDbFileDescription().getId()
+													: null,
 											false));
 									if (task.getDbFileDescription() == null)
 										task.setFileDescriptionPath(
@@ -709,9 +756,12 @@ public class ProcessController {
 								// e.printStackTrace();
 							}
 						}
-						// section description traitements 
-						dbTask.setDbFileDescription(task.getDbFileDescription() != null ? task.getDbFileDescription() : dbTask.getDbFileDescription());
-						dbTask.setFileDescriptionPath(task.getFileDescriptionPath() != null ? task.getFileDescriptionPath() : dbTask.getFileDescriptionPath());
+						// section description traitements
+						dbTask.setDbFileDescription(task.getDbFileDescription() != null ? task.getDbFileDescription()
+								: dbTask.getDbFileDescription());
+						dbTask.setFileDescriptionPath(
+								task.getFileDescriptionPath() != null ? task.getFileDescriptionPath()
+										: dbTask.getFileDescriptionPath());
 						if (task.getSection() == null) {
 							try {
 								ProcessSection section = new ProcessSection();
@@ -732,18 +782,16 @@ public class ProcessController {
 						dbTask.setSection(task.getSection() != null ? task.getSection() : dbTask.getSection());
 						// seting finish date
 						if (dbTask.getStatus().equals(TaskStatus.COMPLETED.toString())) {
-							if(dbTask.getFinishAt() == null)
+							if (dbTask.getFinishAt() == null)
 								dbTask.setFinishAt(new Date());
-						}
-						else {
+						} else {
 							dbTask.setFinishAt(null);
 						}
 						// set staring task date
 						if (!dbTask.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
-							if(dbTask.getStartAt() == null)
+							if (dbTask.getStartAt() == null)
 								dbTask.setStartAt(new Date());
-						}
-						else {
+						} else {
 							dbTask.setStartAt(null);
 						}
 						// end setting start task date
@@ -752,19 +800,21 @@ public class ProcessController {
 								process = dbTask.getSection().getProcess();
 								sections = process.getSections();
 								tasks = taskRepository.getByProcessAndTaskIdIsNot(dbTask.getId(), process.getId());
-								users =  userRepository.findAll();
+								users = userRepository.findAll();
 								groups = groupRepository.findAll();
 								model.addAttribute("task", dbTask);
 							} catch (Exception e1) {
 							}
-							
-							String successMsg ="Tâche modifiée";
+
+							String successMsg = "Tâche modifiée";
 							String notificationTitle = "Tâche mise à jour";
 							String notificationMsg = "La tâche \" " + dbTask.getName() + " \" du process \" "
 									+ dbTask.getSection().getProcess().getLabel() + " \" est mise à jour";
-								
-							if (fileDescription != null && dbTask.getFileDescriptionPath() == null && dbTask.getDbFileDescription() == null)
-								successMsg = successMsg + " sans le fichier de description(extension autorisée : pdf) !";
+
+							if (fileDescription != null && dbTask.getFileDescriptionPath() == null
+									&& dbTask.getDbFileDescription() == null)
+								successMsg = successMsg
+										+ " sans le fichier de description(extension autorisée : pdf) !";
 							else
 								successMsg = successMsg + " !";
 							session.setAttribute("successMsg", successMsg);
@@ -772,8 +822,10 @@ public class ProcessController {
 							// update process totol time and finish_date if necessary
 							try {
 								process.setTotalTime(process.getMaxDate());
-								if(!dbTask.getStatus().toLowerCase().equals(TaskStatus.CANCELED.toString().toLowerCase())
-								   && !dbTask.getStatus().toLowerCase().equals(TaskStatus.COMPLETED.toString().toLowerCase()))
+								if (!dbTask.getStatus().toLowerCase()
+										.equals(TaskStatus.CANCELED.toString().toLowerCase())
+										&& !dbTask.getStatus().toLowerCase()
+												.equals(TaskStatus.COMPLETED.toString().toLowerCase()))
 									process.setFinishDate(null);
 								processRepository.save(process);
 								System.out.println("total time " + process.getTotalTime().toString());
@@ -787,12 +839,12 @@ public class ProcessController {
 							notifService.notify(notificationTitle, notificationMsg, NotificationType.INFO.toString(),
 									"/Task/?tid=" + dbTask.getId(), dbTask.getAllUsers(), null);
 							// finishing process if is necessary
-							 processService.finishProcessWhenIsTime(process);
+							processService.finishProcessWhenIsTime(process);
 							// end finishing process op
 						} else {
 							session.setAttribute("errorMsg", "Echèc de la modification de la tâche");
 						}
-					}else {
+					} else {
 						session.setAttribute("errorMsg", "Tâche introuvable");
 					}
 				} catch (Exception e1) {
@@ -803,18 +855,18 @@ public class ProcessController {
 			session.setAttribute("errorMsg", "Opération échouée, veuillez recommncer !");
 			e.printStackTrace();
 		}
-		
-		// suppressions des tasche vies 
+
+		// suppressions des tasche vies
 		deleteAllProcessSectionsWithoutTask();
 		System.err.println("je suis redirigé");
-		return "redirect:/Process/Logigramme/?pid="+process.getId();
+		return "redirect:/Process/Logigramme/?pid=" + process.getId();
 	}
-	
+
 	private void deleteAllProcessSectionsWithoutTask() {
 		try {
 			List<ProcessSection> emptySections = processSectionRepository.findByTasksIsNullOrProcessIsNull();
-			if(!emptySections.isEmpty()) {
-				emptySections.forEach(ps->{
+			if (!emptySections.isEmpty()) {
+				emptySections.forEach(ps -> {
 					processSectionRepository.delete(ps);
 				});
 			}
@@ -823,18 +875,20 @@ public class ProcessController {
 			e.printStackTrace();
 		}
 	}
-	
-	/** Logigramme with flowchart.js and raphael.js **/
 
+	/** Logigramme with flowchart.js and raphael.js **/
 
 	@GetMapping("/Logigramme")
 	public String svgLogigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
-			@RequestParam(name = "tid", defaultValue = "0") Long taskId, Model model) {
+			@RequestParam(name = "tid", defaultValue = "0") Long taskId,
+			@RequestParam(name = "uid", defaultValue = "0") Long userId, Model model) {
 		Processus p = null;
 		Task task = null;
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
+		User user = null;
 		List<User> users = new ArrayList<>();
+		List<User> userTasks = new ArrayList<>();
 		List<Group> groups = new ArrayList<>();
 		try {
 			if (processId != null && processId > 0) {
@@ -845,14 +899,14 @@ public class ProcessController {
 					sections = p.getSections();
 				}
 				model.addAttribute("pId", p.getId());
-	
+
 				if (taskId != null && taskId > 0) {
 					Optional<Task> opTask = taskRepository.findById(taskId);
 					if (opTask.isPresent()) {
 						task = new Task();
 						task = opTask.get();
 						tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), p.getId());
-					}else {
+					} else {
 						tasks = taskRepository.getByProcess(p.getId());
 					}
 				}
@@ -863,71 +917,149 @@ public class ProcessController {
 			}
 			users = userRepository.findAll();
 			groups = groupRepository.findAll();
+			// filter tasks if user is spécifieds
+			if (userId != null && userId > 0 && p != null) {
+				try {
+					user = userRepository.getOne(userId);
+				} catch (Exception e) {
+				}
+				tasks = userSservice.getUserTaskByProcess(user, p.getId());
+			}
+			// filter users for process
+			if (tasks != null) {
+				for (Task t : tasks) {
+					List<User> tusers = t.getAllUsers();
+					if (tusers != null && !tusers.isEmpty()) {
+						for (User tu : tusers) {
+							int userfounded = 0;
+							for (User u : userTasks) {
+								if (u.getId() == tu.getId()) {
+									userfounded++;
+									break;
+								}
+							}
+							if (userfounded <= 0)
+								userTasks.add(tu);
+						}
+					}
+				}
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		// suppressions des tasche vies 
+
+		// suppressions des tasche vies
 		deleteAllProcessSectionsWithoutTask();
-		
+
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
 		model.addAttribute("users", users);
+		model.addAttribute("userTasks", userTasks);
+		model.addAttribute("userId", userId);
 		model.addAttribute("groups", groups);
 		model.addAttribute("task", task);
 		model.addAttribute("process", p);
 		model.addAttribute("raphaelCode", makeRaphaelJsCode(tasks));
 		return "logigramme_with_raphael";
 	}
-	
+
 	private String makeRaphaelJsCode(List<Task> tasks) {
-		String code = "", path="";
-		if(!tasks.isEmpty()) {
+		String code = "", path = "";
+		// List<Task> sortedTasks = new ArrayList<>();
+		if (!tasks.isEmpty()) {
 			int nbTask = tasks.size();
-			try {tasks = tasks.stream().sorted(Comparator.comparingLong(Task::getId)).collect(Collectors.toList());} catch (Exception e1) {}
-			for(int i=0; i<nbTask; i++) {
+			try {
+				tasks = tasks.stream().sorted(Comparator.comparingLong(Task::getId)).collect(Collectors.toList());
+				tasks = sortTasks(tasks, tasks, null);
+			} catch (Exception e1) {
+			}
+			for (int i = 0; i < nbTask; i++) {
 				Task task = tasks.get(i);
 				Task futureTask = null;
-				if(i < nbTask-1)
-					futureTask = tasks.get(i+1);
-				String key = "t"+task.getId();
+				if (i < nbTask - 1)
+					futureTask = tasks.get(i + 1);
+				String key = "t" + task.getId();
 				String type = formateRaphaelTaskType(task.getType());
 				String orientation = "";
-				if(i < nbTask -1) {
+				if (i < nbTask - 1) {
 					orientation = "(right)->";
 					try {
-						if(futureTask != null && task.getSection().getId() !=  futureTask.getSection().getId()) {
+						if (futureTask != null && task.getSection().getId() != futureTask.getSection().getId()) {
 							orientation = "(bottom)->";
 						}
 					} catch (Exception e) {
 					}
-					//System.err.println(task.getName() + ": orientation => "+orientation);
+				}
+				if (task.getParent() != null && task.isStartConditional()) {
+					String cond = "cond" + task.getParent().getId();
+					System.err.println("task " + task.getName() + " cond " + cond);
+					code = code + cond + "=>condition: " + task.getTextCondition() + "|valid \n";
+					if (task.getId() != tasks.get(tasks.size() - 1).getId())
+						path = path + cond + "(" + (task.isYesCondition() ? "yes" : "no") + ")->";
 				}
 				String taskStatus = task.getStatus();
-                if(taskStatus != null && taskStatus.toLowerCase().trim().equals(TaskStatus.COMPLETED.toString().toLowerCase().trim()))
-                	if(task.isFinishedLate())
-                		taskStatus = "finishedLate";
-				code = code + " "+key+"=>"+type+": "+task.getName()+"|"+taskStatus+":$showTaskDetails  \n";
-				path = path+key+orientation;
+				if (taskStatus != null
+						&& taskStatus.toLowerCase().trim().equals(TaskStatus.COMPLETED.toString().toLowerCase().trim()))
+					if (task.isFinishedLate())
+						taskStatus = "finishedLate";
+
+				code = code + " " + key + "=>" + type + ": " + task.getName() + "|" + taskStatus
+						+ ":$showTaskDetails  \n";
+				path = path + key + orientation;
+				if (tasks.size() == 1) {
+					code = code + " t0=>end: Fin|valid \n";
+					path = path + "->t0";
+				}
 			}
 		}
-		return code +" "+path;
+		return code + " " + path;
 	}
-	
+
 	private String formateRaphaelTaskType(String type) {
-		if(type != null) {
-			if(type.toLowerCase().equals("start"))
+		if (type != null) {
+			if (type.toLowerCase().equals("start"))
 				return "start";
-			else if(type.toLowerCase().equals("finish"))
+			else if (type.toLowerCase().equals("finish"))
 				return "end";
-			else if(type.toLowerCase().equals("sub_process"))
+			else if (type.toLowerCase().equals("sub_process"))
 				return "subroutine";
-			else if(type.toLowerCase().equals("doc"))
+			else if (type.toLowerCase().equals("doc"))
 				return "inputoutput";
 			else
 				return "operation";
 		}
 		return "operation";
+	}
+
+	private List<Task> sortTasks(List<Task> tasks, List<Task> comparators, List<Task> sortedTasks) {
+		if (sortedTasks == null)
+			sortedTasks = new ArrayList<>();
+		if (tasks != null) {
+			try {
+				tasks = tasks.stream().sorted(Comparator.comparingLong(Task::getId)).collect(Collectors.toList());
+			} catch (Exception e) {
+			}
+			for (Task t : tasks) {
+				int taskAdded = 0;
+				for (Task tSorted : sortedTasks) {
+					if (tSorted.getId() == t.getId()) {
+						taskAdded++;
+						break;
+					}
+				}
+				if (taskAdded <= 0) {
+					Long taskId = t.getId();
+					t = comparators.stream().filter(comparator -> comparator.getId() == taskId).findFirst()
+							.orElse(null);
+					if (t != null) {
+						sortedTasks.add(t);
+						if (t.getChirlds() != null && !t.getChirlds().isEmpty())
+							sortTasks(t.getChirlds(), comparators, sortedTasks);
+					}
+				}
+			}
+		}
+		return sortedTasks;
 	}
 }

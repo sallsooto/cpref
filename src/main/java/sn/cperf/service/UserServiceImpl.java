@@ -1,7 +1,10 @@
 package sn.cperf.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -200,6 +203,29 @@ public class UserServiceImpl implements UserService{
 			}
 		}
 		return usersProcessTasks;
+	}
+
+	@Override
+	public List<Task> getUserTaskByProcess(User user,Long processId) {
+		List<Task> tasks = new ArrayList<>();
+		if(user != null && processId != null) {
+			try {
+				tasks = taskRepository.getByProcess(processId);
+				if(!tasks.isEmpty()) {
+					List<Long> taskIds = tasks.stream().map(Task::getId).collect(Collectors.toList());
+					if(user.getGroupes() != null && !user.getGroupes().isEmpty()) {
+						List<Long> groupIds = user.getGroupes().stream().map(Group::getId).collect(Collectors.toList());
+						tasks = taskRepository.getTasksByUserIdOrUserGroupIdsWhereTaskIdIn(user.getId(), taskIds, groupIds);
+					}else {
+						tasks = taskRepository.getTasksByUserIdWhereTaskIdIn(user.getId(), taskIds);
+					}
+					tasks.forEach(t->System.err.println("task name " + t.getName() + " processid "+t.getProcessId() + " compare " +(t.getProcessId() == processId)));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return tasks;
 	}
 
 }

@@ -74,8 +74,8 @@ $(document).ready(function(){
 	      'line-color': 'black',
 	      'element-color': 'black',
 	      'fill': 'white',
-	      'yes-text': 'Oui',
-	      'no-text': 'non',
+	      'yes-text': 'oui',
+	      'no-text': 'Non',
 	      'arrow-end': 'block',
 	      'scale': 1.2,
 	      // style symbol types
@@ -109,7 +109,14 @@ $(document).ready(function(){
 		activeFormContainer();
 	});
 });
-
+//search tasks by users in logigram
+function showUserTasks(jsElement){
+	var element = $(jsElement);
+	var userId = element.val();
+	var processId = element.attr('data-pid');
+	var pathname = window.location.pathname;
+	window.location.href = pathname + "?pid="+processId+"&uid="+userId;
+}
 activeUserContainer = function(event){
 	btnUserAndGroupCotnainer = $("#btnUserAndGroupContainer");
 	btnFormContainer = $("#btnFormContainer");

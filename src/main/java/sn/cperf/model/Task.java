@@ -82,6 +82,11 @@ public class Task implements Serializable{
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern="yyyy-MM-dd HH:mm")
 	private Date startAt;
+	@Column(columnDefinition="boolean default false")
+	private boolean startConditional=false;
+	@Column(columnDefinition="boolean default true")
+	private boolean yesCondition=true;
+	private String textCondition;
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="validator_id")
 	@JsonManagedReference

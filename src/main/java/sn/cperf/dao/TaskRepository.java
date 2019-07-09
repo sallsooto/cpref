@@ -58,6 +58,20 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 			+ "INNER JOIN process as p ON ps.process_id=p.id WHERE p.id=:pid AND UPPER(t.status) != UPPER('completed')", nativeQuery = true)
 	List<Task> getUncompletedTaskTasksByProcess(@Param("pid") Long processId);
 
+	@Query(value = "SELECT t.* FROM tasks as t" + " INNER JOIN process_sections as ps ON t.section_id=ps.id "
+			+ "INNER JOIN process as p ON ps.process_id=p.id WHERE p.id=:pid", nativeQuery = true)
+	List<Task> getTasksByProcess(@Param("pid") Long processId);
+	
+	@Query(value="select DISTINCT t.* from tasks t "
+			+ "LEFT JOIN users_tasks ut ON t.id=ut.task_id "
+			+ "WHERE t.id IN :taskIds AND (ut.user_id =:userId OR t.group_id IN :groupIds)", nativeQuery=true)
+	List<Task> getTasksByUserIdOrUserGroupIdsWhereTaskIdIn(@Param("userId") Long userId,
+			@Param("taskIds") List<Long> taskIds, @Param("groupIds") List<Long> groupIds);
+	@Query(value="select DISTINCT t.* from tasks t "
+			+ "LEFT JOIN users_tasks ut ON t.id=ut.task_id "
+			+ "WHERE t.id IN :taskIds AND ut.user_id =:userId", nativeQuery=true)
+	List<Task> getTasksByUserIdWhereTaskIdIn(@Param("userId") Long userId,@Param("taskIds") List<Long> taskIds);
+
 	@Query(value = "SELECT DISTINCT t.* FROM process ps INNER JOIN process_sections as pss ON ps.id=pss.process_id "
 			+ "INNER JOIN tasks as t ON pss.id=t.section_id INNER JOIN users_tasks as ut ON t.id=ut.task_id "
 			+ "INNER JOIN users as u ON ut.user_id=u.id INNER JOIN fonctions as f ON u.fonction_id=f.id WHERE f.id=:fonctionId", nativeQuery = true)
