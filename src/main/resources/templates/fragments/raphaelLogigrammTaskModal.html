@@ -55,6 +55,13 @@
 								<div class="col-sm-12">
 									<div class="col-sm-12">
   										<ul class="list-group">
+							   			 <!-- conmpte à rebours column -->
+  										    <li th:if="${task.startAt != null and task.status != 'canceled'}" class="list-group-item text-center">
+													<span class="badge task_chrono_span d-inline-block"></span>
+													<small class="task_chrono_span_text mr-1 ml-1"></small>
+													<small class="result_finish_task_container text-info font-weight-bold"></small>
+  										    </li>
+							    			<!-- end compte à rebours column -->
   										    <li class="list-group-item text-success font-weight-bold d-flex justify-content-between align-items-center">
 												Utilisateurs assossié(e)
  												<span class="badge badge-success badge-pill" th:text="${task.users.size()}"></span>
@@ -69,6 +76,14 @@
 												Groupe assossié
  												<span class="badge badge-danger badge-pill" th:text="${task.group != null ? task.group.name : 0}"></span>
   										    </li>
+  										    <li class="list-group-item text-primary font-weigth-bold d-flex justify-content-between align-items-center">
+												Objectif(s) assossié(s)
+ 												<span class="badge badge-primary badge-pill" th:text="${task.objectifs != null ? task.objectifs.size() : 0}"></span>
+  										    </li>
+  											<li th:each="obj : ${task.objectifs}" class="list-group-item">
+  												<i class="fas fa-mars-stroke text-primary"></i>
+  												<span th:text="${obj.name}"></span>
+  											</li>
   										</ul>
 									</div>
 								</div>

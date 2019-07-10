@@ -365,6 +365,8 @@ public class ProcessController {
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
+		int maxPriorityLevel = 1;
+		boolean isTheFirstProcessTask = true;
 		try {
 			if (processId != null && processId > 0) {
 				Optional<Processus> oProcess = processRepository.findById(processId);
@@ -372,6 +374,9 @@ public class ProcessController {
 					process = new Processus();
 					process = oProcess.get();
 					tasks = taskRepository.getByProcess(process.getId());
+					Task TaskWithMaxLevel = taskRepository.getLastTaskWithMaxPriorityLevel(process.getId());
+					if(TaskWithMaxLevel != null && TaskWithMaxLevel.getPriorityLevel() != null)
+						maxPriorityLevel = TaskWithMaxLevel.getPriorityLevel();
 				} else {
 					return "redirect:/Process/List/";
 				}
@@ -421,11 +426,16 @@ public class ProcessController {
 			} catch (Exception e) {
 			}
 		}
+		if(task != null && (task.getPriorityLevel() == null || task.getPriorityLevel() == 0))
+			task.setPriorityLevel(1);
+		isTheFirstProcessTask = taskService.checkIfThisIsTheFirstTaskForProcess(task);
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		model.addAttribute("task", task);
+		model.addAttribute("isTheFirstProcessTask", isTheFirstProcessTask);
+		model.addAttribute("maxPriorityLevel", maxPriorityLevel);
 		model.addAttribute("process", process);
 		return "task";
 	}
@@ -434,13 +444,14 @@ public class ProcessController {
 	public String editTask(@RequestParam("pid") Long processId,
 			@RequestParam("fileDescription") MultipartFile fileDescription,
 			@RequestParam(name = "tid", defaultValue = "0") Long taskId,
+			@RequestParam(name = "isTheFirstProcessTask", defaultValue = "true") boolean isTheFirstProcessTask,
 			@RequestParam(name = "grouprodio", defaultValue = "3") int withGroup,
 			@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
 		boolean isUpdateOperation = false;
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
-		int sectionFinded = 0;
+		int sectionFinded = 0, maxPriorityLevel=1;
 		try {
 			if (bind.hasErrors()) {
 				bind.getAllErrors().forEach(e -> System.out.println(e.getDefaultMessage()));
@@ -573,6 +584,8 @@ public class ProcessController {
 					String notificationMsg = "";
 					String notificationTitle = "";
 					if (isUpdateOperation) {
+						// notify childs tasks if is task lunching
+						taskService.notifyChilrdIfThisParentTaskIsLunched(task);
 						successMsg = "Tâche modifiée";
 						notificationTitle = "Tâche mise à jour";
 						notificationMsg = "La tâche \" " + task.getName() + " \" du process \" "
@@ -598,7 +611,6 @@ public class ProcessController {
 										.equals(TaskStatus.COMPLETED.toString().toLowerCase()))
 							process.setFinishDate(null);
 						processRepository.save(p);
-						System.out.println("total time " + p.getTotalTime().toString());
 					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -620,15 +632,21 @@ public class ProcessController {
 					}
 					if (sectionFinded <= 0)
 						sections.add(task.getSection());
+					isTheFirstProcessTask = taskService.checkIfThisIsTheFirstTaskForProcess(task);
 				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
+				}
+				if(process != null) {
+					Task TaskWithMaxLevel = taskRepository.getLastTaskWithMaxPriorityLevel(process.getId());
+					if(TaskWithMaxLevel != null && TaskWithMaxLevel.getPriorityLevel() != null)
+						maxPriorityLevel = TaskWithMaxLevel.getPriorityLevel();
 				}
 			}
 		} catch (Exception e) {
 			model.addAttribute("errorMsg", "Opération échouée, veuillez recommncer !");
 			e.printStackTrace();
 		}
-		// filter tasks to limite chirlds on 2 (for yes condition and no conditons)
+		// filter tasks to limite chirlds on 2 (for yes and no conditions)
 		if (tasks != null && !tasks.isEmpty()) {
 			try {
 				Task currentTask = task;
@@ -642,6 +660,8 @@ public class ProcessController {
 		model.addAttribute("tasks", tasks);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
+		model.addAttribute("maxPriorityLevel", maxPriorityLevel);
+		model.addAttribute("isTheFirstProcessTask", isTheFirstProcessTask);
 		model.addAttribute("process", process);
 		return "task";
 	}
@@ -796,6 +816,8 @@ public class ProcessController {
 						}
 						// end setting start task date
 						if (taskRepository.save(dbTask) != null) {
+							// notify childs tasks if is task lunching
+							taskService.notifyChilrdIfThisParentTaskIsLunched(dbTask);
 							try {
 								process = dbTask.getSection().getProcess();
 								sections = process.getSections();
@@ -828,7 +850,6 @@ public class ProcessController {
 												.equals(TaskStatus.COMPLETED.toString().toLowerCase()))
 									process.setFinishDate(null);
 								processRepository.save(process);
-								System.out.println("total time " + process.getTotalTime().toString());
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();

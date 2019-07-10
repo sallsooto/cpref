@@ -81,6 +81,8 @@
 									<tr>
 										<th class="text-left pl-3">Nom de la tâche</th>
 										<th class="text-center">Description</th>
+										<th  class="text-center">Libellé du process</th>
+										<th class="text-center">Niveau de priorité</th>
 										<th class="text-center">STATUS</th>
 									</tr>
 								</thead>
@@ -93,6 +95,8 @@
 											<a data-ng-if="task.dbFileDescription != null" th:href="@{/Task/File/Description/Show/{{task.id}}}" 
 											   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file-pdf"></i></a>
 										</td>
+										<td class="text-center">{{replaceWithNullOrBlank(task.processLabel,"Introuvable")}}</td>
+										<td class="text-center">Niveau {{replaceWithNullOrBlank(task.priorityLevel,"1")}}</td>
 										<td class="text-center">
 											<a data-ng-if="task.processLunched && task.startAt != null && task.status == 'started'" href="#" title="Marquez comme traitement fini"
 												data-ng-class="{'d-none' : task.status != 'started'}"
@@ -112,10 +116,11 @@
 											<small data-ng-if="task.processLunched && (task.startAt == null || task.status == 'valid')" class="text-danger">Tâche non démarrée !</small>
 											<small data-ng-if="!task.processLunched" class="text-danger">Process non démarré !</small>
 											<!-- validate status control -->
-											<span data-ng-if="task.status == 'completed' || task.status == 'canceled'">
-												<small data-ng-if="task.status == 'completed'" class="badge badge-danger cursor-pointer ml-2"
+											<span data-ng-if="task.status == 'completed'">
+												<small class="badge badge-danger cursor-pointer ml-2"
 												       title="Relancez le traitement" data-ng-click="relunchTask(task.id);">Relancer</small>
 											</span>
+											<span data-ng-if="task.status == 'canceled'" class="text-danger"> Tâche annulée</span>
 											<!-- validate status control -->
 											<!-- <div data-ng-if="task.processLunched && task.status == 'valid' && task.processExpired" class="d-inline-block text-right">
 												<small>Justifications({{task.justifications.length}})</small>

@@ -8,11 +8,15 @@ import org.springframework.stereotype.Service;
 
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.model.Task;
+import sn.cperf.util.NotificationType;
+import sn.cperf.util.TaskStatus;
 
 @Service
 public class TaskServiceImpl implements TaskService {
 	@Autowired
 	TaskRepository taskRepository;
+	@Autowired
+	NotificationService notifyService;
 
 	@Override
 	public Task normalizechirldTasksConditions(Task task) {
@@ -61,6 +65,40 @@ public class TaskServiceImpl implements TaskService {
 		} catch (Exception e) {
 		}
 		return false;
+	}
+
+	@Override
+	public void notifyChilrdIfThisParentTaskIsLunched(Task parent) {
+		if (parent != null) {
+			try {
+				List<Task> chilrds = taskRepository.findByParent(parent);
+				if (chilrds != null && !chilrds.isEmpty()) {
+					String taskSatus = parent.getStatus().toLowerCase().trim()
+							.equals(TaskStatus.STARTED.toString().toLowerCase().trim()) ? "relanceé"
+									: parent.getStatus().toLowerCase().trim().equals(
+											TaskStatus.CANCELED.toString().toLowerCase().trim()) ? "annulée"
+													: parent.getStatus().toLowerCase().trim().equals(
+															TaskStatus.VALID.toString().toLowerCase().trim()) ? "réinitialisée" : null;
+					if (taskSatus != null) {
+						for (Task chirld : chilrds) {
+							try {
+								if (chirld.getStatus().toLowerCase().trim()
+										.equals(TaskStatus.COMPLETED.toString().toLowerCase().trim())) {
+									notifyService.notify("Tâche précédante " + taskSatus,
+											"La tâche " + parent.getName() + " qui précède votre tâche "
+													+ chirld.getName() + " a été " + taskSatus,
+											NotificationType.INFO.toString(), "/Task/", chirld.getAllUsers(), null);
+								}
+							} catch (Exception e) {
+								e.getSuppressed();
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 }

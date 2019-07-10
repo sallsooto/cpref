@@ -109,7 +109,7 @@
 											<thead>
 												<tr class="bg-info text-light pt-0 pb-0">
 													<th>Nom de la tâche</th><th>Status</th><th>Tâche précédente</th>
-													<th>Utilisateurs assosiés</th><th>Groupe assosié</th><th>Action</th>
+													<th>Priorité</th><th>Utilisateurs assosiés</th><th>Groupe assosié</th><th>Action</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -119,6 +119,7 @@
 														<span th:text="${(task.status == 'valid') ? 'Non démarrée' : (task.status == 'started') ? 'Démarrée et non terminée' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}" th:id="${'textStausContainer'+task.id}"></span>
 													</td>
 													<td th:text="${task.parent != null ? task.parent.name : 'Aucne'}"></td>
+													<td class="text-center" th:text="${task.priorityLevel != null ? 'Niveau '+task.priorityLevel : 'Niveau 1'}"></td>
 													<td>
 														<div th:if="${task.AllUsers.size()>0}">
 															<span th:each="user : ${task.AllUsers}" th:text="${user.firstname + ' '+user.lastname + ' ;  '}"></span>

@@ -87,6 +87,7 @@ public class Task implements Serializable{
 	@Column(columnDefinition="boolean default true")
 	private boolean yesCondition=true;
 	private String textCondition;
+	private Integer priorityLevel=1;
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="validator_id")
 	@JsonManagedReference
@@ -153,6 +154,11 @@ public class Task implements Serializable{
 	public Long getProcessId() {
 		if(this.getSection() != null && this.getSection().getProcess() != null)
 			return this.getSection().getProcess().getId();
+		return null;
+	}
+	public String getProcessLabel() {
+		if(this.getSection() != null && this.getSection().getProcess() != null)
+			return this.getSection().getProcess().getLabel();
 		return null;
 	}
 	

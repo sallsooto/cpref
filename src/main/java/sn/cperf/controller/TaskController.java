@@ -2,6 +2,7 @@ package sn.cperf.controller;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
 import sn.cperf.service.ProcessService;
 import sn.cperf.service.StorageService;
+import sn.cperf.service.TaskService;
 import sn.cperf.util.NotificationType;
 import sn.cperf.util.TaskStatus;
 
@@ -62,6 +64,7 @@ public class TaskController {
 	@Autowired GroupRepository groupRepository;
 	@Autowired ProcessSectionRepository processSectionRepository;
 	@Autowired ProcessService processService;
+	@Autowired TaskService taskService;
 	@GetMapping("/")
 	public String getListTaskView(Model model) {
 		User loged =  cperfService.getLoged();
@@ -395,10 +398,38 @@ public class TaskController {
 			  return "logigramme_with_raphael :: #taskForm";
 		  }
 		} catch (Exception e) {
-			System.err.println("un exception ici");
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	@GetMapping("/loadTasksChronoData")
+	@ResponseBody
+	public Map<String,Object> LoadTaskInModel(@RequestParam("tid") Long taskId) {
+		Map<String, Object> datas = new HashMap<>();
+		String startAt = "";
+		String maxDate = "";
+		String finishAt = "";
+		boolean finishState = false;
+		try {
+			Task t = taskRepository.getOne(taskId);
+			if(t != null  && t.getStartAt() != null) {
+				SimpleDateFormat tf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+				startAt = tf.format(t.getStartAt());
+				maxDate = tf.format(t.getMaxDate());
+				if(t.getFinishAt() != null) {
+					finishState = true;
+					finishAt = tf.format(t.getFinishAt());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		datas.put("startAt", startAt);
+		datas.put("maxDate", maxDate);
+		datas.put("finishAt",finishAt);
+		datas.put("finishState", finishState);
+		return datas;
 	}
 	
 	@GetMapping("/relunchTask")
@@ -413,6 +444,8 @@ public class TaskController {
 			task.setFinishAt(null);
 			process.setFinishDate(null);
 			taskRepository.save(task);
+			// notify childs tasks if is task lunching
+			taskService.notifyChilrdIfThisParentTaskIsLunched(task);
 			processRepository.save(process);
 		} catch (Exception e) {
 			e.printStackTrace();

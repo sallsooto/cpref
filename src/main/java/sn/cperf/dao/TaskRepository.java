@@ -77,5 +77,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 			+ "INNER JOIN users as u ON ut.user_id=u.id INNER JOIN fonctions as f ON u.fonction_id=f.id WHERE f.id=:fonctionId", nativeQuery = true)
 	List<Task> getByActor(@Param("fonctionId") Long fonctionId);
 	List<Task> findByParent(Task parent);
-	
+	@Query(value="select t.* from tasks t "
+			+ "INNER JOIN process_sections ps ON t.section_id=ps.id "
+			+ "WHERE ps.process_id =:pid ORDER BY t.priority_level DESC LIMIT 0,1", nativeQuery=true)
+	Task getLastTaskWithMaxPriorityLevel(@Param("pid") Long processId);
 }

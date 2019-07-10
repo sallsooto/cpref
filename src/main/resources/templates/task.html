@@ -199,7 +199,7 @@
 											    </select>
 												 <label>Choisissez la tâche précédente</label>
 											</div>
-											<div class="form-group col-sm-12 col-md-6 input-field col s12">
+											<div class="form-group col-sm-12 col-md-6 pt-4 input-field col s12">
 												<div class="row">
 													<div class="col-sm-12 col-md-6"><label>Tâche liée à une condition</label></div>
 													<div class="col-sm-12 col-md-6">
@@ -214,7 +214,7 @@
 													</div>
 												</div>
 											</div>
-											<div th:class="${task.startConditional ? 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12' : 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12 d-none'}">
+											<div th:class="${task.startConditional ? 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12 pt-4' : 'form-group col-sm-12 col-md-6 input-field sectionGroupCondition col s12 d-none pt-4'}">
 												<div class="row">
 													<div class="col-sm-12 col-md-5"><label>Type de condition ?</label></div>
 													<div class="col-sm-12 col-md-7">
@@ -236,11 +236,18 @@
 												<div class="invalid-feedback">Donnez un text de la condition !</div>
 											</div>
 											<div class="form-group col-sm-12 col-md-6 input-field col s12" th:if="${tasks.size()>0}"> 
-												 <select th:field="*{lunchingByProcess}">
+												 <select th:field="*{lunchingByProcess}" class="lunchingByProcessElement">
 											      <option value="true">Démarre en même temps que le process</option>
 											      <option value="false">Attendre que la tâche précédente soit traitée</option>
 											    </select>
 												 <label>Condition de démarrage de la tâche</label>
+											</div>
+											<div class="form-group col-sm-12 col-md-6 input-field col s12 d-none levelPriorityContainer"
+											      th:if="${tasks.size()>0 and !isTheFirstProcessTask}"> 
+												 <select th:field="*{priorityLevel}">
+											      <option th:each="level: ${#numbers.sequence(1, maxPriorityLevel + 1)}" th:value="${level}" th:text="${'Niveau '+level}">Niveau</option>
+											    </select>
+												 <label>Niveau de priorité</label>
 											</div>
 											<div class="form-group col-sm-12 mb-0">
 												<button type="submit" class="btn btn-sm btn-outline-info float-right">Enregistrer</button>
@@ -282,6 +289,12 @@
 				showSectionGroupCondition();
 				$(".radioWithoutStartCondition, .radioWithStartCondition").on('click',function(){
 					showSectionGroupCondition();
+				});
+				
+				//showOrHideLevelPriorityContainer
+				showOrHideLevelPriorityContainer();
+				$(".lunchingByProcessElement").on('change', function(){
+					showOrHideLevelPriorityContainer();
 				});
 			});
 			
@@ -325,6 +338,16 @@
 					$(".descriptionTextContainer").removeClass("d-none");
 				}
 				
+			}
+		
+			function showOrHideLevelPriorityContainer(){
+				if($(".lunchingByProcessElement").val().length>0
+						&& ($(".lunchingByProcessElement").val() == true
+							|| $(".lunchingByProcessElement").val() =='true')){
+					$(".levelPriorityContainer").removeClass('d-none');
+				}else{
+					$(".levelPriorityContainer").addClass('d-none');
+				}
 			}
 		</script>
 		<script type="text/javascript" th:src="@{/js/profile.js}"></script>

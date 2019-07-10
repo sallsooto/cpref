@@ -14,11 +14,27 @@ $(document).ready(function(){
 //	 location.reload();
 // });
  // showing chrono
+ 
+ //for tasks variables
+ var start_tasks_actual_time_text =$("#taskStartAtContainer").val();
+ var end_tasks_actual_time_text=$("#taskMaxDateContainer").val();
+ var finish_tasks_actual_time_text = $("#taskFinishAtContainer").val();
+ 
+ // for process variables
  var start_actual_time_text =$("#startDateContainer").val();
  var end_actual_time_text=$("#endDateContainer").val();
- showChronos(start_actual_time_text,end_actual_time_text,'.chrono_span');
+ showChronos(start_actual_time_text,end_actual_time_text,'.chrono_span','.chrono_span_textSelector',"#isfinishContent");// for process
+ showChronos(start_tasks_actual_time_text,end_tasks_actual_time_text,'.task_chrono_span','.task_chrono_span_text',"#taskIsfinishContent"); // for tasks
+ showFinihedDifFinihedTaskTime(finish_tasks_actual_time_text,end_tasks_actual_time_text,".result_finish_task_container");
  setInterval(() => {
-	 showChronos(start_actual_time_text,end_actual_time_text,'.chrono_span');
+	 showChronos(start_actual_time_text,end_actual_time_text,'.chrono_span','.chrono_span_text',"#isfinishContent");// for process
+	 
+	 //for tasks variables
+	 var start_tasks_actual_time_text =$("#taskStartAtContainer").val();
+	 var end_tasks_actual_time_text=$("#taskMaxDateContainer").val();
+	 var finish_tasks_actual_time_text = $("#taskFinishAtContainer").val();
+	 showChronos(start_tasks_actual_time_text,end_tasks_actual_time_text,'.task_chrono_span','.task_chrono_span_text',"#taskIsfinishContent"); // for tasks
+	 showFinihedDifFinihedTaskTime(finish_tasks_actual_time_text,end_tasks_actual_time_text,".result_finish_task_container");
 }, 1000);
 // $('[data-toggle="tooltip"]').tooltip(
 //	        {container:'body', trigger: 'hover', placement:"bottom"});
@@ -137,8 +153,8 @@ function showTaskDetails(event, node) {
 	taskId = node.key.substring(1,node.key.length);
 	taskId = parseInt(taskId,10);
 	laodTaskInView(taskId);
-  }
-function showChronos(start_actual_time_text,end_actual_time_text,chronoContainerSelector){
+}
+function showChronos(start_actual_time_text,end_actual_time_text,chronoContainerSelector,chrono_span_textSelector,isfinishContentSelector){
 	var chronoContainer = $(chronoContainerSelector);
 	if(typeof start_actual_time_text != typeof undefined && end_actual_time_text.length>0){
 		var start_actual_time = new Date(start_actual_time_text);
@@ -147,7 +163,7 @@ function showChronos(start_actual_time_text,end_actual_time_text,chronoContainer
 		var current_seondes = current_time.getSeconds();
 		start_actual_time.setSeconds(current_seondes);
 		end_actual_time.setSeconds(current_seondes);
-		var isFinish = $("#isfinishContent").val();
+		var isFinish = $(isfinishContentSelector).val();
 		var expiredDate = false;
 		if(end_actual_time - current_time <0){
 			start_actual_time = end_actual_time;
@@ -172,21 +188,45 @@ function showChronos(start_actual_time_text,end_actual_time_text,chronoContainer
 		if(typeof chronoContainer != typeof undefined && chronoContainer.length>0){
 			if(isFinish == true || isFinish=='true'){
 				chronoContainer.addClass('badge-dafault').html("<i class='fas fa-check-circle fa-lg text-success'><i/>");
-				$(".chrono_span_text").addClass('text-secndary font-weight-bold').text("Traité");
+				$(chrono_span_textSelector).addClass('text-secndary font-weight-bold').text("Traité");
 			}else{
 				chronoContainer.text(formatted);
 				if(expiredDate){
 					chronoContainer.removeClass('badge-success').removeClass("badge-info").addClass('badge-danger');
-					$(".chrono_span_text").removeClass('text-success').removeClass("text-info").addClass('text-danger').text(chono_text);
+					$(chrono_span_textSelector).removeClass('text-success').removeClass("text-info").addClass('text-danger').text(chono_text);
 				}else{
 					chronoContainer.removeClass('badge-danger').removeClass("badge-info").addClass('badge-success');
-					$(".chrono_span_text").removeClass('text-danger').removeClass("text-info").addClass('text-success').text(chono_text);
+					$(chrono_span_textSelector).removeClass('text-danger').removeClass("text-info").addClass('text-success').text(chono_text);
 				}
 			}
 		}
 	}else{
 		chronoContainer.addClass('badge-dafault').html("<i class='fas fa-stop fa-lg text-danger'><i/>");
-		$(".chrono_span_text").addClass('text-secndary font-weight-bold').text("Non démmaré");
+		$(chrono_span_textSelector).addClass('text-secndary font-weight-bold').text("Non démmaré");
+	}
+}
+
+function showFinihedDifFinihedTaskTime(finish_time_text, max_time_text, result_textContainer_selector){
+	if(typeof finish_time_text != typeof undefined && finish_time_text.length>0 && typeof max_time_text != typeof undefined && max_time_text.length>0){
+		var finish_time = new Date(finish_time_text);
+		var max_time = new Date(max_time_text);
+	   // var start_actual_time = (start_actual_time-new Date() >0) ? new Date() : start_actual_time;
+		var finalText = "";
+		var diff = max_time - finish_time;
+		finishedLate = (diff >=0) ? false : true;
+		var diffSeconds = diff/1000;
+		var JJ = Math.floor(diffSeconds/86400);
+		var HH = Math.floor(diffSeconds/3600);
+		var MM = Math.floor(diffSeconds%3600)/60;
+		HH = (HH<0)? (HH*(-1)) : HH;
+		MM = MM.toFixed(0);
+		var formatted = ((Math.abs(HH) < 10)?("0" + Math.abs(HH)):Math.abs(HH)) + "h et " + ((Math.abs(MM) < 10)?("0" + Math.abs(MM)+"mm"):Math.abs(MM) + "mm");
+		formatted =  !finishedLate ? formatted +" gangé(s)" : formatted + " dépassé(s)";
+		if(finishedLate)
+			$(result_textContainer_selector).removeClass('text-info').addClass('text-warning');
+		else
+			$(result_textContainer_selector).removeClass('text-warning').addClass('text-info');
+		$(result_textContainer_selector).text(formatted);
 	}
 }
 
@@ -441,6 +481,7 @@ function init() {
 
 /** all form task utils fonctions **/
 function laodTaskInView(taskId){
+	loadTasksChronoData(taskId);
 	if(typeof errorMsg === typeof undefined || errorMsg.length<=0)
 		errorMsg = "";
 	if(typeof successMsg === typeof undefined || successMsg.length<=0 )
@@ -453,14 +494,34 @@ function laodTaskInView(taskId){
 				$("#taskContent").html(res);
 				$("#takmodal").modal('show');
 			}
-//			$("#taskContent").hide().removeClass('d-none').slideDown();
-			console.log(res);
+			
+		 var start_tasks_actual_time_text =$("#taskStartAtContainer").val();
+		 var end_tasks_actual_time_text=$("#taskMaxDateContainer").val();
+		 var finish_tasks_actual_time_text = $("#taskFinishAtContainer").val();
+		 showChronos(start_tasks_actual_time_text,end_tasks_actual_time_text,'.task_chrono_span','.task_chrono_span_text',"#taskIsfinishContent"); // for tasks
+		 showFinihedDifFinihedTaskTime(finish_tasks_actual_time_text,end_tasks_actual_time_text,".result_finish_task_container");
 		},
 		error : function(e){
 			console.log(e);
 		}
 	});
 };
+
+function loadTasksChronoData(taskId){
+	$.ajax({
+		url : '/Task/loadTasksChronoData?tid='+taskId,
+		method : 'get',
+		success : function(res){
+			$("#taskStartAtContainer").val(res.startAt);
+			$("#taskMaxDateContainer").val(res.maxDate);
+			$("#taskFinishAtContainer").val(res.finishAt);
+			$("#taskIsfinishContent").val(res.finishState);
+		},
+		error : function(e){
+			console.log(e);
+		}
+	});
+}
 
 function chowgroupOrUserSection(){
 	if($(".radioSectionWithGroup").is(":checked")){

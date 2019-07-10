@@ -64,9 +64,15 @@
 										<small class="chrono_span_text"></small>
 								</div>
 							</div>
+							<!-- necessary process chrono fields vaues container -->
 							<input type="hidden" th:value="${#dates.format(process.startAt, 'yyyy-MM-dd HH:mm')}" id="startDateContainer"/>
 							<input type="hidden" th:value="${#dates.format(process.maxDate, 'yyyy-MM-dd HH:mm')}" id="endDateContainer"/>
 							<input type="hidden" th:value="${process.isFinished}" id="isfinishContent"/>
+							<!-- necessary tasks chrono fields values container -->
+							<input type="hidden" th:value="${(task != null and task.startAt != null ) ? #dates.format(task.startAt, 'yyyy-MM-dd HH:mm') : '' }" id="taskStartAtContainer"/>
+							<input type="hidden" th:value="${(task != null and task.startAt != null ) ? #dates.format(task.maxDate, 'yyyy-MM-dd HH:mm') : ''}" id="taskMaxDateContainer"/>
+							<input type="hidden" th:value="${(task != null and task.finishAt != null ) ? #dates.format(task.finishAt, 'yyyy-MM-dd HH:mm') : '' }" id="taskFinishAtContainer"/>
+							<input type="hidden" th:value="${task != null and task.finishAt != null ? true : 'false'}" id="taskIsfinishContent"/>
 						</th>
 					</tr>
 				</thead>
