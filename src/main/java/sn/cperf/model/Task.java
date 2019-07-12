@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -92,6 +94,13 @@ public class Task implements Serializable{
 	@JoinColumn(name="validator_id")
 	@JsonManagedReference
 	private User validator;
+	@ManyToMany(fetch=FetchType.LAZY)
+	@JoinTable(name="tasks_calendars",
+		joinColumns= {@JoinColumn(name="task_id")}, 
+		inverseJoinColumns= {@JoinColumn(name="calendar_id")}
+	)
+	@JsonManagedReference
+	private List<WorkCalendar> daysWorkTimes;
 	@ManyToMany(cascade=CascadeType.PERSIST, fetch=FetchType.LAZY)
 	@JoinTable(name="users_tasks",
 		joinColumns = {@JoinColumn(name="task_id")},
@@ -164,6 +173,7 @@ public class Task implements Serializable{
 	
     public Date getMaxDate() {
 		Calendar calendar = Calendar.getInstance();
+		Calendar currentCalendar = calendar;
     	if(startAt != null) {
     		calendar.setTime(startAt);
     		calendar.add(GregorianCalendar.YEAR,Math.abs(nbYears));
@@ -178,6 +188,39 @@ public class Task implements Serializable{
     		calendar.add(GregorianCalendar.HOUR,Math.abs(nbHours));
     		calendar.add(GregorianCalendar.MINUTE,Math.abs(nbMinuites));
     	}
+    	// adding no wroks time on max date currentCalendar
+//    	if(daysWorkTimes != null && !daysWorkTimes.isEmpty()) {
+//    		Map<Integer, WorkCalendar> dataCalendars = new HashMap<>();
+//    		daysWorkTimes.forEach(wc -> dataCalendars.put(wc.getDayIndex(), wc));
+//    		dataCalendars.forEach((key, value)->{
+//    			if(currentCalendar.before(calendar) || currentCalendar.equals(calendar)) {
+//    				WorkCalendar day = dataCalendars.get(currentCalendar.get(Calendar.DAY_OF_WEEK));
+//    				if(day != null && !day.isFreeDay()) {
+//    					Calendar calculateCalander = currentCalendar;
+//    					if(day.getStartHour() != null) {
+//        					calculateCalander.set(Calendar.HOUR, day.getStartHour());
+//        					if(day.getStartMinutes() != null)
+//            					calculateCalander.set(Calendar.MINUTE, day.getStartMinutes());
+//        					if(day.getWorkHours() != null)
+//            					calculateCalander.set(Calendar.HOUR, Math.abs(24-day.getWorkHours()));
+//        					if(day.getPauseHours() != null)
+//            					calculateCalander.set(Calendar.HOUR, Math.abs(24-day.getPauseHours()));
+//        					if(day.getWorkMinutes() != null)
+//            					calculateCalander.set(Calendar.MINUTE, Math.abs(60-day.getWorkMinutes()));
+//        					if(day.getPauseMinutes() != null)
+//            					calculateCalander.set(Calendar.MINUTE, Math.abs(60-day.getPauseMinutes()));
+//        					currentCalendar.set(Calendar.HOUR, calculateCalander.get(Calendar.HOUR));
+//        					currentCalendar.set(Calendar.MINUTE, calculateCalander.get(Calendar.MINUTE));
+//    					}
+//    				}
+//					currentCalendar.set(Calendar.DATE, 1);
+//    				
+//    			}
+//    			if(!currentCalendar.equals(calendar)) {
+//    				calendar.set(Calendar.MINUTE, currentCalendar.get(Calendar.MINUTE));
+//    			}
+//    		});
+//    	}
     	return calendar.getTime();
     }
     

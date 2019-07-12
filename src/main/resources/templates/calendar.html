@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/martial.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Calendirier de travail</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Calendirer général de travail')"></div>
+		<!-- row content -->
+		<div class="row">
+			<div class="col-sm-12 col-md-12">
+				<div class="card  border-info">
+					<div class="card-header pb-0 bg-info">
+						<h5 class="text-light">Paramêtrez le nombre d'heures et minutes de travail et de pause de chaque jour de la semaine</h5>
+					</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-sm-12 col-md-4 col-lg-2 border-right">
+								<form th:action="@{/WorkCalendar/(wcid=${wcid})}" th:object="${workCalendar}" method="post" class="row">
+									<input type="hidden" th:value="*{id}"/>
+									<div class="form-group col-sm-12 text-right" th:if="${workCalendar.id != null}">
+										<a th:href="@{/WorkCalendar/}" title="Actualiser"><i class="fas fa-sync-alt"></i></a>
+									</div>
+									<div class="form-group col col-sm-12 input-field">
+										<select th:field="*{dayIndex}">
+											<option value="2">Lundi</option>
+											<option value="3">Mardi</option>
+											<option value="4">Mercredi</option>
+											<option value="5">Jeudi</option>
+											<option value="6">Vandredi</option>
+											<option value="7">Samedi</option>
+											<option value="1">Dimanche</option>
+										</select>
+										<label class="">Jour de la semaine</label>
+									</div>
+									<div class="form-group col col-sm-12 mt-0">
+										<label class="d-block font-weight-bold text-center">Heure de comencement de travail</label>
+									</div>
+									<div class="form-group col col-sm-12 input-field">
+									    <div class="row">
+									    	<div class="col-sm-6">
+												<select th:field="*{startHour}">
+													<option value="">--</option>
+													<option th:each="h :${#numbers.sequence(7,23)}" th:value="${h}" th:text="${h < 10 ? '0'+h+'h' : h+'h'}">07h</option>
+													<option th:each="h :${#numbers.sequence(0,6)}" th:value="${h}" th:text="${h < 10 ? '0'+h+'h' : h+'h'}">00h</option>
+												</select>
+												<label class="">heure</label>
+									    	</div>
+									    	<div class="col-sm-6">
+												<select th:field="*{startMinutes}">
+													<option value="">--</option>
+													<option th:each="m :${#numbers.sequence(0,59)}" th:value="${m}" th:text="${m < 10 ? '0'+m+'mm' : m+'mm'}">07h</option>
+												</select>
+												<label class="">Minutes</label>
+									    	</div>
+									    </div>
+									</div>
+									<div class="form-group col-sm-12">
+										<small>Nombre d'heure et miniute de travail</small>
+										<div class="row mt-0">
+											<div class="col-sm-6 input-field col mt-0">
+												<input type="number" step="0" min="0"  max="24" th:field="*{workHours}" placeholder="hh"/>
+											</div>
+											<div class="col-sm-6  input-field col mt-0">
+												<input type="number" step="0" min="0" max="60" th:field="*{workMinutes}" placeholder="mm"/>
+											</div>
+										</div>
+									</div>
+									<div class="form-group col-sm-12">
+										<small>Nombre d'heure et miniute de pause</small>
+										<div class="row  mt-0">
+											<div class="col-sm-6 input-field col mt-0">
+												<input type="number" step="0" min="0" max="24" th:field="*{pauseHours}" placeholder="hh"/>
+											</div>
+											<div class="col-sm-6  input-field col mt-0">
+												<input type="number" step="0" min="0" max="60" th:field="*{pauseMinutes}" placeholder="mm"/>
+											</div>
+										</div>
+									</div>
+									<div class="form-group col-sm-12">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm" th:text="${workCalendar.id != null ? 'Modifier' : 'Enregistrer'}">Valider</button>
+									</div>
+								</form>
+							</div>
+							<div class="col-sm-12 col-md-8 col-lg-10 border-left">
+								<div class="row">
+									<div th:if="${errorMsg}" class="col-sm-12">
+										<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+									</div>
+									<div th:if="${successMsg}" class="col-sm-12"> 
+										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+									</div>
+									<div th:if="${calendars != null and calendars.size()>0}" class="col-sm-12">
+										<table class="table table-sm table-responsive-sm table-hover">
+											<thead>
+												<tr>
+													<th class="text-info">Jour de la semaine</th><th class="text-center">Heure commencement de travail</th>
+													<th class="text-center text-info">Nombre d'heures et minutes de travail</th>
+													<th class="text-center text-info">Nombre d'heures et minutes de pause</th><th class="text-center text-info">Jour férié</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr th:each="cl : ${calendars}">
+													<td class="text-capilize" th:text="${cl.dayName}"></td>
+													<td class="text-center">
+														<span th:text="${cl.startHour == null ? '--' : (cl.startHour > 10) ? cl.startHour + 'h' : '0'+cl.startHour+'h' }"></span>
+														<span th:text="${cl.startMinutes == null ? '--' : (cl.startMinutes > 10) ? cl.startMinutes : '0'+cl.startMinutes}"></span>
+													</td>
+													<td class="text-center" th:text="${cl.workHours + ' heure(s) et '+cl.workMinutes+ ' minute(s)'}"></td>
+													<td class="text-center" th:text="${cl.pauseHours + ' heure(s) et '+cl.pauseMinutes+ ' minute(s)'}"></td>
+													<td class="text-center">
+													  <div class="switch d-inline-block">
+													    <label>
+													      <input type="checkbox" th:checked="${cl.freeDay}" th:data-calendarId="${cl.id}" class="swithStatInput">
+													      <span class="lever"></span>
+													       <small th:class="${'statusTextContent'+cl.id}" th:text="${cl.freeDay? 'Oui' : 'Non'}">Non</small>
+													    </label>
+													  </div>
+													  <a th:href="@{/WorkCalendar/(wcid=${cl.id})}" class="fa_table_link ml-2 border-left pl-2" title="modifier">
+													  	<i class="fas fa-edit"></i>
+													  </a>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript">
+			$(document).ready(function(){
+				$(".swithStatInput").on('click',function(){
+					var calanderId = $(this).attr('data-calendarId');
+					var textContainerClassNameSelector = ".statusTextContent"+calanderId;
+					$.ajax({
+						url : '/WorkCalendar/changeFreeDayStatus/?wcid='+calanderId+'&status='+$(this).is(':checked'),
+						method : 'get',
+						contentType : 'json',
+						success : function(res){
+							if(res.status == true){
+								console.log()
+								$(textContainerClassNameSelector).text(res.msg);
+							}
+						},
+						error : function(e){
+							console.log(e);
+						}
+					});
+				});
+			});
+		</script>
+	</div>
+</body>
+</html>

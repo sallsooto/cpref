@@ -36,6 +36,7 @@ import sn.cperf.dao.ProcessRepository;
 import sn.cperf.dao.ProcessSectionRepository;
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.UserRepository;
+import sn.cperf.dao.WorkCalendarRepository;
 import sn.cperf.form.SectionForm;
 import sn.cperf.model.DBFile;
 import sn.cperf.model.Group;
@@ -45,6 +46,7 @@ import sn.cperf.model.ProcessSection;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
 import sn.cperf.model.User;
+import sn.cperf.model.WorkCalendar;
 import sn.cperf.service.CperfService;
 import sn.cperf.service.DBFileService;
 import sn.cperf.service.NotificationService;
@@ -90,6 +92,7 @@ public class ProcessController {
 	UserService userSservice;
 	@Autowired
 	TaskService taskService;
+	@Autowired WorkCalendarRepository workCalendarRepository;
 
 	@GetMapping("/Edit")
 	public String process(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
@@ -577,7 +580,13 @@ public class ProcessController {
 				// task
 				task = taskService.normalizechirldTasksConditions(task);
 
-				// en setting start task date
+				// affect calendar tasks on exist
+				 try {
+					List<WorkCalendar> calendars = workCalendarRepository.findAll();
+					 task.setDaysWorkTimes(calendars);
+				 } catch (Exception e1) {
+				 }
+				 // saving tasks
 				if (taskRepository.save(task) != null) {
 					model.addAttribute("task", task);
 					String successMsg = "";
