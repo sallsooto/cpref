@@ -17,7 +17,7 @@ import lombok.Setter;
 @Entity
 @Table(name="calendar")
 @NoArgsConstructor @AllArgsConstructor
-@Getter @Setter
+@Setter
 public class WorkCalendar implements Serializable{
 	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
@@ -33,4 +33,35 @@ public class WorkCalendar implements Serializable{
 	private Integer pauseMinutes;
 	@Column(columnDefinition="boolean default false")
 	private boolean freeDay = false;
+	public Long getId() {
+		return id;
+	}
+	public Integer getDayIndex() {
+		return dayIndex;
+	}
+	public String getDayName() {
+		return dayName;
+	}
+	public Integer getStartHour() {
+		
+		return startHour;
+	}
+	public Integer getStartMinutes() {
+		return startMinutes;
+	}
+	public Integer getWorkHours() {
+		return workHours != null ? workHours : 0;
+	}
+	public Integer getWorkMinutes() {
+		return workMinutes != null ? workMinutes : 0;
+	}
+	public Integer getPauseHours() {
+		return pauseHours != null ? pauseHours : 0;
+	}
+	public Integer getPauseMinutes() {
+		return pauseMinutes != null ? pauseMinutes : 0;
+	}
+	public boolean isFreeDay() {
+		return freeDay;
+	}
 }
