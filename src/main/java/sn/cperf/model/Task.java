@@ -81,8 +81,8 @@ public class Task implements Serializable {
 	private int nbHours = 1;
 	@Column(columnDefinition = "int(11) default 0")
 	private int nbMinuites = 0;
-	@Column(columnDefinition = "boolean default true")
-	private boolean maxTimeWithUnWorkTime = true;
+	@Column(columnDefinition = "boolean default false")
+	private boolean maxTimeWithUnWorkTime = false;
 	@Column(columnDefinition = "boolean default true")
 	private boolean statusValid = true;
 	@Column(columnDefinition = "boolean default true")
