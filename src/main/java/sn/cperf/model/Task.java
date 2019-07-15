@@ -82,6 +82,8 @@ public class Task implements Serializable {
 	@Column(columnDefinition = "int(11) default 0")
 	private int nbMinuites = 0;
 	@Column(columnDefinition = "boolean default true")
+	private boolean maxTimeWithUnWorkTime = true;
+	@Column(columnDefinition = "boolean default true")
 	private boolean statusValid = true;
 	@Column(columnDefinition = "boolean default true")
 	private boolean lunchingByProcess = true;
@@ -190,7 +192,9 @@ public class Task implements Serializable {
 			calendar.add(GregorianCalendar.HOUR, Math.abs(nbHours));
 			calendar.add(GregorianCalendar.MINUTE, Math.abs(nbMinuites));
 		}
-		return addUnWorkTimeOnMaxDate(calendar.getTime());
+		if(maxTimeWithUnWorkTime)
+			return addUnWorkTimeOnMaxDate(calendar.getTime());
+		return calendar.getTime();
 	}
 
 	public boolean isFinishedLate() {
@@ -203,11 +207,9 @@ public class Task implements Serializable {
 	}
 
 	private Date addUnWorkTimeOnMaxDate(Date endDate) {
-		System.err.println(" je suis un fichofu");
 		// adding no wroks time on max date currentCalendar
 		Date startDate = new Date();
-		if (startDate != null && endDate != null 
-			&& (endDate.compareTo(startDate)>=0)
+		if (endDate != null && (endDate.compareTo(startDate)>=0)
 				&& daysWorkTimes != null && !daysWorkTimes.isEmpty()) {
 			int addMinutes = 0;
 			Calendar startCalendar = Calendar.getInstance();
@@ -218,8 +220,7 @@ public class Task implements Serializable {
 			daysWorkTimes.forEach(wc -> dataCalendars.put(wc.getDayIndex(), wc));
 			while (endCalendar.getTime().compareTo(startCalendar.getTime()) >=0) {
 				WorkCalendar wc = dataCalendars.get(startCalendar.get(Calendar.DAY_OF_WEEK));
-				System.err.println(wc.getDayName() + " "+wc.getDayIndex());
-					addMinutes = addMinutes + getUnWorkSumMinutes(wc);
+					addMinutes = addMinutes + getUnWorkSumMinutes(wc,endDate);
 				startCalendar.add(Calendar.DATE, 1);
 			}
 			endCalendar.set(Calendar.MINUTE, endCalendar.get(Calendar.MINUTE) + addMinutes);
@@ -228,20 +229,33 @@ public class Task implements Serializable {
 		return endDate;
 	}
 
-	private int getUnWorkSumMinutes(WorkCalendar wc) {
+	private int getUnWorkSumMinutes(WorkCalendar wc,Date endDate) {
 		int wcTotalMinutes = 0;
 		if (wc != null) {
 			if(wc.isFreeDay() || wc.getStartHour() == null) {
 				wcTotalMinutes = wcTotalMinutes + (24*60);
 			}else {
-				if (wc.getWorkHours() != null && wc.getWorkHours() > 0)
-					wcTotalMinutes = wcTotalMinutes + Math.abs((24 * 60) - (wc.getWorkHours() * 60));
-				if (wc.getWorkMinutes() != null && wc.getWorkMinutes() > 0)
-					wcTotalMinutes = wcTotalMinutes - wc.getWorkMinutes();
-				if (wc.getPauseHours() != null && wc.getPauseHours() > 0)
-					wcTotalMinutes = wcTotalMinutes + (wc.getPauseHours() * 60);
-				if (wc.getPauseMinutes() != null && wc.getPauseMinutes() > 0)
-					wcTotalMinutes = wcTotalMinutes + wc.getWorkMinutes();
+				Calendar  currentCalendar = Calendar.getInstance();
+				Calendar  maxCalendar = Calendar.getInstance();
+				maxCalendar.setTime(endDate);
+				if(currentCalendar.get(Calendar.YEAR) == maxCalendar.get(Calendar.YEAR) 
+					&& currentCalendar.get(Calendar.MONTH) == maxCalendar.get(Calendar.MONTH) && 
+					currentCalendar.get(Calendar.DAY_OF_MONTH) == maxCalendar.get(Calendar.DAY_OF_MONTH)) {
+					currentCalendar.add(Calendar.HOUR, wc.getWorkHours());
+					currentCalendar.add(Calendar.MINUTE, wc.getWorkMinutes());
+					if(currentCalendar.get(Calendar.HOUR) < maxCalendar.get(Calendar.HOUR)) {
+						wcTotalMinutes = wcTotalMinutes + (wc.getPauseHours() * 60) + wc.getPauseMinutes();
+					}
+				}else {
+					if (wc.getWorkHours() != null && wc.getWorkHours() > 0)
+						wcTotalMinutes = wcTotalMinutes + Math.abs((24 * 60) - (wc.getWorkHours() * 60));
+					if (wc.getWorkMinutes() != null && wc.getWorkMinutes() > 0)
+						wcTotalMinutes = wcTotalMinutes - wc.getWorkMinutes();
+					if (wc.getPauseHours() != null && wc.getPauseHours() > 0)
+						wcTotalMinutes = wcTotalMinutes + (wc.getPauseHours() * 60);
+					if (wc.getPauseMinutes() != null && wc.getPauseMinutes() > 0)
+						wcTotalMinutes = wcTotalMinutes + wc.getWorkMinutes();
+				}
 			}
 		}
 		return wcTotalMinutes;
