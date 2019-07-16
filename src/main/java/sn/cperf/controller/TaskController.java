@@ -314,6 +314,8 @@ public class TaskController {
 					else {
 						task.setStartAt(null);
 					}
+					// affect calendar and holidays wtih task if exists
+					 try { task = taskService.associateCalanderAndHoildays(task);} catch (Exception e1) {}
 					// en setting start task date
 					if (taskRepository.save(task) != null) {
 						// finish process op

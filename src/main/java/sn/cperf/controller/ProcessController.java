@@ -485,7 +485,6 @@ public class ProcessController {
 							users = task.getUsers();
 						System.err.println("users " + task.getAllUsers().size());
 						if (!task.getAllUsers().contains(task.getValidator())) {
-							System.err.println("Validator " + task.getValidator().getFirstname());
 							users.add(task.getValidator());
 						}
 						task.setUsers(users);
@@ -580,12 +579,8 @@ public class ProcessController {
 				// task
 				task = taskService.normalizechirldTasksConditions(task);
 
-				// affect calendar tasks on exist
-				 try {
-					List<WorkCalendar> calendars = workCalendarRepository.findAll();
-					 task.setDaysWorkTimes(calendars);
-				 } catch (Exception e1) {
-				 }
+				// affect calendar and holidays wtih task if exists
+				 try { task = taskService.associateCalanderAndHoildays(task);} catch (Exception e1) {}
 				 // saving tasks
 				if (taskRepository.save(task) != null) {
 					model.addAttribute("task", task);
@@ -823,6 +818,9 @@ public class ProcessController {
 						} else {
 							dbTask.setStartAt(null);
 						}
+
+						// affect calendar and holidays wtih task if exists
+						 try { dbTask = taskService.associateCalanderAndHoildays(dbTask);} catch (Exception e1) {}
 						// end setting start task date
 						if (taskRepository.save(dbTask) != null) {
 							// notify childs tasks if is task lunching

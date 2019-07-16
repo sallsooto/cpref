@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layouts/main.html}">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<title>Calendirier de travail</title>
+</head>
+<body>
+	<div class="container-fluid" layout:fragment="content">
+		<!-- Page Heading -->
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Calendirer général de travail',heading_link='/WorkCalendar/',heading_link_text=' Voir le calendrier ',heading_ico='fas fa-calendar')"></div>
+		<!-- row content -->
+		<div class="row">
+			<div class="col-sm-12 col-md-12  col-lg-8 offset-lg-2">
+				<div class="card  border-info">
+					<div class="card-header pb-0 bg-info">
+						<h5 class="text-light">Paramêtrez les jours feriés</h5>
+					</div>
+					<div class="card-body">
+						<div class="row">
+							<div class="col-sm-12">
+								<form th:action="@{/WorkCalendar/holidays/(hid=${hid})}" th:object="${holiday}" method="post" class="row align-items-end">
+									<input type="hidden" th:value="*{id}"/>
+									<div class="form-group col-sm-12 text-right" th:if="${holiday.id != null}">
+										<a th:href="@{/WorkCalendar/holidays/}" title="Actualiser"><i class="fas fa-sync-alt"></i></a>
+									</div>
+									<div th:if="${errorMsg}" class="form-group col-sm-12">
+										<div class="text-center" th:replace="fragments/alert::flash-danger(body=${errorMsg})"></div>
+									</div>
+									<div th:if="${successMsg}" class="form-group col-sm-12"> 
+										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
+									</div>
+									<div class="form-group col-sm-12 col-md-5">
+										<label class="control-label" for="name">Nom de la fete</label>
+										<input type="text" class="form-control form-control-sm" th:field="*{name}" id="name" placeholder="Tappez le nom de la fete ici.."/>
+									</div>
+									<div class="form-group col-sm-12 col-md-5">
+										<label class="control-label" for="dte">Date du jour</label>
+										<input type="date" class="form-control form-control-sm" th:field="*{dte}" id="dte" placeholder="choissiez une de date.."/>
+									</div>
+									<div class="form-group col-sm-12 col-md-2">
+										<button type="submit" class="btn btn-sm btn-outline-info form-control form-control-sm" th:text="${holiday.id != null ? 'Modifier' : 'Enregistrer'}">Valider</button>
+									</div>
+								</form>
+							</div>
+							<div class="col-sm-12">
+								<div class="row">
+									<div th:if="${holidays != null and holidays.size()>0}" class="col-sm-12">
+										<table class="table table-sm table-responsive-sm table-hover">
+											<thead>
+												<tr>
+													<th class="text-info">Date du jour</th><th class="text-center text-info">Nom de la fete</th>
+													<th class="text-right text-info">Action</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr th:each="hd : ${holidays}">
+													<td class="" th:text="${#dates.format(hd.dte,'dd/MM/yyyy')}"></td>
+													<td class="text-center" th:text="${hd.name != null ? hd.name : '...'}"></td>
+													<td class="text-right">
+													  <a th:href="@{/WorkCalendar/holidays/(hid=${hd.id})}" class="fa_table_link ml-2 border-right pl-2" title="modifier">
+													  	<i class="fas fa-edit"></i>
+													  </a>
+													  <a th:href="@{/WorkCalendar/holidays/{hid}/del/(hid=${hd.id})}" class="fa_table_link ml-2 border-left pl-2" title="supprimer">
+													  	<i class="fas fa-trash-alt text-danger"></i>
+													  </a>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end row content -->
+	</div>
+	<div layout:fragment="addon-scripts-content"></div>
+</body>
+</html>

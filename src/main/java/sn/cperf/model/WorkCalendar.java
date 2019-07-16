@@ -31,8 +31,6 @@ public class WorkCalendar implements Serializable{
 	private Integer workMinutes;
 	private Integer pauseHours;
 	private Integer pauseMinutes;
-	@Column(columnDefinition="boolean default false")
-	private boolean freeDay = false;
 	public Long getId() {
 		return id;
 	}
@@ -60,8 +58,5 @@ public class WorkCalendar implements Serializable{
 	}
 	public Integer getPauseMinutes() {
 		return pauseMinutes != null ? pauseMinutes : 0;
-	}
-	public boolean isFreeDay() {
-		return freeDay;
 	}
 }

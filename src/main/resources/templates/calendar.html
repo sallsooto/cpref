@@ -15,7 +15,7 @@
 <body>
 	<div class="container-fluid" layout:fragment="content">
 		<!-- Page Heading -->
-		<div th:replace="fragments/main_content_heading::heading(heading_text='Calendirer général de travail')"></div>
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Calendirer général de travail',heading_link='/WorkCalendar/holidays/',heading_link_text=' Voir les jours feriés',heading_ico='fas fa-glass-cheers')"></div>
 		<!-- row content -->
 		<div class="row">
 			<div class="col-sm-12 col-md-12">
@@ -101,12 +101,12 @@
 										<div class="text-center" th:replace="fragments/alert::flash-success(body=${successMsg})"></div>
 									</div>
 									<div th:if="${calendars != null and calendars.size()>0}" class="col-sm-12">
-										<table class="table table-sm table-responsive-sm table-hover">
+										<table class="table table-responsive-sm table-hover">
 											<thead>
 												<tr>
 													<th class="text-info">Jour de la semaine</th><th class="text-center">Heure commencement de travail</th>
 													<th class="text-center text-info">Nombre d'heures et minutes de travail</th>
-													<th class="text-center text-info">Nombre d'heures et minutes de pause</th><th class="text-center text-info">Jour férié</th>
+													<th class="text-center text-info">Nombre d'heures et minutes de pause</th><th class="text-center text-info">Action</th>
 												</tr>
 											</thead>
 											<tbody>
@@ -119,13 +119,6 @@
 													<td class="text-center" th:text="${cl.workHours + ' heure(s) et '+cl.workMinutes+ ' minute(s)'}"></td>
 													<td class="text-center" th:text="${cl.pauseHours + ' heure(s) et '+cl.pauseMinutes+ ' minute(s)'}"></td>
 													<td class="text-center">
-													  <div class="switch d-inline-block">
-													    <label>
-													      <input type="checkbox" th:checked="${cl.freeDay}" th:data-calendarId="${cl.id}" class="swithStatInput">
-													      <span class="lever"></span>
-													       <small th:class="${'statusTextContent'+cl.id}" th:text="${cl.freeDay? 'Oui' : 'Non'}">Non</small>
-													    </label>
-													  </div>
 													  <a th:href="@{/WorkCalendar/(wcid=${cl.id})}" class="fa_table_link ml-2 border-left pl-2" title="modifier">
 													  	<i class="fas fa-edit"></i>
 													  </a>
@@ -143,29 +136,6 @@
 		</div>
 		<!-- end row content -->
 	</div>
-	<div layout:fragment="addon-scripts-content">
-		<script type="text/javascript">
-			$(document).ready(function(){
-				$(".swithStatInput").on('click',function(){
-					var calanderId = $(this).attr('data-calendarId');
-					var textContainerClassNameSelector = ".statusTextContent"+calanderId;
-					$.ajax({
-						url : '/WorkCalendar/changeFreeDayStatus/?wcid='+calanderId+'&status='+$(this).is(':checked'),
-						method : 'get',
-						contentType : 'json',
-						success : function(res){
-							if(res.status == true){
-								console.log()
-								$(textContainerClassNameSelector).text(res.msg);
-							}
-						},
-						error : function(e){
-							console.log(e);
-						}
-					});
-				});
-			});
-		</script>
-	</div>
+	<div layout:fragment="addon-scripts-content"></div>
 </body>
 </html>

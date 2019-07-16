@@ -1,7 +1,7 @@
 package sn.cperf.controller;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -14,12 +14,16 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
+import sn.cperf.dao.HolidayRepositoty;
+import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.WorkCalendarRepository;
+import sn.cperf.model.Holiday;
+import sn.cperf.model.Task;
 import sn.cperf.model.WorkCalendar;
 
 @Controller
@@ -27,6 +31,8 @@ import sn.cperf.model.WorkCalendar;
 @RequestMapping("/WorkCalendar")
 public class WorkCalendarController {
 	@Autowired WorkCalendarRepository wCalendarRepository;
+	@Autowired HolidayRepositoty holidayRepository;
+	@Autowired TaskRepository taskRepository;
 	@GetMapping("/")
 	public String index(@RequestParam(name="wcid", defaultValue="0") Long id, Model model) {
 		WorkCalendar workCalender = null;
@@ -87,11 +93,6 @@ public class WorkCalendarController {
 								if(workCalendar.getPauseMinutes()>60) {
 									model.addAttribute("errorMsg", "Le nombre de minutes de pause n'est pas valide !");
 								}else {
-									if(workCalendar.getWorkHours() == 0 && workCalendar.getWorkMinutes() == 0 
-											&& workCalendar.getPauseHours() ==0 && workCalendar.getPauseMinutes()==0)
-										workCalendar.setFreeDay(true);
-									else
-										workCalendar.setFreeDay(false);
 									if(workCalendar.getStartHour() != null && (workCalendar.getStartHour() < 0 || workCalendar.getStartHour()>23)) {
 										model.addAttribute("errorMsg", "L'heure de reprise du travail n'est pas valide !");
 									}else {
@@ -121,21 +122,80 @@ public class WorkCalendarController {
 		return "calendar";
 	}
 	
-	@GetMapping("/changeFreeDayStatus/")
-	@ResponseBody
-	public Map<String, Object> changeFreeDayStatus(@RequestParam("wcid") Long id, @RequestParam(name="status", defaultValue="false") boolean status) {
-		 Map<String, Object> data = new HashMap<String, Object>();
-		 data.put("msg", "Non");
-		 data.put("status", false);
-		 try {
-			WorkCalendar wc = wCalendarRepository.getOne(id);
-			 wc.setFreeDay(status);
-			 wCalendarRepository.save(wc);
-			 data.put("msg", wc.isFreeDay() ? "Oui": "Non");
-			 data.put("status", true);
+	@GetMapping("/holidays/")
+	public String getHolidays(@RequestParam(name="hid", defaultValue="0") Long holidayId, Model model) {
+		Holiday holiday = null;
+		if(holidayId != null && holidayId >0)
+			try {holiday = holidayRepository.getOne(holidayId);} catch (Exception e) {}
+		if(holiday == null)
+			holiday = new Holiday();
+		model.addAttribute("hid", holidayId);
+		model.addAttribute("holiday", holiday);
+		model.addAttribute("holidays", holidayRepository.findAll(Sort.by(Order.desc("id"))));
+		return "holidays";
+	}
+	
+	@PostMapping("/holidays/")
+	public String editHolidays(@Valid @ModelAttribute("holiday") Holiday holiday,BindingResult bind,
+			@RequestParam(name="hid", defaultValue="0") Long holidayId, Model model) {
+		if(!bind.hasErrors()) {
+			try {
+				if(holiday.getDte() != null) {
+					boolean isUpdateOp = false;
+					Holiday holidayDB = holidayRepository.findByDte(holiday.getDte());
+					if(holiday.getId() != null)
+						isUpdateOp = true;
+					if(holidayDB != null ) {
+						holiday.setDte(holidayDB.getDte());
+						holiday.setId(holidayDB.getId());
+					}
+					if(holidayRepository.save(holiday) != null) {
+						if(isUpdateOp)
+							model.addAttribute("successMsg", "Jour ferié modifié");
+						else
+							model.addAttribute("successMsg", "Jour ferié Enregistré");
+					}else {
+						model.addAttribute("errorMsg", "Donnée non enrégistrées, veuillez recommencez");
+					}
+				}else {
+					model.addAttribute("errorMsg", "La date du jour est obligatoire");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				model.addAttribute("errorMsg", "Opération échouée !");
+			}
+		}else {
+			bind.getAllErrors().forEach(e->System.err.println(e.getDefaultMessage()));
+			model.addAttribute("errorMsg", "Veuillez vérifier les données renseignées aux champs du formulaire!");
+		}
+		model.addAttribute("hid", holidayId);
+		model.addAttribute("holidays", holidayRepository.findAll(Sort.by(Order.desc("id"))));
+		return "holidays";
+	}
+	
+	@GetMapping("/holidays/{hid}/del/")
+	public String delHoliday(@PathVariable("hid") Long id) {
+		try {
+			Holiday holiday = holidayRepository.getOne(id);
+			// detaching holidays task
+			if(holiday.getTasks() != null) {
+				for(Task t : holiday.getTasks()) {
+					if(t.getHolidays() != null) {
+						List<Holiday> taskHolidays = new ArrayList<>();
+						for(Holiday h : t.getHolidays()) {
+							if(h.getId() != holiday.getId())
+								taskHolidays.add(h);
+						}
+						t.setHolidays(taskHolidays);
+						taskRepository.save(t); 
+					}
+				}
+			}
+			// deleting holiday
+			holidayRepository.delete(holiday);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		 return data;
+		return "redirect:/WorkCalendar/holidays/";
 	}
 }

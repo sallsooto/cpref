@@ -1,12 +1,15 @@
 package sn.cperf.service;
 
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import sn.cperf.dao.HolidayRepositoty;
 import sn.cperf.dao.TaskRepository;
+import sn.cperf.dao.WorkCalendarRepository;
 import sn.cperf.model.Task;
 import sn.cperf.util.NotificationType;
 import sn.cperf.util.TaskStatus;
@@ -17,6 +20,8 @@ public class TaskServiceImpl implements TaskService {
 	TaskRepository taskRepository;
 	@Autowired
 	NotificationService notifyService;
+	@Autowired WorkCalendarRepository workCalendarRepository;
+	@Autowired HolidayRepositoty holidayRepository;
 
 	@Override
 	public Task normalizechirldTasksConditions(Task task) {
@@ -101,4 +106,19 @@ public class TaskServiceImpl implements TaskService {
 		}
 	}
 
+	@Override
+	public Task associateCalanderAndHoildays(Task task) {
+		if(task != null) {
+			try {
+				task.setDaysWorkTimes(workCalendarRepository.findAll());
+				Calendar calendar = Calendar.getInstance();
+				if(task.getStartAt() != null)
+					calendar.setTime(task.getStartAt());
+				calendar.add(Calendar.DATE, -1);
+				task.setHolidays(holidayRepository.findByDteAfter(calendar.getTime()));
+			} catch (Exception e) {
+			}
+		}
+		return task;
+	}
 }

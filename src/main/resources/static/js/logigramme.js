@@ -181,7 +181,7 @@ function showChronos(start_actual_time_text,end_actual_time_text,chronoContainer
 		var MM = Math.floor(diffSeconds%3600)/60;
 		HH = (HH<0)? (HH*(-1)) : HH;
 		MM = MM.toFixed(0);
-		var formatted = ((Math.abs(HH) < 10)?("0" + Math.abs(HH)):Math.abs(HH)) + "h et " + ((Math.abs(MM) < 10)?("0" + Math.abs(MM)+"mm"):Math.abs(MM) + "mm");
+		var formatted = Math.abs(HH) + "h et " + Math.abs(MM) + "mm";
 		text_secondes = (expiredDate) ? current_seondes : (60-current_seondes);
 		formatted = formatted + " et " + text_secondes + " S";
 		var chono_text = (!expiredDate) ?  "Retante(s)" :  " dépassée(s)";
@@ -220,7 +220,7 @@ function showFinihedDifFinihedTaskTime(finish_time_text, max_time_text, result_t
 		var MM = Math.floor(diffSeconds%3600)/60;
 		HH = (HH<0)? (HH*(-1)) : HH;
 		MM = MM.toFixed(0);
-		var formatted = ((Math.abs(HH) < 10)?("0" + Math.abs(HH)):Math.abs(HH)) + "h et " + ((Math.abs(MM) < 10)?("0" + Math.abs(MM)+"mm"):Math.abs(MM) + "mm");
+		var formatted =Math.abs(HH) + "h et " + Math.abs(MM) + "mm";
 		formatted =  !finishedLate ? formatted +" gangé(s)" : formatted + " dépassé(s)";
 		if(finishedLate)
 			$(result_textContainer_selector).removeClass('text-info').addClass('text-warning');

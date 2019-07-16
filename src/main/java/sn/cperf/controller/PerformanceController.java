@@ -9,6 +9,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,16 +24,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import sn.cperf.dao.IndicateurRepository;
 import sn.cperf.dao.IndicatorDataCollectorRepository;
 import sn.cperf.dao.ObjectifRepository;
+import sn.cperf.dao.ProcessRepository;
+import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.TypeObjectifRepository;
 import sn.cperf.dao.UserRepository;
 import sn.cperf.model.Indicateur;
 import sn.cperf.model.IndicatorDataCollector;
 import sn.cperf.model.Objectif;
+import sn.cperf.model.Processus;
 import sn.cperf.model.TypeObjectif;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
 import sn.cperf.service.IndicatorService;
 import sn.cperf.util.IndicatorDataCollectorUtil;
+import sn.cperf.util.ProcessTasks;
 
 @Controller
 @RequestMapping("/Performance")
@@ -49,6 +56,8 @@ public class PerformanceController {
 	IndicatorDataCollectorRepository indicatorDataCollectorRepository;
 	@Autowired
 	IndicateurRepository indicateurRepository;
+	@Autowired ProcessRepository processRepository;
+	@Autowired TaskRepository taskRepository;
 
 	@GetMapping("/")
 	public String getPerfomanceView(@RequestParam(name = "uid", defaultValue = "0") Long userId, Model model) {
@@ -215,5 +224,19 @@ public class PerformanceController {
 	@ResponseBody
 	List<TypeObjectif> getTypesObjectifsJson(){
 		return typeObjectifRepository.findAll();
+	}
+	
+	@Secured(value= {"ROLE_admin"})
+	@GetMapping("/dynamic/")
+	public String getDynamicPerfomences(@RequestParam(name="startWith", defaultValue="p") String startWith, Model model) {
+		List<Processus> processes = processRepository.findAll(Sort.by(Order.desc("id")));
+		startWith = (startWith == null) ? "p" : startWith.toLowerCase().trim();
+		if(startWith.equals("g")) {
+			model.addAttribute("processes", processes);
+		}else {
+			model.addAttribute("processes", processes);
+		}
+		model.addAttribute("startWith", startWith);
+		return "performace_dynamic";
 	}
 }

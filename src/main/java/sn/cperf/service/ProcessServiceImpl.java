@@ -1,5 +1,6 @@
 package sn.cperf.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -57,5 +58,25 @@ public class ProcessServiceImpl implements ProcessService{
 		} catch (Exception e) {
 		}
 	  }
+	}
+	@Override
+	public List<Processus> getProcessForTasks(List<Task> tasks) {
+		List<Processus> processes = new ArrayList<>();
+		if(tasks != null && !tasks.isEmpty()) {
+			for(Task task : tasks) {
+				if(task.getSection() != null && task.getSection().getProcess() != null) {
+					int findedProcess = 0;
+					for(Processus p : processes) {
+						if(p.getId() == task.getProcessId()){
+							findedProcess++;
+							break;
+						}
+					}
+					if(findedProcess<=0)
+						processes.add(task.getSection().getProcess());
+				}
+			}
+		}
+		return processes;
 	}
 }

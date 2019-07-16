@@ -1,6 +1,8 @@
 package sn.cperf.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -219,5 +221,26 @@ public class Processus implements Serializable{
 			}
 		}
 		return noStartedTasks;
+	}
+	
+	public double getDynamicPerformance() {
+		double perfomence = 0;
+		List<Task> tasks = getTasks();
+		if(tasks != null && !tasks.isEmpty()) {
+		    double maxPercente = tasks.size() * 100;
+		    double realPercente = 0;
+		    for(Task t : tasks) {
+		    	realPercente = realPercente + t.getDynamicPerformance();
+		    }
+		    if(maxPercente > 0 && realPercente > 0) {
+		    	perfomence = (realPercente * 100)/ maxPercente;
+				// formattage du nombre 
+				BigDecimal bdec, bdec2;
+				bdec = new BigDecimal(Double.toString(perfomence));
+				bdec2 = bdec.setScale(2,RoundingMode.FLOOR);
+				perfomence = bdec2.doubleValue();
+		    }
+		}
+		return perfomence;
 	}
 }

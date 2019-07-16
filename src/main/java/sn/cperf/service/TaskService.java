@@ -6,4 +6,5 @@ public interface TaskService {
   public Task normalizechirldTasksConditions(Task task);
   public boolean checkIfThisIsTheFirstTaskForProcess(Task task);
   public void notifyChilrdIfThisParentTaskIsLunched(Task parent);
+  public Task associateCalanderAndHoildays(Task task);
 }

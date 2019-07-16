@@ -130,6 +130,8 @@
     	e.preventDefault(); 
     	showConfirmDialog($(this),"#modalConfirmDialog");
      });
+     
+     replaceElement("data-replace",".");
 })(jQuery);
 
 function seenAllUsersNotifications(url){
@@ -252,4 +254,13 @@ function showConfirmDialog(triggerElement,dialogElementSelector){
 		}
 		dialogElement.modal("show");
 	}
+};
+function replaceElement(triggerElementAttr, selectorSymbol){
+	$("*["+triggerElementAttr+"]").on('click',function(e){
+		cible  = $(selectorSymbol + $(this).attr(triggerElementAttr));
+		if(typeof cible !== typeof undefined && cible.length>0){
+			$(this).addClass('d-none');
+			cible.removeClass('d-none');
+		}
+	});
 };

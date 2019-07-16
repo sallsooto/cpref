@@ -105,6 +105,11 @@ public class Task implements Serializable {
 			@JoinColumn(name = "calendar_id") })
 	@JsonManagedReference
 	private List<WorkCalendar> daysWorkTimes;
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "tasks_holidays", joinColumns = { @JoinColumn(name = "task_id") }, inverseJoinColumns = {
+			@JoinColumn(name = "holiday_id") })
+	@JsonManagedReference
+	private List<Holiday> holidays;
 	@ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
 	@JoinTable(name = "users_tasks", joinColumns = { @JoinColumn(name = "task_id") }, inverseJoinColumns = {
 			@JoinColumn(name = "user_id") })
@@ -232,17 +237,24 @@ public class Task implements Serializable {
 	private int getUnWorkSumMinutes(WorkCalendar wc,Date endDate) {
 		int wcTotalMinutes = 0;
 		if (wc != null) {
-			if(wc.isFreeDay() || wc.getStartHour() == null) {
+			if(wc.getStartHour() == null) {
 				wcTotalMinutes = wcTotalMinutes + (24*60);
 			}else {
 				Calendar  currentCalendar = Calendar.getInstance();
 				Calendar  maxCalendar = Calendar.getInstance();
 				maxCalendar.setTime(endDate);
+				maxCalendar.add(Calendar.HOUR, wc.getWorkHours());
+				maxCalendar.add(Calendar.MINUTE, wc.getWorkMinutes());
+				maxCalendar.add(Calendar.HOUR, wc.getPauseHours());
+				maxCalendar.add(Calendar.MINUTE, wc.getPauseMinutes());
 				if(currentCalendar.get(Calendar.YEAR) == maxCalendar.get(Calendar.YEAR) 
 					&& currentCalendar.get(Calendar.MONTH) == maxCalendar.get(Calendar.MONTH) && 
-					currentCalendar.get(Calendar.DAY_OF_MONTH) == maxCalendar.get(Calendar.DAY_OF_MONTH)) {
-					currentCalendar.add(Calendar.HOUR, wc.getWorkHours());
-					currentCalendar.add(Calendar.MINUTE, wc.getWorkMinutes());
+					currentCalendar.get(Calendar.DAY_OF_MONTH) == maxCalendar.get(Calendar.DAY_OF_MONTH) && !isHoliday(currentCalendar.getTime())) {
+					 maxCalendar = Calendar.getInstance();
+					maxCalendar.add(Calendar.HOUR, wc.getWorkHours());
+					maxCalendar.add(Calendar.MINUTE, wc.getWorkMinutes());
+					maxCalendar.add(Calendar.HOUR, wc.getPauseHours());
+					maxCalendar.add(Calendar.MINUTE, wc.getPauseMinutes()); 
 					if(currentCalendar.get(Calendar.HOUR) < maxCalendar.get(Calendar.HOUR)) {
 						wcTotalMinutes = wcTotalMinutes + (wc.getPauseHours() * 60) + wc.getPauseMinutes();
 					}
@@ -260,4 +272,32 @@ public class Task implements Serializable {
 		}
 		return wcTotalMinutes;
 	}
+
+	private boolean isHoliday(Date date) {
+		if(this.getHolidays() != null && date != null) {
+			Calendar dateCalendar = Calendar.getInstance();
+			Calendar holidayCalendar = Calendar.getInstance();
+			dateCalendar.setTime(date);
+			for(Holiday holiday : this.getHolidays()) {
+				holidayCalendar.setTime(holiday.getDte());
+				if(holidayCalendar.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
+						&& holidayCalendar.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH)
+						&& holidayCalendar.get(Calendar.YEAR) == dateCalendar.get(Calendar.YEAR))
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	public double getDynamicPerformance() {
+		double performance = 0;
+		if(this.getStatus().toLowerCase().trim().equals("completed") || this.getStatus().toLowerCase().trim().equals("canceled"))
+			performance = 100;
+//		else if(this.getStatus().toLowerCase().trim().equals("started"))
+//			performance = 50;
+		else
+			performance = 0;
+		return performance;
+	}
+	
 }
