@@ -266,6 +266,12 @@
 											    </select>
 												 <label>Niveau de priorité</label>
 											</div>
+											<div class="form-group col-sm-12 input-field  col s12">
+												 <select th:field="*{startupTasks}" class="from-control form-control-sm" multiple>
+											      <option th:each="t: ${tasksStartups}" th:value="${t.id}" th:text="${t.name}">Tache parente</option>
+											    </select>
+										    	<label>Choisissez s'il le faut les tâches que vous souhaitez démarrer en même temps que cette tâche</label>
+											</div>
 											<div class="form-group col-sm-12 mb-0">
 												<button type="submit" class="btn btn-sm btn-outline-info float-right">Enregistrer</button>
 											</div>

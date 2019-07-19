@@ -42,10 +42,14 @@ public class Processus implements Serializable{
 	@Id @GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	private String label;
+	private String dossier;
 	private String description;
 	@ManyToOne
 	@JoinColumn(name="editor_id")
 	private User editor;
+	@Temporal(TemporalType.TIMESTAMP)
+	@DateTimeFormat(pattern="yyyy-MM-dd")
+	private Date storeAt;
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern="dd/MM/yyyy")
 	private Date previewStartDate;
@@ -61,6 +65,11 @@ public class Processus implements Serializable{
 	@Temporal(TemporalType.TIMESTAMP)
 	@DateTimeFormat(pattern="dd/MM/yyyy")
 	private Date finishDate;
+	/**
+	 * id du process model au cas ou ce process
+	 * doit porter les mêmes infos (tâches, duréee..etc) tâches qu'un autre process
+	 * qui lui servira de model**/
+	private Long modelId;
 	@OneToMany(mappedBy="process")
 	@JsonManagedReference
 	List<ProcessSection> sections;

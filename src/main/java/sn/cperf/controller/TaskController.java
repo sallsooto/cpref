@@ -206,6 +206,8 @@ public class TaskController {
 						
 						// lunching task chirlds if is necessary
 						processService.startChirldTaskStatusWhenIsNecessary(task);
+						// lancement des autres tâches qui doivent être démarrées une fois celle ci démarrées
+						taskService.startStartupTasks(task, new Date());
 						
 						// store process finisAt date if is laste task completed
 						processService.finishProcessWhenIsTime(task.getSection().getProcess());
@@ -446,6 +448,8 @@ public class TaskController {
 			task.setFinishAt(null);
 			process.setFinishDate(null);
 			taskRepository.save(task);
+			// lancement des autres tâches qui doivent être démarrées une fois celle ci démarrées
+			taskService.startStartupTasks(task, new Date());
 			// notify childs tasks if is task lunching
 			taskService.notifyChilrdIfThisParentTaskIsLunched(task);
 			processRepository.save(process);

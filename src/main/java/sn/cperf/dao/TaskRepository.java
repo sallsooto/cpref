@@ -20,17 +20,20 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 	List<Task> findBySection(ProcessSection section);
 
 	List<Task> findBySectionAndIdIsNot(ProcessSection section, Long id);
+	Task findTop1BySectionAndNameIgnoreCase(ProcessSection section, String name);
 
-	@Query("select t from Task t where t.section.process.id=:x order by t.id DESC")
+	@Query("select distinct t from Task t where t.section.process.id=:x order by t.id DESC")
 	List<Task> getByProcess(@Param("x") Long processId);
 
-	@Query("select t from Task t where t.id !=:id and t.section.process.id=:x order by t.id DESC")
+	@Query("select distinct t from Task t where t.id !=:id and t.section.process.id=:x order by t.id DESC")
 	List<Task> getByProcessAndTaskIdIsNot(@Param("id") Long taskId, @Param("x") Long processId);
 
 	List<Task> findByGroupInAndNameLikeIgnoreCase(List<Group> groups, String name);
 
 	List<Task> findByGroupIn(List<Group> groups);
 	List<Task> findByGroup(Group group);
+	@Query("select distinct t from Task t where t.section.process.id =:pid and t.group.id =:gid")
+	List<Task> getByProcessIdAndGroupId(@Param("pid") Long processId, @Param("gid") Long groupId);
 
 	@Query(value = "SELECT * from tasks t inner join users_tasks ut on t.id = ut.task_id where "
 			+ "(t.group_id in :groupIds OR ut.user_id = :userId) and t.name Like :name and t.status = :status", nativeQuery = true)

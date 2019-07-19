@@ -15,55 +15,264 @@
 <body>
 	<div class="container-fluid" layout:fragment="content" data-ng-controller="ObjectifIndicatorCtrl" data-ng-init="getObjectifs()">
 		<!-- Page Heading -->
-		<div th:replace="fragments/main_content_heading::heading(heading_text='Dynamiques perfromences')"></div>
+		<div th:replace="fragments/main_content_heading::heading(heading_text='Perfromences Dynamiques',heading_link='/Performance/',heading_link_text='Perfomances Objectifs indiqués',heading_ico='fas fa-eye')"></div>
 		<!-- Content Row -->
 		<div class="row">
 			<div class="col-sm-12">
-			  <!-- card from start with p -->
-				<div th:if="${startWith=='p'}" class="card">
-					<div class="card-header"></div>
-					<div class="card-body">
-						<h5 class="card-title">Processessus évaluation</h5>
-						<div th:if="${processes != null and !processes.isEmpty()}" class="list-group">
-							 <button type="button" th:each="p : ${processes}" class="list-group-item p-0 mb-3 text-left" 
-							 		data-toggle="collapse" th:data-target="${'#collapsetasks'+p.id}" role="button" aria-expanded="false" aria-controls="collapsetasks">
-							 	<div th:class="${p.dynamicPerformance >=100 ? 'bg-success text-white p-3' : p.dynamicPerformance <=1 ? 'bg-secondary text-white p-3' : 'bg-info text-white p-3'}">
-							 	<span th:text="${p.label}"></span>
-							 	 <h5 class="d-inline-block float-right">
-							 	   <i class="fas fa-eye text-white" title="Afficher les tâches"
-							 	    th:class="${'fas fa-eye text-white fa-eye'+p.id}" th:data-replace="${'fa-eye-slash'+p.id}"></i>
-							 	   <i class="fas fa-eye-slash d-none text-white" th:class="${'fas fa-eye-slash d-none text-white fa-eye-slash'+p.id}" 
-							 	   	   th:data-replace="${'fa-eye'+p.id}" title="Cachez les tâches"></i>
-							 	 </h5>
-							 	 <h5 class="d-inline-block float-right">
-							 	 	<span class="badge badge-primary badge-pill" th:text="${p.dynamicPerformance+'%'}"
-							 	 		  th:class="${p.dynamicPerformance >=100 ? 'badge badge-success badge-pill'
-							 	 			   : p.dynamicPerformance <=1 ? 'badge badge-secondary badge-pill' : 'badge badge-info badge-pill'}"></span>
-							 	 </h5>
-							 	</div>
-								<ul th:if="${p.tasks != null and !p.tasks.isEmpty()}" th:id="${'collapsetasks'+p.id}" class="list-group collapse">
-									 <li th:each="t : ${p.tasks}" class="list-group-item">
-									 	<div>
-									 		<span th:text="${t.name}"></span>
-							 	 			<span th:class="${t.dynamicPerformance >=100 ? 'badge badge-default text-success badge-pill float-right'
-							 	 			                   : t.dynamicPerformance <=1 ? 'badge badge-default text-danger badge-pill float-right'
-							 	 			                    : 'badge badge-default text-info badge-pill float-right'}"
-							 	 			      class="badge badge-primary badge-pill float-right" th:text="${t.dynamicPerformance+'%'}"></span>
-									 	</div>
-									 </li>
-								 </ul>
-								 <h5 th:if="${p.tasks == null or p.tasks.isEmpty()}" th:id="${'collapsetasks'+p.id}"
-								 	 class="list-group collapse text-center text-info p-5 pb-5">Zéro tâche trouvée pour ce process
-								 </h5>
-							 </button>
+				<div class="card">
+					<div class="card-header">
+						<div class="row">
+							<div class="form-group col-sm-12 col-md-6">
+							   <div class="row align-items-start">
+								   <label class="col-sm-12 col-md-4">Type de reportage : </label>
+									<div class="col-sm-12 col-md-8">
+										<select class="form-control form-control-sm typeReportingField">
+											<option value="a" th:selected="${type == null || type=='a'}">Toutes les catégories</option>
+											<option value="g" th:selected="${type != null && type=='d'}">Process -> dossier ->tâches</option>
+											<option value="p" th:selected="${type != null && type=='p'}">Process ->tâches</option>
+											<option value="u" th:selected="${type != null && type=='u'}">Utilisateur ->tâches</option>
+											<option value="g" th:selected="${type != null && type=='g'}">Groupe ->process ->tâches</option>
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="form-group col-sm-12 col-md-6">
+							   <div class="row align-items-start">
+								   <label class="col-sm-12 col-md-4">Reportez à partir du : </label>
+									<div class="col-sm-12 col-md-8">
+										<input type="date" th:value="${datePattern}" name="reportingDate" class="form-control form-control-sm dateReportingField"/>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card-body" style="background-color:#fff;">
+						<div class="row">
+							<div class="col-sm-12">
+							 <!-- card from start with d -->
+								<div th:if="${type == null || type=='d'}" class="card mb-3 shadow">
+									<div class="card-header">
+										<h5 class="text-secondary">Reportage : 
+											<span class="bage badge-default">Process&nbsp;<i class="fas fa-arrow-right"></i>&nbsp;
+											Dossiers&nbsp;<i class="fas fa-arrow-right"></i>&nbsp;Tâches</span>
+										</h5>
+									</div>
+									<div class="card-body">
+									   <div th:if="${pdGroups != null and !pdGroups.isEmpty()}" class="list-group">
+									   		<button type="button" th:each="pdg : ${pdGroups}" class="list-group-item p-0 mb-3 text-left" 
+											 		data-toggle="collapse" th:data-target="${'#collapsepdg'+pdg.index}" role="button" aria-expanded="false" aria-controls="collapsepdg">
+									   			<div th:class="${pdg.dynamicPerformance >=100 ? 'bg-success text-white p-3' : pdg.dynamicPerformance <=1 ? 'bg-secondary text-white p-3' : 'bg-info text-white p-3'}">
+											 	<span th:text="${'Process : '+pdg.label}"></span>
+											 	 <h5 class="d-inline-block float-right">
+											 	   <i class="fas fa-eye text-white" title="Afficher les tâches"
+											 	    th:class="${'fas fa-eye text-white fa-eye_pdg'+pdg.index}" th:data-replace="${'fa-eye-slash_pdg'+pdg.index}"></i>
+											 	   <i class="fas fa-eye-slash d-none text-white" th:class="${'fas fa-eye-slash d-none text-white fa-eye-slash_pdg'+pdg.index}" 
+											 	   	   th:data-replace="${'fa-eye_pdg'+pdg.index}" title="Cachez les tâches"></i>
+											 	 </h5>
+											 	 <div class="d-inline-block float-right">
+											 	 	<span class="badge badge-primary badge-pill" th:text="${pdg.dynamicPerformance+'%'}"
+											 	 		  th:class="${pdg.dynamicPerformance >=100 ? 'badge badge-success badge-pill'
+											 	 			   : pdg.dynamicPerformance <=1 ? 'badge badge-secondary badge-pill' : 'badge badge-info badge-pill'}"></span>
+											 	 </div>
+											 	</div>
+											 	 <ul  th:if="${pdg.processes != null and !pdg.processes.isEmpty()}" class="list-group collapse" th:id="${'collapsepdg'+pdg.index}">
+											 	 	<li th:each="p : ${pdg.processes}" class="list-group-item p-0 m-3 text-left">
+											   			<div th:class="${p.dynamicPerformance >=100 ? 'text-success font-weight-bold text-white p-3' : p.dynamicPerformance <=1 ? 'text-danger font-weight-bold p-3' : 'text-info font-weight-bold p-3'}">
+														 	<span th:text="${p.dossier != null ? 'Dossier : '+ p.dossier : 'Dossier : ...'}"></span>
+														 	 <h5 class="d-inline-block float-right">
+														 	 	<span class="badge badge-primary badge-pill" th:text="${p.dynamicPerformance+'%'}"
+														 	 		  th:class="${p.dynamicPerformance >=100 ? 'badge badge-success badge-pill'
+														 	 			   : p.dynamicPerformance <=1 ? 'badge badge-danger badge-pill' : 'badge badge-info badge-pill'}"></span>
+														 	 </h5>
+													 	 </div>
+														<ul th:if="${p.tasks != null and !p.tasks.isEmpty()}" class="list-group">
+															 <li th:each="t : ${p.tasks}" class="list-group-item">
+															 	<div>
+															 		<span th:text="${t.name}"></span>
+													 	 			<span th:class="${t.dynamicPerformance >=100 ? 'badge badge-default text-success badge-pill float-right'
+													 	 			                   : t.dynamicPerformance <=1 ? 'badge badge-default text-danger badge-pill float-right'
+													 	 			                    : 'badge badge-default text-info badge-pill float-right'}"
+													 	 			      class="badge badge-primary badge-pill float-right" th:text="${t.dynamicPerformance+'%'}"></span>
+															 	</div>
+															 </li>
+														 </ul>
+														 <h5 th:if="${p.tasks == null or p.tasks.isEmpty()}" th:id="${'collapsetasks'+p.id}"
+														 	 class="list-group collapse text-center text-info p-5 pb-5">Zéro tâche trouvée pour ce process
+														 </h5>
+											 	 	</li>
+											 	 </ul>
+									   		</button>
+									   </div>
+									</div>
+								</div>
+							  <!-- card from start with p or null -->
+								<div th:if="${type == null || type=='p'}" class="card mb-3 shadow">
+									<div class="card-header">
+										<h5 class="text-secondary">Order de reportage : 
+											<span class="bage badge-default">Process&nbsp;<i class="fas fa-arrow-right"></i>&nbsp;Tâches</span>
+										</h5>
+									</div>
+									<div class="card-body">
+										<div th:if="${processes != null and !processes.isEmpty()}" class="list-group">
+											 <button type="button" th:each="p : ${processes}" class="list-group-item p-0 mb-3 text-left" 
+											 		data-toggle="collapse" th:data-target="${'#collapsetasks'+p.id}" role="button" aria-expanded="false" aria-controls="collapsetasks">
+											 	<div th:class="${p.dynamicPerformance >=100 ? 'bg-success text-white p-3' : p.dynamicPerformance <=1 ? 'bg-secondary text-white p-3' : 'bg-info text-white p-3'}">
+											 	<span th:text="${p.dossier != null ? p.label + '( '+ p.dossier+' )' : p.label}"></span>
+											 	 <h5 class="d-inline-block float-right">
+											 	   <i class="fas fa-eye text-white" title="Afficher les tâches"
+											 	    th:class="${'fas fa-eye text-white fa-eye'+p.id}" th:data-replace="${'fa-eye-slash'+p.id}"></i>
+											 	   <i class="fas fa-eye-slash d-none text-white" th:class="${'fas fa-eye-slash d-none text-white fa-eye-slash'+p.id}" 
+											 	   	   th:data-replace="${'fa-eye'+p.id}" title="Cachez les tâches"></i>
+											 	 </h5>
+											 	 <h5 class="d-inline-block float-right">
+											 	 	<span class="badge badge-primary badge-pill" th:text="${p.dynamicPerformance+'%'}"
+											 	 		  th:class="${p.dynamicPerformance >=100 ? 'badge badge-success badge-pill'
+											 	 			   : p.dynamicPerformance <=1 ? 'badge badge-secondary badge-pill' : 'badge badge-info badge-pill'}"></span>
+											 	 </h5>
+											 	</div>
+												<ul th:if="${p.tasks != null and !p.tasks.isEmpty()}" th:id="${'collapsetasks'+p.id}" class="list-group collapse">
+													 <li th:each="t : ${p.tasks}" class="list-group-item">
+													 	<div>
+													 		<span th:text="${t.name}"></span>
+											 	 			<span th:class="${t.dynamicPerformance >=100 ? 'badge badge-default text-success badge-pill float-right'
+											 	 			                   : t.dynamicPerformance <=1 ? 'badge badge-default text-danger badge-pill float-right'
+											 	 			                    : 'badge badge-default text-info badge-pill float-right'}"
+											 	 			      class="badge badge-primary badge-pill float-right" th:text="${t.dynamicPerformance+'%'}"></span>
+													 	</div>
+													 </li>
+												 </ul>
+												 <h5 th:if="${p.tasks == null or p.tasks.isEmpty()}" th:id="${'collapsetasks'+p.id}"
+												 	 class="list-group collapse text-center text-info p-5 pb-5">Zéro tâche trouvée pour ce process
+												 </h5>
+											 </button>
+										</div>
+									</div>
+								</div>
+								<!-- type with u or null-->
+								<div th:if="${type == null || type=='u'}" class="card mb-3 shadow">
+									<div class="card-header">
+										<h5 class="text-secondary">Reportage : 
+											<span class="bage badge-default">Utilisateur&nbsp;<i class="fas fa-arrow-right"></i>&nbsp;Tâches</span>
+										</h5>
+									</div>
+									<div class="card-body">
+										<div th:if="${usersTasks != null and !usersTasks.isEmpty()}" class="list-group">
+											 <button type="button" th:each="userTasks : ${usersTasks}" class="list-group-item p-0 mb-3 text-left" 
+											 		data-toggle="collapse" th:data-target="${'#collapseUsersTasks'+userTasks.user.id}" role="button" aria-expanded="false" aria-controls="collapseUserstasks">
+											 	<div th:class="${userTasks.dynamicPerformance >=100 ? 'bg-success text-white p-3' : userTasks.dynamicPerformance <=1 ? 'bg-secondary text-white p-3' : 'bg-info text-white p-3'}">
+											 	<span th:text="${userTasks.user.firstname != null ? userTasks.user.firstname: ''}"></span> &nbsp;
+											 	<span th:text="${userTasks.user.lastname != null ? userTasks.user.lastname: ''}"></span>&nbsp;
+											 	<span th:text="${userTasks.user.fonction != null and userTasks.user.fonction.name != null ? '( '+userTasks.user.fonction.name+' )': ''}"></span>
+											 	 <h5 class="d-inline-block float-right">
+											 	   <i class="fas fa-eye text-white" title="Afficher les tâches"
+											 	    th:class="${'fas fa-eye text-white fa-eye_users_tasks'+userTasks.user.id}" th:data-replace="${'fa-eye-slash_users_tasks'+userTasks.user.id}"></i>
+											 	   <i class="fas fa-eye-slash d-none text-white" th:class="${'fas fa-eye-slash d-none text-white fa-eye-slash_users_tasks'+userTasks.user.id}" 
+											 	   	   th:data-replace="${'fa-eye_users_tasks'+userTasks.user.id}" title="Cachez les tâches"></i>
+											 	 </h5>
+											 	 <h5 class="d-inline-block float-right">
+											 	 	<span class="badge badge-primary badge-pill" th:text="${userTasks.dynamicPerformance+'%'}"
+											 	 		  th:class="${userTasks.dynamicPerformance >=100 ? 'badge badge-success badge-pill'
+											 	 			   : userTasks.dynamicPerformance <=1 ? 'badge badge-secondary badge-pill' : 'badge badge-info badge-pill'}"></span>
+											 	 </h5>
+											 	</div>
+												<ul th:if="${userTasks.tasks != null and !userTasks.tasks.isEmpty()}" th:id="${'collapseUsersTasks'+userTasks.user.id}" class="list-group collapse">
+													 <li th:each="t : ${userTasks.tasks}" class="list-group-item">
+													 	<div>
+													 		<span th:text="${t.name}"></span>
+													 		<span th:if="${t.section != null and t.section.process != null and t.section.process.label != null}" th:text="${ ' du process : '+t.section.process.label}"></span>
+													 		<span th:if="${t.section != null and t.section.process != null and t.section.process.dossier != null}" th:text="${ ' ( '+t.section.process.dossier + ' )'}"></span>
+											 	 			<span th:class="${t.dynamicPerformance >=100 ? 'badge badge-default text-success badge-pill float-right'
+											 	 			                   : t.dynamicPerformance <=1 ? 'badge badge-default text-danger badge-pill float-right'
+											 	 			                    : 'badge badge-default text-info badge-pill float-right'}"
+											 	 			      class="badge badge-primary badge-pill float-right" th:text="${t.dynamicPerformance+'%'}"></span>
+													 	</div>
+													 </li>
+												 </ul>
+												 <h5 th:if="${userTasks.tasks == null or userTasks.tasks.isEmpty()}" th:id="${'collapseUsersTasks'+userTasks.user.id}"
+												 	 class="list-group collapse text-center text-info p-5 pb-5">Zéro tâche trouvée pour ce process
+												 </h5>
+											 </button>
+										</div>
+									</div>
+								</div>
+								<!-- start with g -->
+								<div th:if="${type == null || type=='g'}" class="card mb-3 shadow">
+									<div class="card-header">
+										<h5 class="text-secondary">Reportage : 
+											<span class="bage badge-default">Groupe&nbsp;<i class="fas fa-arrow-right"></i>&nbsp;
+											Process&nbsp;<i class="fas fa-arrow-right"></i>&nbsp;Tâches</span>
+										</h5>
+									</div>
+									<div class="card-body">
+									   <div th:if="${groupesProcesses != null and !groupesProcesses.isEmpty()}" class="list-group">
+									   		<button type="button" th:each="gpps : ${groupesProcesses}" class="list-group-item p-0 mb-3 text-left" 
+											 		data-toggle="collapse" th:data-target="${'#collapsegpps'+gpps.group.id}" role="button" aria-expanded="false" aria-controls="collapsepdg">
+									   			<div th:class="${gpps.dynamicPerformance >=100 ? 'bg-success text-white p-3' : gpps.dynamicPerformance <=1 ? 'bg-secondary text-white p-3' : 'bg-info text-white p-3'}">
+											 	<span th:text="${'Group : '+gpps.group.name}"></span>
+											 	 <h5 class="d-inline-block float-right">
+											 	   <i class="fas fa-eye text-white" title="Afficher les tâches"
+											 	    th:class="${'fas fa-eye text-white fa-eye_gpps'+gpps.group.id}" th:data-replace="${'fa-eye-slash_gpps'+gpps.group.id}"></i>
+											 	   <i class="fas fa-eye-slash d-none text-white" th:class="${'fas fa-eye-slash d-none text-white fa-eye-slash_gpps'+gpps.group.id}" 
+											 	   	   th:data-replace="${'fa-eye_gpps'+gpps.group.id}" title="Cachez les tâches"></i>
+											 	 </h5>
+											 	 <div class="d-inline-block float-right">
+											 	 	<span class="badge badge-primary badge-pill" th:text="${gpps.dynamicPerformance+'%'}"
+											 	 		  th:class="${gpps.dynamicPerformance >=100 ? 'badge badge-success badge-pill'
+											 	 			   : gpps.dynamicPerformance <=1 ? 'badge badge-secondary badge-pill' : 'badge badge-info badge-pill'}"></span>
+											 	 </div>
+											 	</div>
+											 	 <ul  th:if="${gpps.processes != null and !gpps.processes.isEmpty()}" class="list-group collapse" th:id="${'collapsegpps'+gpps.group.id}">
+											 	 	<li th:each="p : ${gpps.processes}" class="list-group-item p-0 m-3 text-left">
+											   			<div th:class="${p.dynamicPerformance >=100 ? 'text-success font-weight-bold text-white p-3' : p.dynamicPerformance <=1 ? 'text-danger font-weight-bold p-3' : 'text-info font-weight-bold p-3'}">
+														 	<span th:text="${p.dossier != null ? p.label +'( '+ p.dossier+ ' )' : p.label}"></span>
+														 	 <h5 class="d-inline-block float-right">
+														 	 	<span class="badge badge-primary badge-pill" th:text="${p.dynamicPerformance+'%'}"
+														 	 		  th:class="${p.dynamicPerformance >=100 ? 'badge badge-success badge-pill'
+														 	 			   : p.dynamicPerformance <=1 ? 'badge badge-danger badge-pill' : 'badge badge-info badge-pill'}"></span>
+														 	 </h5>
+													 	 </div>
+														<ul th:if="${p.tasks != null and !p.tasks.isEmpty()}" class="list-group">
+															 <li th:each="t : ${p.tasks}" class="list-group-item">
+															 	<div>
+															 		<span th:text="${t.name}"></span>
+													 	 			<span th:class="${t.dynamicPerformance >=100 ? 'badge badge-default text-success badge-pill float-right'
+													 	 			                   : t.dynamicPerformance <=1 ? 'badge badge-default text-danger badge-pill float-right'
+													 	 			                    : 'badge badge-default text-info badge-pill float-right'}"
+													 	 			      class="badge badge-primary badge-pill float-right" th:text="${t.dynamicPerformance+'%'}"></span>
+															 	</div>
+															 </li>
+														 </ul>
+														 <h5 th:if="${p.tasks == null or p.tasks.isEmpty()}" th:id="${'collapsegpps'+gpps.group.id}"
+														 	 class="list-group collapse text-center text-info p-5 pb-5">Zéro tâche trouvée pour ce process
+														 </h5>
+											 	 	</li>
+											 	 </ul>
+									   		</button>
+									   </div>
+									</div>
+								</div>
+								<!-- end start with g -->	
+							</div>
 						</div>
 					</div>
 				</div>
-				<!-- end card for start with p -->
 			</div>
 		</div>
 	</div>
 	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript">
+		  $(document).ready(function(){
+			  //loadDynamicPerfomance();
+			  $(".typeReportingField, .dateReportingField").on('change',function(){
+				  loadDynamicPerfomance();
+			  });
+		  });
+		  function loadDynamicPerfomance(){
+			  var type = $(".typeReportingField").val();
+			  var datePattern = $(".dateReportingField").val();
+			  window.location.href = "/Performance/dynamic/" + "?type="+type+"&dp="+datePattern;
+		  };
+		</script>
 	</div>
 </body>
 </html>

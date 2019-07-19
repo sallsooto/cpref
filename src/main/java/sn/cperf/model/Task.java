@@ -25,6 +25,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.Type;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -51,6 +52,7 @@ public class Task implements Serializable {
 	@Column(length = 100)
 	private String status;
 	private String lastStatus;
+	@Type(type="text")
 	private String description;
 	private String fileDescriptionPath;
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
@@ -63,6 +65,15 @@ public class Task implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "parent")
 	@JsonBackReference
 	private List<Task> chirlds;
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinTable(name = "startup_tasks",
+			joinColumns = { @JoinColumn(name = "task_id") },
+			inverseJoinColumns = {@JoinColumn(name = "startup_id") })
+	 @JsonBackReference
+	private List<Task> startupTasks;
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "startupTasks")
+	 @JsonBackReference
+	private List<Task> taskStatups;
 	@ManyToOne
 	@JoinColumn(name = "section_id")
 	@JsonBackReference
@@ -295,8 +306,8 @@ public class Task implements Serializable {
 			performance = 100;
 //		else if(this.getStatus().toLowerCase().trim().equals("started"))
 //			performance = 50;
-		else
-			performance = 0;
+//		else
+//			performance = 0;
 		return performance;
 	}
 	

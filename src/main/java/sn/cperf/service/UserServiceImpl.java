@@ -2,6 +2,7 @@ package sn.cperf.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,6 +25,7 @@ import sn.cperf.model.User;
 import sn.cperf.util.ProcessTasks;
 import sn.cperf.util.ProcessUtil;
 import sn.cperf.util.TaskUtil;
+import sn.cperf.util.UserTaskPerfomance;
 
 @Service
 @Transactional
@@ -226,6 +228,38 @@ public class UserServiceImpl implements UserService{
 			}
 		}
 		return tasks;
+	}
+
+	@Override
+	public List<UserTaskPerfomance> getUserTasksPerfomance(Date date) {
+		List<UserTaskPerfomance> userTasksPerformances = new ArrayList<>();
+		List<User> users = userRepository.findAll();
+		if(users != null) {
+			for(User user : users) {
+				List<Task> userTasks = taskRepository.getUserTasks(user.getId());
+				List<Task> filteredTasks = new ArrayList<>();
+				if (userTasks != null && !userTasks.isEmpty()) {
+					for(Task task : userTasks) {
+						if(date == null) {
+							filteredTasks.add(task);
+						}else {
+							if(task.getSection() != null && task.getSection().getProcess() != null && 
+									task.getSection().getProcess().getStartAt() != null 
+									&& date.compareTo(task.getSection().getProcess().getStartAt())>=0) {
+								filteredTasks.add(task);
+							}
+						}
+					}
+					if(filteredTasks != null && !filteredTasks.isEmpty()) {
+						UserTaskPerfomance utp = new UserTaskPerfomance();
+						utp.setUser(user);
+						utp.setTasks(filteredTasks);
+						userTasksPerformances.add(utp);
+					}
+				}
+			}
+		}
+		return userTasksPerformances;
 	}
 
 }

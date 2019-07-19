@@ -16,6 +16,8 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -109,9 +111,13 @@ public class ProcessController {
 					form.setPreviewFinishDate(processus.getPreviewFinishDate());
 					form.setStartDate(processus.getStartDate());
 					form.setFinishDate(processus.getFinishDate());
+					form.setDossier(processus.getDossier());
+					form.setStoreAt(processus.getStartAt());
+					form.setModelId(processus.getModelId());
 				}
 			}
 		}
+		model.addAttribute("processes", processRepository.findByModelIdIsNullOrderByIdDesc());
 		model.addAttribute("process", form);
 		return "process";
 	}
@@ -139,11 +145,16 @@ public class ProcessController {
 				process.setPreviewStartDate(form.getPreviewStartDate());
 				process.setPreviewFinishDate(form.getPreviewFinishDate());
 				process.setId(form.getId());
+				process.setDossier(form.getDossier());
+				process.setModelId(form.getModelId());
+				if(process.getId() == null)
+					process.setStoreAt(new Date());
 				if (processRepository.save(process) != null) {
 					if (form.getId() != null && form.getId() > 0)
 						model.addAttribute("successMsg", "Process modifié!");
 					else
 						model.addAttribute("successMsg", "Process enregistré!");
+					processService.reproduceModel(process);
 					form.setId(process.getId());
 				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
@@ -154,6 +165,7 @@ public class ProcessController {
 			model.addAttribute("errorMsg", "Echèc de l'opération, verifiez les entrés du formulaire!");
 			e.printStackTrace();
 		}
+		model.addAttribute("processes", processRepository.findByModelIdIsNullOrderByIdDesc());
 		return "process";
 	}
 
@@ -162,6 +174,17 @@ public class ProcessController {
 		try {
 			Processus p = processRepository.getOne(id);
 			List<Task> tasks = p.getTasks();
+			// updatting all processes where modelid is this p id
+			try {
+				List<Processus> processes = processRepository.findByModelId(p.getId());
+				for(Processus process : processes) {
+					process.setModelId(null);
+					processRepository.save(process);
+				}
+			} catch (Exception e) {
+			}
+			//deleting process
+			processRepository.delete(p);
 			if (tasks != null) {
 				for (Task t : tasks) {
 					if (t.getObjectifs() != null && !t.getObjectifs().isEmpty()) {
@@ -180,8 +203,9 @@ public class ProcessController {
 						dbFileService.delete(dbFiledescription);
 				}
 			}
-			processRepository.delete(p);
+			deleteAllProcessSectionsWithoutTask();
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return "redirect:/Process/List";
 	}
@@ -264,6 +288,8 @@ public class ProcessController {
 								task.setStatus(TaskStatus.STARTED.toString());
 								try {
 									taskRepository.save(task);
+									// lancement des autre tâches qui doivent êtres lancées une fois celle-ci démarrée
+									taskService.startStartupTasks(task, new Date());
 								} catch (Exception e) {
 								}
 							}
@@ -366,6 +392,7 @@ public class ProcessController {
 			@RequestParam(name = "tid", defaultValue = "0") Long taskId, Model model) {
 		Task task = new Task();
 		List<Task> tasks = new ArrayList<>();
+		List<Task> tasksStartups = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
 		int maxPriorityLevel = 1;
@@ -377,6 +404,7 @@ public class ProcessController {
 					process = new Processus();
 					process = oProcess.get();
 					tasks = taskRepository.getByProcess(process.getId());
+					tasksStartups = taskRepository.getByProcess(process.getId());
 					Task TaskWithMaxLevel = taskRepository.getLastTaskWithMaxPriorityLevel(process.getId());
 					if(TaskWithMaxLevel != null && TaskWithMaxLevel.getPriorityLevel() != null)
 						maxPriorityLevel = TaskWithMaxLevel.getPriorityLevel();
@@ -398,6 +426,7 @@ public class ProcessController {
 				if (opTask.isPresent()) {
 					task = opTask.get();
 					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
+					tasksStartups = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
 					if (task.getParent() != null && task.getParent().getSection().getId() != task.getSection().getId())
 						sections.add(task.getParent().getSection());
 					sections.add(task.getSection());
@@ -429,11 +458,13 @@ public class ProcessController {
 			} catch (Exception e) {
 			}
 		}
+		
 		if(task != null && (task.getPriorityLevel() == null || task.getPriorityLevel() == 0))
 			task.setPriorityLevel(1);
 		isTheFirstProcessTask = taskService.checkIfThisIsTheFirstTaskForProcess(task);
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
+		model.addAttribute("tasksStartups", tasksStartups);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		model.addAttribute("task", task);
@@ -452,6 +483,7 @@ public class ProcessController {
 			@Valid @ModelAttribute("task") Task task, BindingResult bind, Model model) {
 		boolean isUpdateOperation = false;
 		List<Task> tasks = new ArrayList<>();
+		List<Task> tasksStartups = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
 		int sectionFinded = 0, maxPriorityLevel=1;
@@ -475,15 +507,16 @@ public class ProcessController {
 					if (sectionRepository.save(section) != null)
 						task.setSection(section);
 				}
-				if (process != null)
+				if (process != null) {
 					tasks = taskRepository.getByProcess(process.getId());
+					tasksStartups =  taskRepository.getByProcess(process.getId());
+				}
 				// sections = processSectionRepository.findByProcess(process);
 				try {
 					if (task.getValidator() != null) {
 						List<User> users = new ArrayList<>();
 						if (task.getUsers() != null || !task.getUsers().isEmpty())
 							users = task.getUsers();
-						System.err.println("users " + task.getAllUsers().size());
 						if (!task.getAllUsers().contains(task.getValidator())) {
 							users.add(task.getValidator());
 						}
@@ -495,6 +528,7 @@ public class ProcessController {
 				if (task.getId() != null && task.getId() > 0) {
 					isUpdateOperation = true;
 					tasks = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
+					tasksStartups = taskRepository.getByProcessAndTaskIdIsNot(task.getId(), process.getId());
 				}
 				if (withGroup == 3)
 					task.setGroup(null);
@@ -584,6 +618,8 @@ public class ProcessController {
 				 // saving tasks
 				if (taskRepository.save(task) != null) {
 					model.addAttribute("task", task);
+					// lancement des autre tâches qui doivent êtres lancées une fois celle-ci démarrée
+					taskService.startStartupTasks(task, new Date());
 					String successMsg = "";
 					String notificationMsg = "";
 					String notificationTitle = "";
@@ -637,6 +673,8 @@ public class ProcessController {
 					if (sectionFinded <= 0)
 						sections.add(task.getSection());
 					isTheFirstProcessTask = taskService.checkIfThisIsTheFirstTaskForProcess(task);
+					// Lancement des autres tâches qui doivent être demarrées une fois celle ci démarrée
+					taskService.startStartupTasks(task, new Date());
 				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
@@ -662,6 +700,7 @@ public class ProcessController {
 		}
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
+		model.addAttribute("tasksStartups",tasksStartups);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		model.addAttribute("maxPriorityLevel", maxPriorityLevel);
@@ -834,7 +873,8 @@ public class ProcessController {
 								model.addAttribute("task", dbTask);
 							} catch (Exception e1) {
 							}
-
+							// lancement des autre tâches qui doivent être démarrées une fois celle-ci démarrées
+							taskService.startStartupTasks(dbTask, new Date());
 							String successMsg = "Tâche modifiée";
 							String notificationTitle = "Tâche mise à jour";
 							String notificationMsg = "La tâche \" " + dbTask.getName() + " \" du process \" "
@@ -886,7 +926,6 @@ public class ProcessController {
 
 		// suppressions des tasche vies
 		deleteAllProcessSectionsWithoutTask();
-		System.err.println("je suis redirigé");
 		return "redirect:/Process/Logigramme/?pid=" + process.getId();
 	}
 

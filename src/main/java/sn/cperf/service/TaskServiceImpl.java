@@ -2,6 +2,7 @@ package sn.cperf.service;
 
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,10 @@ public class TaskServiceImpl implements TaskService {
 	TaskRepository taskRepository;
 	@Autowired
 	NotificationService notifyService;
-	@Autowired WorkCalendarRepository workCalendarRepository;
-	@Autowired HolidayRepositoty holidayRepository;
+	@Autowired
+	WorkCalendarRepository workCalendarRepository;
+	@Autowired
+	HolidayRepositoty holidayRepository;
 
 	@Override
 	public Task normalizechirldTasksConditions(Task task) {
@@ -79,11 +82,15 @@ public class TaskServiceImpl implements TaskService {
 				List<Task> chilrds = taskRepository.findByParent(parent);
 				if (chilrds != null && !chilrds.isEmpty()) {
 					String taskSatus = parent.getStatus().toLowerCase().trim()
-							.equals(TaskStatus.STARTED.toString().toLowerCase().trim()) ? "relanceé"
-									: parent.getStatus().toLowerCase().trim().equals(
-											TaskStatus.CANCELED.toString().toLowerCase().trim()) ? "annulée"
-													: parent.getStatus().toLowerCase().trim().equals(
-															TaskStatus.VALID.toString().toLowerCase().trim()) ? "réinitialisée" : null;
+							.equals(TaskStatus.STARTED.toString().toLowerCase().trim())
+									? "relanceé"
+									: parent.getStatus().toLowerCase().trim()
+											.equals(TaskStatus.CANCELED.toString().toLowerCase().trim())
+													? "annulée"
+													: parent.getStatus().toLowerCase().trim()
+															.equals(TaskStatus.VALID.toString().toLowerCase().trim())
+																	? "réinitialisée"
+																	: null;
 					if (taskSatus != null) {
 						for (Task chirld : chilrds) {
 							try {
@@ -108,11 +115,11 @@ public class TaskServiceImpl implements TaskService {
 
 	@Override
 	public Task associateCalanderAndHoildays(Task task) {
-		if(task != null) {
+		if (task != null) {
 			try {
 				task.setDaysWorkTimes(workCalendarRepository.findAll());
 				Calendar calendar = Calendar.getInstance();
-				if(task.getStartAt() != null)
+				if (task.getStartAt() != null)
 					calendar.setTime(task.getStartAt());
 				calendar.add(Calendar.DATE, -1);
 				task.setHolidays(holidayRepository.findByDteAfter(calendar.getTime()));
@@ -120,5 +127,32 @@ public class TaskServiceImpl implements TaskService {
 			}
 		}
 		return task;
+	}
+
+	@Override
+	public void startStartupTasks(Task task, Date startDate) {
+		try {
+			System.err.println("i'm hier " + task.getId() + " " + task.getStartupTasks().size());
+			if (task != null && task.getSection() != null && task.getSection().getProcess() != null
+					&& task.getSection().getProcess().getStartAt() != null && task.getTaskStatups()!= null
+					&& !task.getStatus().toLowerCase().trim()
+							.equals(TaskStatus.VALID.toString().toLowerCase().trim())) {
+				if (startDate == null)
+					startDate = new Date();
+				for (Task startupTask : task.getTaskStatups()) {
+					if (startupTask.getStatus().toLowerCase().trim()
+							.equals(TaskStatus.VALID.toString().toLowerCase().trim())) {
+						startupTask.setStatus(TaskStatus.STARTED.toString().toLowerCase());
+						startupTask.setStartAt(startDate);
+						taskRepository.save(startupTask);
+						startStartupTasks(startupTask, startDate);
+					}
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }

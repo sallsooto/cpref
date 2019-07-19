@@ -1,6 +1,10 @@
 package sn.cperf.controller;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +39,13 @@ import sn.cperf.model.Processus;
 import sn.cperf.model.TypeObjectif;
 import sn.cperf.model.User;
 import sn.cperf.service.CperfService;
+import sn.cperf.service.GroupService;
 import sn.cperf.service.IndicatorService;
+import sn.cperf.service.ProcessService;
+import sn.cperf.service.UserService;
 import sn.cperf.util.IndicatorDataCollectorUtil;
 import sn.cperf.util.ProcessTasks;
+import sn.cperf.util.ProcessesDossierGrouper;
 
 @Controller
 @RequestMapping("/Performance")
@@ -58,6 +66,9 @@ public class PerformanceController {
 	IndicateurRepository indicateurRepository;
 	@Autowired ProcessRepository processRepository;
 	@Autowired TaskRepository taskRepository;
+	@Autowired GroupService groupService;
+	@Autowired ProcessService processService;
+	@Autowired UserService userService;
 
 	@GetMapping("/")
 	public String getPerfomanceView(@RequestParam(name = "uid", defaultValue = "0") Long userId, Model model) {
@@ -228,15 +239,37 @@ public class PerformanceController {
 	
 	@Secured(value= {"ROLE_admin"})
 	@GetMapping("/dynamic/")
-	public String getDynamicPerfomences(@RequestParam(name="startWith", defaultValue="p") String startWith, Model model) {
-		List<Processus> processes = processRepository.findAll(Sort.by(Order.desc("id")));
-		startWith = (startWith == null) ? "p" : startWith.toLowerCase().trim();
-		if(startWith.equals("g")) {
-			model.addAttribute("processes", processes);
-		}else {
-			model.addAttribute("processes", processes);
+	public String getDynamicPerfomences(@RequestParam(name="type", defaultValue="a") String type, 
+			@RequestParam(name="dp", defaultValue="none") String datePattern, Model model) {
+		List<Processus> processes = new ArrayList<>();
+		if(type != null) {
+			type = type.toLowerCase().trim();
+			if(!type.equals("d") && !type.equals("g") && !type.equals("p") && !type.equals("u"))
+				type = null;
 		}
-		model.addAttribute("startWith", startWith);
+		Date date = null;
+		if(datePattern != null && !datePattern.equals("") && !datePattern.equals("none")) {
+			SimpleDateFormat tf = new SimpleDateFormat("yyyy-MM-dd");
+			try { date = tf.parse(datePattern);} catch (ParseException e) {}
+			if(date != null) {
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(date);
+				calendar.add(Calendar.DATE, -1);
+				date = calendar.getTime();
+			}
+		}else {
+			datePattern = null;
+		}
+		if(date == null)
+			processes = processRepository.findAll(Sort.by(Order.desc("id")));
+		else
+			processes = processRepository.findByStoreAtAfter(date);
+		model.addAttribute("pdGroups",processService.getProcessDossierGrouppers(date));
+		model.addAttribute("groupesProcesses", groupService.getGroupProcesses(date));
+		model.addAttribute("processes", processes);
+		model.addAttribute("usersTasks", userService.getUserTasksPerfomance(date));
+		model.addAttribute("type", type);
+		model.addAttribute("datePattern", datePattern);
 		return "performace_dynamic";
 	}
 }

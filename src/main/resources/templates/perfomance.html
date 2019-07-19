@@ -15,7 +15,13 @@
 <body>
 	<div class="container-fluid" layout:fragment="content" data-ng-controller="ObjectifIndicatorCtrl" data-ng-init="getObjectifs()">
 		<!-- Page Heading -->
-		<div th:replace="fragments/main_content_heading::heading(heading_text='Objectifs indiqués')"></div>
+			<div class="d-sm-flex align-items-center justify-content-between mb-4" th:fragment="heading">
+				<h1 class="h3 mb-0 text-gray-800 text-uppercase">PERFOMANCES OBJECTIFS INDIQUÉS</h1>
+				<a  sec:authorize="hasRole('ROLE_admin')" th:href="@{'/Performance/dynamic/'}" 
+					class="d-inline-block shadow-sm p-1 border border-info"
+					 style="text-decoration:none"><i class="fa fa-eye">Perfomances dynamiques</i>
+				</a>
+			</div>
 		<!-- Content Row -->
 		<div class="row">
 			<div class="col-sm-12">

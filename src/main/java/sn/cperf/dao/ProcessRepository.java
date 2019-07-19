@@ -32,5 +32,12 @@ public interface ProcessRepository extends JpaRepository<Processus, Long> {
 	Page<Processus> getNofinishedAndNoExpiredProcess(@Param("startDate") Date startDate,@Param("endDate") Date endDate, @Param("limitDate") Date limitDate,Pageable page);
 	Page<Processus> findByValidFalse(Pageable page);
 	List<Processus> findByEditorIs(User editor);
+	List<Processus> findByModelIdIsNullOrderByIdDesc();
+	List<Processus> findByModelId(Long modelId);
+	@Query("select distinct p.label from Processus p group by p.label")
+	List<String> getProcessGroupedByLabel();
+	List<Processus> findByLabel(String label);
+	List<Processus> findByLabelAndStoreAtAfter(String label, Date beforStoreAt);
+	List<Processus> findByStoreAtAfter(Date beforStoreAt);
 	
 }
