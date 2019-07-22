@@ -58,6 +58,9 @@ public class Task implements Serializable {
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
 	@JoinColumn(name = "file_description_id")
 	private DBFile dbFileDescription;
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	@JoinColumn(name = "validation_file_description_id")
+	private DBFile validationFileDescription;
 	@ManyToOne
 	@JoinColumn(name = "parent_id")
 	@JsonBackReference
@@ -187,8 +190,12 @@ public class Task implements Serializable {
 	}
 
 	public String getProcessLabel() {
-		if (this.getSection() != null && this.getSection().getProcess() != null)
-			return this.getSection().getProcess().getLabel();
+		if (this.getSection() != null && this.getSection().getProcess() != null) {
+			String label = this.getSection().getProcess().getLabel();
+			if(this.getSection().getProcess().getDossier() != null && !this.getSection().getProcess().getDossier().equals(""))
+				label = label + " ( "+this.getSection().getProcess().getDossier() + " )";
+			return label;
+		}
 		return null;
 	}
 

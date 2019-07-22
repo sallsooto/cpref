@@ -113,6 +113,7 @@ $(document).ready(function(){
 	        'completed' : { 'fill' : '#28C723', 'font-color' : 'white'},
 	        'finishedLate' : { 'fill' : '#77AB95', 'font-color' : 'white'},
 	        'canceled' : { 'fill' : '#FF0000', 'font-color' : 'white'},
+	        'notForUser' :{'fill' : '#a2a5a3', 'font-color' : '#bdbcbe'}
 	      }
 	    });
 	//$(".btnFormContainer")

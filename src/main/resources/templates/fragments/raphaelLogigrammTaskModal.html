@@ -26,7 +26,8 @@
 								data-dismiss="modal" aria-label="Close"> <i
 								class="fas fa-window-close btn btn-sm btn-outline-warning"
 								title="Fermer"></i>
-							</a> <a th:if="${task.id != null and task.dbFileDescription != null}"
+							</a> 
+							<a th:if="${task.id != null and task.dbFileDescription != null}"
 								th:href="@{/Task/File/Description/Show/{id}(id=${task.id})}"
 								target="_blank"
 								class="btn-floating waves-effect waves-light d-inline-block">
@@ -57,6 +58,12 @@
   										<ul class="list-group">
 							   			 <!-- conmpte à rebours column -->
   										    <li th:if="${task.startAt != null and task.status != 'canceled'}" class="list-group-item text-center">
+													<small th:if="${task != null and task.startAt != null}" th:text="${'Démarreé le : ' + #dates.format(task.startAt, 'dd/MM/yyyy à HH:mm')}"
+														   class="font-weight-bold"/></small>
+													<small th:if="${task != null and task.startAt != null}" th:text="${'date maximale : '+ #dates.format(task.maxDate, 'dd/MM/yyyy à HH:mm')}"
+													       class="border-left border-info pl-1 font-weight-bold"></small>
+													<small th:if="${task != null and task.finishAt != null}" th:text="${' finie le :  '+ #dates.format(task.finishAt, 'dd/Mm/yyyy à HH:mm')}"
+													 class="border-left border-info pl-1 font-weight-bold"></small> <br/>
 													<span class="badge task_chrono_span d-inline-block"></span>
 													<small class="task_chrono_span_text mr-1 ml-1"></small>
 													<small class="result_finish_task_container text-info font-weight-bold"></small>

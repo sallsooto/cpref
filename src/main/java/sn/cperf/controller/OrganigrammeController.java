@@ -143,6 +143,7 @@ public class OrganigrammeController {
 			user.setUserSup(parentUser);
 			user.setPhone(org.getTelephone());
 			user.setEmail(org.getEmail());
+			user.setHierarchySuperior(org.getHierarchySuperior());
 			if(org.getFonction() != null && !org.getFonction().equals("") && !org.getFonction().equals("null")
 					&& !org.getFonction().toLowerCase().trim().equals("sans fonction")
 					&& !org.getFonction().toLowerCase().trim().equals("fonction")){
@@ -276,6 +277,7 @@ public class OrganigrammeController {
 		org.setParentId((user.getUserSup() != null) ? user.getUserSup().getId() : null);
 		org.setPrenom(ralaceWhenNullOrBlank(user.getFirstname(), "Prenom", ""));
 		org.setNom(ralaceWhenNullOrBlank(user.getLastname(), "Nom", ""));
+		org.setHierarchySuperior(ralaceWhenNullOrBlank(user.getHierarchySuperior(), "", ""));
 		String photoUri = "http://" + request.getServerName() + ":"
 				+ request.getServerPort() + request.getContextPath() + "/User/getUserPhoto/?uid="+user.getId();
 		//org.setImage(StringUtils.cleanPath("/images/avatars/" + user.getPhoto()));

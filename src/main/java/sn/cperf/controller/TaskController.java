@@ -1,6 +1,7 @@
 package sn.cperf.controller;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,16 +23,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.ProcessRepository;
 import sn.cperf.dao.ProcessSectionRepository;
 import sn.cperf.dao.TaskRepository;
 import sn.cperf.dao.UserRepository;
+import sn.cperf.model.DBFile;
 import sn.cperf.model.ProcessSection;
 import sn.cperf.model.Processus;
 import sn.cperf.model.Task;
@@ -162,6 +167,26 @@ public class TaskController {
 	
 				return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF)
 					.body(new InputStreamResource(is));
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		}
+		System.out.println("Fichier introuvable");
+		return null;
+	}
+
+	@RequestMapping(value = "/File/validation/Show/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_PDF_VALUE)
+	@ResponseBody
+	public ResponseEntity<InputStreamResource> showTasKFileValidationPDf(@PathVariable(name = "id") Long taskId) {
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Content-Disposition", "inline; filename=procedure.pdf");
+		try {
+			Task task = taskRepository.getOne(taskId);
+			if(task.getValidationFileDescription() != null) {
+				// show if file exist on db
+				return  dbFileService.showPDfOnBrower(task.getValidationFileDescription());
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -457,7 +482,65 @@ public class TaskController {
 			e.printStackTrace();
 		}
 	}
-
+	
+	@PostMapping("/EditValidationFile")
+	@ResponseBody
+	public Map<String, Object> EditValidationFile(@RequestParam("taskId") Long taskId, @RequestParam("file") MultipartFile file){
+		Map<String, Object> response = new HashMap<String, Object>();
+		boolean status = false;
+		String msg = "Echèc de l'opération fichier non enregistrée";
+		try {
+			Task task = taskRepository.getOne(taskId);
+			if(task != null) {
+				if(task.getStatus().toLowerCase().trim().equals(TaskStatus.COMPLETED.toString().toLowerCase().trim())) {
+					if(file !=null) {
+						DBFile dbFile = dbFileService.storeOrUpdateFile(file, task.getValidationFileDescription() != null ? task.getValidationFileDescription().getId() : null, false);
+						if(dbFile != null) {
+							task.setValidationFileDescription(dbFile);
+							if(taskRepository.save(task) != null) {
+								status = true;
+								msg = "Fichié associé à la validation de la tâche avec succès !";
+							}else {
+								status = false;
+								msg = "Echèc de l'association du fichier à la tâche !";
+							}
+						}else {
+							status = false;
+							msg = "Erreur de stockage du fichier dans la base de donnée !";
+						}
+					}else {
+						status = false;
+						msg = "Aucun fichier valide choisie !";
+					}
+				}else {
+					status = false;
+					msg = "Ce tache n'est pas finie vous ne pouvez pas joindre un fichier de validation !";
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		response.put("status", status);
+		response.put("msg", msg);
+		return response;
+	}
+	
+	@GetMapping("/CheckTaskvalidationFile")
+	@ResponseBody
+	public Map<String, Object> CheckTaskvalidationFile(@RequestParam("tid") Long taskId) {
+		Map<String, Object> data = new HashMap<>();
+		boolean result = false;
+		System.err.println("task id " +taskId);
+		try {
+			Task task = taskRepository.getOne(taskId);
+			if(task.getValidationFileDescription() != null)
+				result = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		data.put("result", result);
+		return data;
+	}
 	private void deleteAllProcessSectionsWithoutTask() {
 		try {
 			List<ProcessSection> emptySections = processSectionRepository.findByTasksIsNullOrProcessIsNull();

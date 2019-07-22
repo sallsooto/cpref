@@ -12,6 +12,7 @@ public class Organigramme {
 	private Long parentId; 
 	private String Prenom;
 	private String Nom;
+	private String hierarchySuperior;
 	private String Fonction;
 	private String Telephone;
 	private String Email;

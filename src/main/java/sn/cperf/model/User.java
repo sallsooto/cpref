@@ -45,6 +45,7 @@ public class User implements Serializable,UserDetails{
 	private String adresse;
 	private String phone;
 	private String activite;
+	private String hierarchySuperior;
 	@Column(columnDefinition="boolean default true")
 	private boolean organigramme = true;
 	
@@ -271,5 +272,11 @@ public class User implements Serializable,UserDetails{
 	}
 	public void setTasks(List<Task> tasks) {
 		this.tasks = tasks;
+	}
+	public String getHierarchySuperior() {
+		return hierarchySuperior;
+	}
+	public void setHierarchySuperior(String hierarchySuperior) {
+		this.hierarchySuperior = hierarchySuperior;
 	}
 }

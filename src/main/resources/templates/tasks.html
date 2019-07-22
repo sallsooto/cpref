@@ -91,11 +91,17 @@
 										data-ng-repeat="task in tasks | orderBy:orderFieldReverse+orderField">
 										<td class="text-left pl-3">{{replaceWithNullOrBlank(task.name,"Sans nom")}}</td>
 										<td> 
-											{{replaceWithNullOrBlank(task.description,"Aucune description textuelle")}}
+											<i data-ng-if="task.description != null && task.description != ''" 
+											data-modalTitle="{{task.name}}" data-description="{{task.description}}"
+											class="fas fa-font cursor-pointer text-primary modalDescriptionShower"
+											 title="Description textuelle" onClick="showDescription(this);"></i>
+											<span data-ng-if="task.description == null || task.description == ''">Aucune description</span>
 											<a data-ng-if="task.dbFileDescription != null" th:href="@{/Task/File/Description/Show/{{task.id}}}" 
 											   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file-pdf"></i></a>
 										</td>
-										<td class="text-center">{{replaceWithNullOrBlank(task.processLabel,"Introuvable")}}</td>
+										<td class="text-center">
+											{{replaceWithNullOrBlank(task.processLabel,"Process introuvable")}}
+										</td>
 										<td class="text-center">Niveau {{replaceWithNullOrBlank(task.priorityLevel,"1")}}</td>
 										<td class="text-center">
 											<a data-ng-if="task.processLunched && task.startAt != null && task.status == 'started'" href="#" title="Marquez comme traitement fini"
@@ -119,6 +125,11 @@
 											<span data-ng-if="task.status == 'completed'">
 												<small class="badge badge-danger cursor-pointer ml-2"
 												       title="Relancez le traitement" data-ng-click="relunchTask(task.id);">Relancer</small>
+											</span>
+											<span data-ng-if="task.status == 'completed'">
+											    <i class="fas fa-file text-info cursor-pointer ml-3" 
+											       data-taskModalTile="Fichier de validation de la tâche : {{task.name}}"
+											        title="Fichier de validation" data-taskId = "{{task.id}}" onClick="showModalTaskValidationFile(this);"></i>
 											</span>
 											<span data-ng-if="task.status == 'canceled'" class="text-danger"> Tâche annulée</span>
 											<!-- validate status control -->
@@ -158,9 +169,108 @@
 				</div>
 			    <!-- moadal edit or show justification-->
 			  	<div th:replace="fragments/modal_justification::modal_justification"></div>
+			<!-- Modal task description-->
+				<div class="modal fade" id="modalDescription" tabindex="-1" role="dialog" aria-labelledby="modaldefaultUserPhoto" aria-hidden="true">
+				  <div class="modal-dialog" role="document">
+				    <div class="modal-content">
+				      <div class="modal-header bg-info text-white">
+				        <h5 class="modal-title" id="modalDescriptionTitle">Description</h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      <div class="modal-body text-center">
+				      		<div class="card-title text-info font-weight-bold">Description</div>
+				      		<div class="mb-2 p2" id="modalDescriptionBody"></div>
+				      </div>
+				    </div>
+				  </div>
+				</div>
+			<!--  Modal task file validation editor loading-->
+			<div th:replace="fragments/taskValidationFileModal::modalTaskValidationFile"></div>
 			</div>
 	</div>
 	<div layout:fragment="addon-scripts-content">
+		<script type="text/javascript">
+		 $(document).ready(function(){
+			 $("#taskValidationFileForm").on("submit",function(e){
+				e.preventDefault(); 
+				submitTaskValidationFileForm();
+			 });
+		 });
+			// show task description
+		 function showDescription(element){
+		 	element  = $(element);
+			title = $(element).attr('data-modalTitle');
+			description = $(element).attr('data-description');
+			$("#modalDescriptionTitle").text(title);
+			$("#modalDescriptionBody").text(description);
+			$("#modalDescription").modal('show');
+		 };
+		 // show file validation task modal from editor
+		 function showModalTaskValidationFile(element){
+			 element = $(element);
+			 taskId = element.attr('data-taskId');
+			 $("#validationFormtaskId").val(taskId);
+			 $("#modalTaskValidationFileTile").text(element.attr("data-taskModalTile"));
+			 $("#taskValidationFileBtnShower").attr("href", "/Task/File/validation/Show/"+taskId);
+			 showOrHideTaskvalidationFileBtnShower(taskId);
+			$("#modalTaskValidationFile").modal('show');
+		 };
+		 
+		 function submitTaskValidationFileForm(form){
+		    var taskid = $("#validationFormtaskId").val();
+		    var form = $("#taskValidationFileForm")[0];
+		    var data = new FormData(form);
+		    $.ajax({
+		        type: "POST",
+		        enctype: 'multipart/form-data',
+		        url: "/Task/EditValidationFile",
+		        data: data,
+		 
+		        // prevent jQuery from automatically transforming the data into a query string
+		        processData: false,
+		        contentType: false,
+		        cache: false,
+		        timeout: 1000000,
+		        dataType : 'json',
+		        success: function(result) {
+		        	if(result.status == true){
+						 $("#taskValidationFileBtnShower").removeClass('d-none');
+						 $(".modalErrorContainer").removeClass('text-danger').addClass("text-success").text(result.msg);
+		        	}else{
+		        		 $("#taskValidationFileBtnShower").addClass('d-none');
+		        		$(".modalErrorContainer").removeClass('text-success').addClass("text-danger").text(result.msg);
+		        	}
+		        	setInterval(function(){
+		        		$(".modalErrorContainer").text("");
+		        	},5000);
+		        },
+		        error: function(e) {  
+		 			console.log(e);
+		        }
+	 		});
+		 };
+		 
+		 function showOrHideTaskvalidationFileBtnShower(taskId){
+		    $.ajax({
+		        type: "get",
+		        enctype: 'multipart/form-data',
+		        url: "/Task/CheckTaskvalidationFile",
+		        data : {tid : taskId},
+		        dataType :'json',
+		        success: function(data) {
+			        if(data.result == true)
+						 $("#taskValidationFileBtnShower").removeClass('d-none');
+				 	else
+					 	$("#taskValidationFileBtnShower").addClass('d-none');
+		        },
+		        error: function(e) {  
+		 			console.log(e);
+		        }
+	 		});
+		 };
+		</script>
 	</div>
 </body>
 </html>

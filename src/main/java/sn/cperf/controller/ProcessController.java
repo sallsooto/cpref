@@ -94,7 +94,8 @@ public class ProcessController {
 	UserService userSservice;
 	@Autowired
 	TaskService taskService;
-	@Autowired WorkCalendarRepository workCalendarRepository;
+	@Autowired
+	WorkCalendarRepository workCalendarRepository;
 
 	@GetMapping("/Edit")
 	public String process(@RequestParam(name = "pid", defaultValue = "0") Long processId, Model model) {
@@ -147,7 +148,7 @@ public class ProcessController {
 				process.setId(form.getId());
 				process.setDossier(form.getDossier());
 				process.setModelId(form.getModelId());
-				if(process.getId() == null)
+				if (process.getId() == null)
 					process.setStoreAt(new Date());
 				if (processRepository.save(process) != null) {
 					if (form.getId() != null && form.getId() > 0)
@@ -177,13 +178,13 @@ public class ProcessController {
 			// updatting all processes where modelid is this p id
 			try {
 				List<Processus> processes = processRepository.findByModelId(p.getId());
-				for(Processus process : processes) {
+				for (Processus process : processes) {
 					process.setModelId(null);
 					processRepository.save(process);
 				}
 			} catch (Exception e) {
 			}
-			//deleting process
+			// deleting process
 			processRepository.delete(p);
 			if (tasks != null) {
 				for (Task t : tasks) {
@@ -288,7 +289,8 @@ public class ProcessController {
 								task.setStatus(TaskStatus.STARTED.toString());
 								try {
 									taskRepository.save(task);
-									// lancement des autre tâches qui doivent êtres lancées une fois celle-ci démarrée
+									// lancement des autre tâches qui doivent êtres lancées une fois celle-ci
+									// démarrée
 									taskService.startStartupTasks(task, new Date());
 								} catch (Exception e) {
 								}
@@ -406,7 +408,7 @@ public class ProcessController {
 					tasks = taskRepository.getByProcess(process.getId());
 					tasksStartups = taskRepository.getByProcess(process.getId());
 					Task TaskWithMaxLevel = taskRepository.getLastTaskWithMaxPriorityLevel(process.getId());
-					if(TaskWithMaxLevel != null && TaskWithMaxLevel.getPriorityLevel() != null)
+					if (TaskWithMaxLevel != null && TaskWithMaxLevel.getPriorityLevel() != null)
 						maxPriorityLevel = TaskWithMaxLevel.getPriorityLevel();
 				} else {
 					return "redirect:/Process/List/";
@@ -452,14 +454,15 @@ public class ProcessController {
 		if (tasks != null && !tasks.isEmpty()) {
 			try {
 				Task currentTask = task;
-				tasks = tasks.stream().filter(t -> t.getChirlds().size() < 2 || (currentTask != null
-						&& currentTask.getParent() != null && t.getId() == currentTask.getParent().getId()))
+				tasks = tasks.stream()
+						.filter(t -> t.getChirlds().size() < 2 || (currentTask != null
+								&& currentTask.getParent() != null && t.getId() == currentTask.getParent().getId()))
 						.collect(Collectors.toList());
 			} catch (Exception e) {
 			}
 		}
-		
-		if(task != null && (task.getPriorityLevel() == null || task.getPriorityLevel() == 0))
+
+		if (task != null && (task.getPriorityLevel() == null || task.getPriorityLevel() == 0))
 			task.setPriorityLevel(1);
 		isTheFirstProcessTask = taskService.checkIfThisIsTheFirstTaskForProcess(task);
 		model.addAttribute("sections", sections);
@@ -486,7 +489,7 @@ public class ProcessController {
 		List<Task> tasksStartups = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
 		Processus process = null;
-		int sectionFinded = 0, maxPriorityLevel=1;
+		int sectionFinded = 0, maxPriorityLevel = 1;
 		try {
 			if (bind.hasErrors()) {
 				bind.getAllErrors().forEach(e -> System.out.println(e.getDefaultMessage()));
@@ -509,7 +512,7 @@ public class ProcessController {
 				}
 				if (process != null) {
 					tasks = taskRepository.getByProcess(process.getId());
-					tasksStartups =  taskRepository.getByProcess(process.getId());
+					tasksStartups = taskRepository.getByProcess(process.getId());
 				}
 				// sections = processSectionRepository.findByProcess(process);
 				try {
@@ -614,11 +617,15 @@ public class ProcessController {
 				task = taskService.normalizechirldTasksConditions(task);
 
 				// affect calendar and holidays wtih task if exists
-				 try { task = taskService.associateCalanderAndHoildays(task);} catch (Exception e1) {}
-				 // saving tasks
+				try {
+					task = taskService.associateCalanderAndHoildays(task);
+				} catch (Exception e1) {
+				}
+				// saving tasks
 				if (taskRepository.save(task) != null) {
 					model.addAttribute("task", task);
-					// lancement des autre tâches qui doivent êtres lancées une fois celle-ci démarrée
+					// lancement des autre tâches qui doivent êtres lancées une fois celle-ci
+					// démarrée
 					taskService.startStartupTasks(task, new Date());
 					String successMsg = "";
 					String notificationMsg = "";
@@ -673,14 +680,15 @@ public class ProcessController {
 					if (sectionFinded <= 0)
 						sections.add(task.getSection());
 					isTheFirstProcessTask = taskService.checkIfThisIsTheFirstTaskForProcess(task);
-					// Lancement des autres tâches qui doivent être demarrées une fois celle ci démarrée
+					// Lancement des autres tâches qui doivent être demarrées une fois celle ci
+					// démarrée
 					taskService.startStartupTasks(task, new Date());
 				} else {
 					model.addAttribute("errorMsg", "Echèc de l'enregistrement de données!");
 				}
-				if(process != null) {
+				if (process != null) {
 					Task TaskWithMaxLevel = taskRepository.getLastTaskWithMaxPriorityLevel(process.getId());
-					if(TaskWithMaxLevel != null && TaskWithMaxLevel.getPriorityLevel() != null)
+					if (TaskWithMaxLevel != null && TaskWithMaxLevel.getPriorityLevel() != null)
 						maxPriorityLevel = TaskWithMaxLevel.getPriorityLevel();
 				}
 			}
@@ -692,15 +700,16 @@ public class ProcessController {
 		if (tasks != null && !tasks.isEmpty()) {
 			try {
 				Task currentTask = task;
-				tasks = tasks.stream().filter(t -> t.getChirlds().size() < 2 || (currentTask != null
-						&& currentTask.getParent() != null && t.getId() == currentTask.getParent().getId()))
+				tasks = tasks.stream()
+						.filter(t -> t.getChirlds().size() < 2 || (currentTask != null
+								&& currentTask.getParent() != null && t.getId() == currentTask.getParent().getId()))
 						.collect(Collectors.toList());
 			} catch (Exception e) {
 			}
 		}
 		model.addAttribute("sections", sections);
 		model.addAttribute("tasks", tasks);
-		model.addAttribute("tasksStartups",tasksStartups);
+		model.addAttribute("tasksStartups", tasksStartups);
 		model.addAttribute("users", userRepository.findAll());
 		model.addAttribute("groups", groupRepository.findAll());
 		model.addAttribute("maxPriorityLevel", maxPriorityLevel);
@@ -859,7 +868,10 @@ public class ProcessController {
 						}
 
 						// affect calendar and holidays wtih task if exists
-						 try { dbTask = taskService.associateCalanderAndHoildays(dbTask);} catch (Exception e1) {}
+						try {
+							dbTask = taskService.associateCalanderAndHoildays(dbTask);
+						} catch (Exception e1) {
+						}
 						// end setting start task date
 						if (taskRepository.save(dbTask) != null) {
 							// notify childs tasks if is task lunching
@@ -873,7 +885,8 @@ public class ProcessController {
 								model.addAttribute("task", dbTask);
 							} catch (Exception e1) {
 							}
-							// lancement des autre tâches qui doivent être démarrées une fois celle-ci démarrées
+							// lancement des autre tâches qui doivent être démarrées une fois celle-ci
+							// démarrées
 							taskService.startStartupTasks(dbTask, new Date());
 							String successMsg = "Tâche modifiée";
 							String notificationTitle = "Tâche mise à jour";
@@ -990,7 +1003,8 @@ public class ProcessController {
 					user = userRepository.getOne(userId);
 				} catch (Exception e) {
 				}
-				tasks = userSservice.getUserTaskByProcess(user, p.getId());
+				// necessaire si on veut afficher ques les tâche d'un utilisateur seulement
+				// tasks = userSservice.getUserTaskByProcess(user, p.getId());
 			}
 			// filter users for process
 			if (tasks != null) {
@@ -1027,15 +1041,17 @@ public class ProcessController {
 		model.addAttribute("groups", groups);
 		model.addAttribute("task", task);
 		model.addAttribute("process", p);
-		model.addAttribute("raphaelCode", makeRaphaelJsCode(tasks));
+		model.addAttribute("raphaelCode", makeRaphaelJsCode(tasks, user));
 		return "logigramme_with_raphael";
 	}
 
-	private String makeRaphaelJsCode(List<Task> tasks) {
+	private String makeRaphaelJsCode(List<Task> tasks, User user) {
 		String code = "", path = "";
+		Long processId = null;
 		// List<Task> sortedTasks = new ArrayList<>();
 		if (!tasks.isEmpty()) {
 			int nbTask = tasks.size();
+			processId = tasks.get(0).getProcessId();
 			try {
 				tasks = tasks.stream().sorted(Comparator.comparingLong(Task::getId)).collect(Collectors.toList());
 				tasks = sortTasks(tasks, tasks, null);
@@ -1065,11 +1081,16 @@ public class ProcessController {
 					if (task.getId() != tasks.get(tasks.size() - 1).getId())
 						path = path + cond + "(" + (task.isYesCondition() ? "yes" : "no") + ")->";
 				}
-				String taskStatus = task.getStatus();
-				if (taskStatus != null
-						&& taskStatus.toLowerCase().trim().equals(TaskStatus.COMPLETED.toString().toLowerCase().trim()))
+				String taskStatus = "";
+				if (user != null && !taskForUserOnProcess(task, user, processId)) {
+					taskStatus = "notForUser";
+				} else if (taskStatus != null && taskStatus.toLowerCase().trim()
+						.equals(TaskStatus.COMPLETED.toString().toLowerCase().trim())) {
 					if (task.isFinishedLate())
 						taskStatus = "finishedLate";
+				}else {
+					taskStatus = task.getStatus();
+				}
 
 				code = code + " " + key + "=>" + type + ": " + task.getName() + "|" + taskStatus
 						+ ":$showTaskDetails  \n";
@@ -1128,5 +1149,18 @@ public class ProcessController {
 			}
 		}
 		return sortedTasks;
+	}
+
+	private boolean taskForUserOnProcess(Task task, User user, Long processId) {
+		if (task != null && user != null && processId != null) {
+			List<Task> tasks = userSservice.getUserTaskByProcess(user, processId);
+			if (tasks != null) {
+				for (Task t : tasks) {
+					if (t.getId() == task.getId())
+						return true;
+				}
+			}
+		}
+		return false;
 	}
 }

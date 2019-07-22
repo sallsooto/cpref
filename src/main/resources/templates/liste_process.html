@@ -66,7 +66,7 @@
 								<td class="text-center">
 									<i th:if="${p.description != null and p.description != ''}" 
 									th:data-title ="${p.label}" th:data-description="${p.description}"
-									class="fab fa-readme fa-lg mt-3 cursor-pointer text-info modalDescriptionShower" title="Description" style="font-size:25px;"></i>
+									class="fas fa-font fa-lg mt-3 cursor-pointer text-info modalDescriptionShower" title="Description" style="font-size:25px;"></i>
 									<span th:if="${p.description == null or p.description == ''}">Aucune description</span>
 								</td>
 								<td th:text="${p.editor != null ? p.editor.firstname + ' '+p.editor.lastname : ''}"></td>
@@ -133,6 +133,11 @@
 													</td>
 													<td class="text-center">
 														<small><a th:href="@{/Process/Task/Edit(pid=${p.id},tid=${task.id})}">Modfier</a></small>
+														<span th:if="${task.status == 'completed'}">
+														    <i class="fas fa-file text-info cursor-pointer ml-3" 
+														       th:data-taskModalTile="${'Fichier de validation de la tâche : '+task.name}"
+														        title="Fichier de validation" th:data-taskId = "${task.id}" onClick="showModalTaskValidationFile(this);"></i>
+														</span>
 													</td>
 												</tr>
 											</tbody>
@@ -181,7 +186,8 @@
 			    </div>
 			  </div>
 			</div>
-		<!-- End Modal process description-->
+		<!-- Modal task file validation form-->
+	  <div th:replace="fragments/taskValidationFileModal::modalTaskValidationFile"></div>
 	</div>
 	<div layout:fragment="addon-scripts-content">
 		<!-- manager play or stop proccess script -->
@@ -212,7 +218,11 @@
 						$("#modalDescriptionBody").text(description);
 						$("#modalDescription").modal('show');
 					});
-					// end show process description
+					// task validations form code
+					 $("#taskValidationFileForm").on("submit",function(e){
+						e.preventDefault(); 
+						submitTaskValidationFileForm();
+					 });
 				});
 				var playOrStopProcess = function(triggerElement,playStat){
 					if(triggerElement.length>0){
@@ -274,6 +284,80 @@
 						}
 					}
 				};
+				// task file validations utils functions
+				
+			// show task description
+		 function showDescription(element){
+		 	element  = $(element);
+			title = $(element).attr('data-modalTitle');
+			description = $(element).attr('data-description');
+			$("#modalDescriptionTitle").text(title);
+			$("#modalDescriptionBody").text(description);
+			$("#modalDescription").modal('show');
+		 };
+		 // show file validation task modal from editor
+		 function showModalTaskValidationFile(element){
+			 element = $(element);
+			 taskId = element.attr('data-taskId');
+			 $("#validationFormtaskId").val(taskId);
+			 $("#modalTaskValidationFileTile").text(element.attr("data-taskModalTile"));
+			 $("#taskValidationFileBtnShower").attr("href", "/Task/File/validation/Show/"+taskId);
+			 showOrHideTaskvalidationFileBtnShower(taskId);
+			$("#modalTaskValidationFile").modal('show');
+		 };
+		 
+		 function submitTaskValidationFileForm(form){
+		    var taskid = $("#validationFormtaskId").val();
+		    var form = $("#taskValidationFileForm")[0];
+		    var data = new FormData(form);
+		    $.ajax({
+		        type: "POST",
+		        enctype: 'multipart/form-data',
+		        url: "/Task/EditValidationFile",
+		        data: data,
+		 
+		        // prevent jQuery from automatically transforming the data into a query string
+		        processData: false,
+		        contentType: false,
+		        cache: false,
+		        timeout: 1000000,
+		        dataType : 'json',
+		        success: function(result) {
+		        	if(result.status == true){
+						 $("#taskValidationFileBtnShower").removeClass('d-none');
+						 $(".modalErrorContainer").removeClass('text-danger').addClass("text-success").text(result.msg);
+		        	}else{
+		        		 $("#taskValidationFileBtnShower").addClass('d-none');
+		        		$(".modalErrorContainer").removeClass('text-success').addClass("text-danger").text(result.msg);
+		        	}
+		        	setInterval(function(){
+		        		$(".modalErrorContainer").text("");
+		        	},5000);
+		        },
+		        error: function(e) {  
+		 			console.log(e);
+		        }
+	 		});
+		 };
+		 
+		 function showOrHideTaskvalidationFileBtnShower(taskId){
+		    $.ajax({
+		        type: "get",
+		        enctype: 'multipart/form-data',
+		        url: "/Task/CheckTaskvalidationFile",
+		        data : {tid : taskId},
+		        dataType :'json',
+		        success: function(data) {
+			        if(data.result == true)
+						 $("#taskValidationFileBtnShower").removeClass('d-none');
+				 	else
+					 	$("#taskValidationFileBtnShower").addClass('d-none');
+		        },
+		        error: function(e) {  
+		 			console.log(e);
+		        }
+	 		});
+		 };
 			</script>
 		<!-- end manager play or stop proccess script -->
 	</div>
