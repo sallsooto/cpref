@@ -128,7 +128,11 @@
 							  								<div class="row">
 							  								   <div class="col-sm-12 col-md-3"><span >Tâche associée : </span></div>
 							  									<div class="col-sm-12 col-md-9  text-center">
-							  										<h5 class="badge badge-secondary mr-2 p-1" th:text="${obj.task.name + ' ( process : '+obj.task.section.process.label+' )'}"></h5>
+							  										<h5 class="badge badge-secondary mr-2 p-1">
+							  										<span th:text="${obj.task.name}"></span>
+							  										<span th:text="${obj.task.section.process.dossier != null ? 
+							  											' du process : '+ obj.task.section.process.label + ' du dossier : '+ obj.task.section.process.dossier  : ' du process : '+ obj.task.section.process.label}"></span>
+							  									  </h5>
 							  									</div>
 							  								</div>
 							  							</div>
@@ -221,7 +225,9 @@
 												</div>
 										        <div th:class="${withTask ? 'col-sm-12 form-group input-field col s12 withTaskcontainer' : 'd-none col-sm-12 form-group input-field col s12 withTaskcontainer'}">
 										        	<select th:field="*{task}" id="group" class="">
-										        		<option th:each="task : ${tasks}" th:value="${task.id}" th:text="${task.name+' (process : '+task.section.process.label+' )'}">name</option>
+										        		<option th:each="task : ${tasks}" th:value="${task.id}" 
+										        		 th:text="${task.section.process.dossier != null ? task.name+
+							  											' du process '+ task.section.process.label + ' du dossier '+ task.section.process.dossier  : task.name+' du process : '+ task.section.process.label}">name</option>
 										        	</select>
 										        	<label>Selectionner la tâche spécifique assosiée :</label>
 										        </div>

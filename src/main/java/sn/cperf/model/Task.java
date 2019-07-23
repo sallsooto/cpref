@@ -1,6 +1,8 @@
 package sn.cperf.model;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -309,12 +311,34 @@ public class Task implements Serializable {
 	
 	public double getDynamicPerformance() {
 		double performance = 0;
-		if(this.getStatus().toLowerCase().trim().equals("completed") || this.getStatus().toLowerCase().trim().equals("canceled"))
-			performance = 100;
-//		else if(this.getStatus().toLowerCase().trim().equals("started"))
-//			performance = 50;
-//		else
-//			performance = 0;
+		try {
+			List<Objectif> objectifs = this.getObjectifs();
+			if(objectifs != null && !objectifs.isEmpty()) {
+				int nbObjectif = objectifs.size();
+				for(Objectif obj : objectifs) {
+					performance = performance + obj.getPerformPercente();
+				}
+				if(performance>0){
+					performance = (performance/nbObjectif);
+				}
+				// formattage du nombre 
+				BigDecimal bdec, bdec2;
+				bdec = new BigDecimal(Double.toString(performance));
+				bdec2 = bdec.setScale(2,RoundingMode.FLOOR);
+				performance = bdec2.doubleValue();
+				return performance;
+			}else {
+				if(this.getStatus().toLowerCase().trim().equals("completed") || this.getStatus().toLowerCase().trim().equals("canceled"))
+					performance = 100;
+//			else if(this.getStatus().toLowerCase().trim().equals("started"))
+//				performance = 50;
+//			else
+//				performance = 0;
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return performance;
 	}
 	

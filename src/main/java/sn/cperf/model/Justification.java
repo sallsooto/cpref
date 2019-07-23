@@ -13,6 +13,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -30,6 +32,7 @@ public class Justification implements Serializable{
 	@Column(length=100, nullable=false)
 	private String cause;
 	@Column(nullable=false)
+	@Type(type="text")
 	private String content;
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="impact_id")

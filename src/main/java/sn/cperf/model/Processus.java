@@ -23,6 +23,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.Type;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -43,6 +44,7 @@ public class Processus implements Serializable{
 	private Long id;
 	private String label;
 	private String dossier;
+	@Type(type="text")
 	private String description;
 	@ManyToOne
 	@JoinColumn(name="editor_id")

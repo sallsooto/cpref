@@ -31,8 +31,15 @@
 								th:href="@{/Task/File/Description/Show/{id}(id=${task.id})}"
 								target="_blank"
 								class="btn-floating waves-effect waves-light d-inline-block">
-								<i class="fas fa-file-pdf btn btn-sm btn-outline-success"
+								<i class="fas fa-file-pdf btn btn-sm btn-outline-info"
 								title="Afficher le fichier de description"></i>
+							</a>
+							<a th:if="${task.id != null and task.validationFileDescription != null}"
+								th:href="@{/Task/File/validation/Show/{id}(id=${task.id})}"
+								target="_blank"
+								class="btn-floating waves-effect waves-light d-inline-block">
+								<i class="fas fa-file-pdf btn btn-sm btn-outline-success"
+								title="Afficher le fichier de validation"></i>
 							</a>
 						</div>
 					</div>
