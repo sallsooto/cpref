@@ -133,10 +133,14 @@
 											<div class="form-group col-sm-12 descriptionFileContainer">
 												<label>Fichier de scription :</span></label>
 												<input type="hidden" th:field="*{fileDescriptionPath}" id="photo"/>
-												<input type="file" id="file" name="fileDescription" accept="application/pdf" class="form-control form-control-sm  d-none"/>
-												<a href="#" class="border form-control form-control-sm btn btn-sm in_edition file_filed_trigger">
-													<span class="photo-loader-label" th:text="${task.fileDescriptionPath}">Charger une fichier de description </span>
-													<i class="fas fa-file float-right mt-1 text-primary"  style="font-size:15px;"></i>
+												<input type="file" id="file" name="fileDescription" accept="application/pdf,
+						       				 		application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,application/msword,
+													application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+													application/vnd.ms-powerpoint,.pptx,text/plain,image/*" class="form-control form-control-sm  d-none"/>
+												<a href="#" class="border form-control form-control-sm btn btn-sm in_edition file_filed_trigger d-inline-block"  style="overflow:auto;">
+													<span class="photo-loader-label d-inline-block w-75"
+													th:text="${task.dbFileDescription != null ? task.dbFileDescription.name: task.fileDescriptionPath}">Charger une fichier de description </span>
+													<i class="fas fa-file float-right text-primary d-inline-block"  style="font-size:15px;"></i>
 												</a>
 												<div class="invalid-feedback">Le fichier n'est pas valide!</div>
 											</div>
@@ -373,7 +377,9 @@
 				}
 			}
 		</script>
-		<script type="text/javascript" th:src="@{/js/profile.js}"></script>
+		<script type="text/javascript" th:src="@{/js/profile.js}">
+	    	showLoadFileNameFormSBCustumFileInput("#file",".photo-loader-label");
+		</script>
 	</div>
 </body>
 </html>

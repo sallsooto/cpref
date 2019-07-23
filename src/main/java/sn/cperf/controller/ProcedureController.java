@@ -101,11 +101,11 @@ public class ProcedureController {
 				procedure.setStoreAt(new Date());
 			if (file != null) {
 				try {
-					if (dbFileService.checkExtensions(file.getOriginalFilename(), new String[] { "pdf" })) {
+					if (dbFileService.checkExtensions(file.getOriginalFilename(), new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" })) {
 						procedure.setDbFile(dbFileService.storeOrUpdateFile(file,
 								procedure.getDbFile() != null ? procedure.getDbFile().getId() : null, false));
 						if (procedure.getDbFile() == null)
-							fileName = storageService.storeFile(file, new String[] { "pdf" });
+							fileName = storageService.storeFile(file, new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" });
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -117,7 +117,7 @@ public class ProcedureController {
 				String message = (isUpdateOperation) ? " Procedure modifié" : "Procedure enregistré";
 				message = ((fileName != null && !fileName.equals("")) || procedure.getDbFile() != null) ? message + " !"
 						: message
-								+ ", sans le fichier(assurez-vous de charger un fichier pdf de taille inférieur ou égale à 200MB) !";
+								+ ", sans le fichier(assurez-vous de charger un fichier pdf,world,excel,text ou de type image de taille inférieur ou égale à 200MB) !";
 				model.addAttribute("successMsg", message);
 			} else {
 				model.addAttribute("errorMsg", "Opération échouée, veuillez recommencer !");
@@ -139,7 +139,7 @@ public class ProcedureController {
 		try {
 			Procedure p = procedureRepository.getOne(procedureId);
 			if(p.getDbFile() != null)
-				return  dbFileService.showPDfOnBrower(p.getDbFile());
+				return  dbFileService.readStreamOnBrowser(p.getDbFile());
 			// show file on disk if exist
 			InputStream is = new FileInputStream(storageService.getFilePathInUploadDir(p.getFilePath()).toFile());
 

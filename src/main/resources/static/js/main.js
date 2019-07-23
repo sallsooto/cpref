@@ -30,7 +30,6 @@
     // cnahge task manager
 	$(".task_status_changer, .status_task_changer").on('click',function(e){
 		e.preventDefault();
-		alert("c'est quoi");
 	});
 	
 	$("body").on('click','.btn_danger_actionner',function(e){
@@ -42,6 +41,11 @@
 		e.preventDefault();
 		console.log("continuer");
 	});
+	
+	setTimeout(function(){
+		body = (document).doctype.name;
+		console.log(body);
+	},0)
 	/*============================ END MY SCRIPT ===========================*/
     "use strict";
 

@@ -56,7 +56,10 @@
 											<div class="form-group col-sm-12 descriptionFileContainer">
 												<label>Fichier (PDF) :</span></label>
 												<input type="hidden" th:field="*{filePath}" id="photo"/>
-												<input type="file" id="file" name="filePath" accept="application/pdf" class="form-control form-control-sm  d-none"/>
+												<input type="file" id="file" name="filePath" accept="application/pdf,
+														application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,application/msword,
+														application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
+														application/vnd.ms-powerpoint,.pptx,text/plain,image/*" class="form-control form-control-sm  d-none"/>
 												<a href="#" class="form-control form-control-sm btn btn-sm d-inline-block in_edition file_filed_trigger">
 													<span class="photo-loader-label d-inline-block" style="width:90%; overflow:auto; height:20px;"
 													   th:text="${procedure.dbFile != null ? procedure.dbFile.name : (procedure.filePath != null && procedure.filePath != '' ) ? procedure.filePath : 'Charger un fichier pdf descripteur.. '}">

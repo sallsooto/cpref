@@ -29,6 +29,7 @@ public class DBFileServiceImpl implements DBFileService {
 	@Override
 	public DBFile storeOrUpdateFile(MultipartFile file, Long dbFileId, boolean isUserDefaultAvatar) {
 		try {
+			System.err.println("j'arrive jusqu'à la");
 			if (file != null) {
 				// Check if the file's name contains invalid characters
 				if (file.getOriginalFilename() != null && file.getOriginalFilename().contains("..")) {
@@ -40,6 +41,7 @@ public class DBFileServiceImpl implements DBFileService {
 						try {
 							dbFile = dbFileRepository.getOne(dbFileId);
 						} catch (Exception e1) {
+							e1.printStackTrace();
 						}
 					}
 					if (dbFile == null)
@@ -80,13 +82,13 @@ public class DBFileServiceImpl implements DBFileService {
 	}
 
 	@Override
-	public ResponseEntity<InputStreamResource> showPDfOnBrower(DBFile file) {
+	public ResponseEntity<InputStreamResource> readStreamOnBrowser(DBFile file) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-Disposition", "inline; filename=" + file.getName());
 		try {
 			InputStream is = new ByteArrayInputStream(file.getData());
 
-			return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF)
+			return ResponseEntity.ok().headers(headers).contentType(MediaType.parseMediaType(file.getType()))
 					.body(new InputStreamResource(is));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

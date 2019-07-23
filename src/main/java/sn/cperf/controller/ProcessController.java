@@ -539,13 +539,13 @@ public class ProcessController {
 				if (fileDescription != null) {
 					try {
 						if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),
-								new String[] { "pdf" })) {
+								new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" })) {
 							task.setDbFileDescription(dbFileService.storeOrUpdateFile(fileDescription,
 									task.getDbFileDescription() != null ? task.getDbFileDescription().getId() : null,
 									false));
 							if (task.getDbFileDescription() == null)
 								task.setFileDescriptionPath(
-										storageService.storeFile(fileDescription, new String[] { "pdf" }));
+										storageService.storeFile(fileDescription, new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" }));
 						}
 					} catch (Exception e) {
 						// e.printStackTrace();

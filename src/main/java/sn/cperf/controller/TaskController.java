@@ -159,7 +159,7 @@ public class TaskController {
 			if(task.getDbFileDescription() != null) {
 				// show if file exist on db
 				System.err.println("c'est avec la base");
-				return  dbFileService.showPDfOnBrower(task.getDbFileDescription());
+				return  dbFileService.readStreamOnBrowser(task.getDbFileDescription());
 			}else {
 				// show if file exist on disk
 				InputStream is = new FileInputStream(
@@ -186,7 +186,7 @@ public class TaskController {
 			Task task = taskRepository.getOne(taskId);
 			if(task.getValidationFileDescription() != null) {
 				// show if file exist on db
-				return  dbFileService.showPDfOnBrower(task.getValidationFileDescription());
+				return  dbFileService.readStreamOnBrowser(task.getValidationFileDescription());
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -110,13 +110,22 @@
 										<table class="table text-center">
 											<thead>
 												<tr class="bg-info text-light pt-0 pb-0">
-													<th>Nom de la tâche</th><th>Status</th><th>Tâche précédente</th>
+													<th>Nom de la tâche</th><th class="text-center">Description<th>Status</th><th>Tâche précédente</th>
 													<th>Priorité</th><th>Utilisateurs assosiés</th><th>Groupe assosié</th><th>Action</th>
 												</tr>
 											</thead>
 											<tbody>
 												<tr th:each="task : ${p.tasks}">
 													<td th:text="${task.name}"></td>
+													<td class="text-center">
+														<i th:if="${task.description != null and task.description != ''}" 
+														th:data-modalTitle="${task.name}" th:data-description="${task.description}"
+														class="fas fa-font cursor-pointer text-primary modalDescriptionShower"
+														 title="Description textuelle" onClick="showDescription(this);"></i>
+														<span th:if="${task.description == null or task.description == ''}">Aucune description</span>
+														<a th:if="${task.dbFileDescription != null}" th:href="@{/Task/File/Description/Show/{tid}(tid=${task.id})}" 
+														   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file"></i></a>
+													</td>
 													<td class="text-center">
 														<span th:text="${(task.status == 'valid') ? 'Non démarrée' : (task.status == 'started') ? 'Démarrée et non terminée' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}" th:id="${'textStausContainer'+task.id}"></span>
 													</td>
