@@ -4,7 +4,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import javax.validation.Valid;
@@ -30,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import sn.cperf.config.Helpers;
+import sn.cperf.dao.DBFileRepository;
 import sn.cperf.dao.ProcedureRepository;
 import sn.cperf.model.DBFile;
 import sn.cperf.model.Procedure;
@@ -47,6 +51,7 @@ public class ProcedureController {
 	StorageService storageService;
 	@Autowired
 	DBFileService dbFileService;
+	@Autowired DBFileRepository dBFileRepository;
 
 	@GetMapping("/")
 	public String getListProceduresView() {
@@ -90,7 +95,7 @@ public class ProcedureController {
 
 	@PostMapping("/Edit")
 	public String editProcedure(@RequestParam(name = "pid", defaultValue = "0") Long procedureId,
-			@RequestParam(name = "filePath") MultipartFile file,
+			@RequestParam(name = "filePaths") List<MultipartFile> files,
 			@Valid @ModelAttribute("procedure") Procedure procedure, BindingResult bind, Model model) {
 		try {
 			boolean isUpdateOperation = false;
@@ -99,25 +104,36 @@ public class ProcedureController {
 				isUpdateOperation = true;
 			else
 				procedure.setStoreAt(new Date());
-			if (file != null) {
-				try {
-					if (dbFileService.checkExtensions(file.getOriginalFilename(), new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" })) {
-						procedure.setDbFile(dbFileService.storeOrUpdateFile(file,
-								procedure.getDbFile() != null ? procedure.getDbFile().getId() : null, false));
-						if (procedure.getDbFile() == null)
-							fileName = storageService.storeFile(file, new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" });
+			if (files != null && !files.isEmpty()) {
+				List<DBFile> dbFiles = procedure.getFiles();
+				for(MultipartFile file : files) {
+					try {
+						if (dbFileService.checkExtensions(file.getOriginalFilename(),Helpers.getAFileExtensions())) {
+//							procedure.setDbFile(dbFileService.storeOrUpdateFile(file,
+//									procedure.getDbFile() != null ? procedure.getDbFile().getId() : null, false));
+//							
+//							if (procedure.getDbFile() == null)
+//								fileName = storageService.storeFile(file, new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" });
+							DBFile dbFile = dbFileService.storeOrUpdateFile(file, null, false);
+							if(dbFile != null)
+								dbFiles.add(dbFile);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
+				}
+				if(!dbFiles.isEmpty()) {
+					procedure.setFiles(dbFiles);
+					fileName = "fichiers enregistrées";
 				}
 			}
-			if (fileName != null && !fileName.equals(""))
-				procedure.setFilePath(fileName);
+//			if (fileName != null && !fileName.equals(""))
+//				procedure.setFilePath(fileName);
 			if (procedureRepository.save(procedure) != null) {
 				String message = (isUpdateOperation) ? " Procedure modifié" : "Procedure enregistré";
 				message = ((fileName != null && !fileName.equals("")) || procedure.getDbFile() != null) ? message + " !"
 						: message
-								+ ", sans le fichier(assurez-vous de charger un fichier pdf,world,excel,text ou de type image de taille inférieur ou égale à 200MB) !";
+								+ ", sans le(s) fichier(s), assurez-vous de charger des fichiers "+Helpers.getHtmlInputFileExentions() +" taille chacun inférieur ou égale à 200MB !";
 				model.addAttribute("successMsg", message);
 			} else {
 				model.addAttribute("errorMsg", "Opération échouée, veuillez recommencer !");
@@ -151,6 +167,21 @@ public class ProcedureController {
 		}
 		System.out.println("Fichier introuvable");
 		return null;
+	}	
+	
+	@RequestMapping(value = "/Show/File/{id}", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<InputStreamResource> showProceduresFile(@PathVariable(name = "id") Long fileId) {
+		try {
+			DBFile file = dBFileRepository.getOne(fileId);
+			if(file != null)
+				return  dbFileService.readStreamOnBrowser(file);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		}
+		System.out.println("Fichier introuvable");
+		return null;
 	}
 
 	@GetMapping("/{id}/del")
@@ -159,11 +190,37 @@ public class ProcedureController {
 			Procedure p = procedureRepository.getOne(id);
 			DBFile dbFile = p.getDbFile();
 			p.setDbFile(null);
+			List<DBFile> files = p.getFiles();
+			p.setFiles(null);
 			procedureRepository.delete(p);
+			if(files != null) {
+				for(DBFile f : files)
+					dbFileService.delete(f);
+			}
 			if(dbFile != null)
 				dbFileService.delete(dbFile);
 		} catch (Exception e) {
 		}
 		return "redirect:/Procedure/";
+	}
+	@GetMapping("/deleteFile/")
+	@ResponseBody
+	public void deleteFile(@RequestParam("fid") Long fileId, @RequestParam("procid") Long procedureId) {
+		try {
+			DBFile file = dBFileRepository.getOne(fileId);
+			Procedure p = procedureRepository.getOne(procedureId);
+			if(p != null && file != null) {
+				List<DBFile> files = new ArrayList<DBFile>();
+				for(DBFile f : p.getFiles()) {
+					if(f.getId() != file.getId())
+						files.add(f);
+				}
+				p.setFiles(files);
+				procedureRepository.save(p);
+				dBFileRepository.delete(file);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

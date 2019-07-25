@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import sn.cperf.model.DBFile;
 import sn.cperf.model.Fonction;
 import sn.cperf.model.Group;
 import sn.cperf.model.ProcessSection;
@@ -85,4 +86,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 			+ "INNER JOIN process_sections ps ON t.section_id=ps.id "
 			+ "WHERE ps.process_id =:pid ORDER BY t.priority_level DESC LIMIT 0,1", nativeQuery=true)
 	Task getLastTaskWithMaxPriorityLevel(@Param("pid") Long processId);
+	List<Task> findByDescriptionsFilesContaining(DBFile file);
+	List<Task> findByValidationFilesContaining(DBFile file);
 }

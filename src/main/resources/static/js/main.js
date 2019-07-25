@@ -41,11 +41,11 @@
 		e.preventDefault();
 		console.log("continuer");
 	});
-	
-	setTimeout(function(){
-		body = (document).doctype.name;
-		console.log(body);
-	},0)
+	$(".fa_file").each(function(){
+//		fa_classes = getFileFontAwesomeTextClass($(this).attr('data-fileName'));
+		$(this).addClass("fas fa-file");
+		console.log($(this).attr('data-fileName'));
+	});
 	/*============================ END MY SCRIPT ===========================*/
     "use strict";
 
@@ -203,7 +203,21 @@ var showLoadFileAbsolutePathFormSBCustumFileInput = function(fileSelector,label_
 
 var showLoadFileNameFormSBCustumFileInput = function(fileSelector,label_content){
 	$(fileSelector).on("change", function() {
-		  var fileName = $(this).val().split("\\").pop();
+		var names = [];
+	    for (var i = 0; i < $(this).get(0).files.length; ++i) {
+	        names.push($(this).get(0).files[i].name);
+	    }
+	    fileName = "";
+	    if(names.length>0){
+	    	for(var i=0;i<names.length; i++){
+	    		fileName = fileName + " "+names[i];
+	    		if(i !== names.length-1)
+	    			fileName = fileName +";"
+	    	}
+	    	fileName = names.length + " fichier(s) :  "+fileName;
+	    }
+//	    console.log(names);
+//		  var fileName = $(this).val().split("\\").pop();
 		  $(label_content).text(fileName);
 		});
 };
@@ -268,3 +282,185 @@ function replaceElement(triggerElementAttr, selectorSymbol){
 		}
 	});
 };
+
+function getFileFontAwesomeTextClass(filename){
+	console.log("File name" + filename);
+	if(typeof filename !== typeof undefined && filename !== null && filename.length>0) {
+		var ext = "";
+		try { ext = filename.substring(filename.lastIndexOf("."), filename.length).toLowerCase();} catch (e) {}
+		ext = (ext != null && typeof ext !== typeof undefined) ? ext : "";
+		console.log("ext name" + ext);
+		if(ext == ".xls" || ext == ".xlsx")
+			return "fas fa-file-excel";
+		else if(ext == ".csv" || ext == ".csvx")
+			return "fas fa-file-csv";
+		else if(ext == ".doc" || ext == ".docx")
+			return "fas fa-file-word";
+		else if(ext == ".ppt" || ext == ".pptx")
+			return "fas fa-file-powerpoint";
+		else if(ext == ".png" || ext == ".jpg" || ext == ".jpeg"  || ext == ".ico"
+				|| ext == ".gif" || ext == ".svg"  || ext == ".svgz"  || ext == ".bmp")
+			return "fas fa-file-image";
+		else if(ext == ".pdf")
+			return "fas fa-file-pdf";
+		else if(ext == ".text" || ext == ".txt")
+			return "fas fa-file";
+		else
+			return "fas fa-file";
+	}
+	return "";
+};
+
+function loadTaskValidationModalData(taskId){
+	$.ajax({
+		url : '/Task/getTaskValidationFiles',
+	    method :'get',
+	    data : {tid : taskId},
+	    success : function(task){
+	    	if(task != null){
+	    		$("#modalTaskValidationFileTitle").text("Fichier(s) de validation de la tâche :  "+task.name);
+	    		$("#validationFormtaskId").val(task.id);
+	    		showTaksValidationFilesOnModal("#validationFilesMainRow",task.validationFiles);
+				$("#modalTaskValidationFile").modal('show');
+	    	}
+	    },
+	    error : function(e){
+	    	console.log(e);
+	    }
+	}) ;
+};
+
+function submitTaskValidationFileForm(form){
+   var taskid = $("#validationFormtaskId").val();
+   var form = $("#taskValidationFileForm")[0];
+   var data = new FormData(form);
+   $.ajax({
+       type: "POST",
+       enctype: 'multipart/form-data',
+       url: "/Task/StoreValidationFiles",
+       data: data,
+
+       // prevent jQuery from automatically transforming the data into a query string
+       processData: false,
+       contentType: false,
+       cache: false,
+       timeout: 1000000,
+       dataType : 'json',
+       success: function(result) {
+       	if(result.status == true){
+				 $("#taskValidationFileBtnShower").removeClass('d-none');
+				 $(".modalErrorContainer").removeClass('text-danger').addClass("text-success").text(result.msg);
+				 showTaksValidationFilesOnModal("#validationFilesMainRow",result.files);
+       	}else{
+       		 $("#taskValidationFileBtnShower").addClass('d-none');
+       		$(".modalErrorContainer").removeClass('text-success').addClass("text-danger").text(result.msg);
+       	}
+       	setInterval(function(){
+       		$(".modalErrorContainer").text("");
+       	},5000);
+       },
+       error: function(e) {  
+			console.log(e);
+       }
+	});
+};
+
+function showTaksValidationFilesOnModal(containerSelector,files){
+	//validationFilesMainRow
+	$(containerSelector).html("");
+	if(files.length>0){
+		for(var i=0; i<files.length;i++){
+			$(containerSelector).append(
+				 '<div  class="col-sm-2 col-md-1 m-1">'+
+					'<div class="card shadow p-1">'+
+						'<div class="card-body p-0">'+
+							'<div class="row no-gutters align-items-center">'+
+								'<div class="col mr-2">'+
+									'<a target="_blank" title="Ouvrir le fichier'+ files[i].name+'"'+
+									' href="/Task/Show/FileDescription/'+files[i].id + '/" target="_blank" class="'+getFileFontAwesomeTextClass(files[i].name)+ ' fa-2x">'+
+									 '</a>'+
+								'</div>'+
+								'<div class="col-auto">'+
+									'<a href="#" title="Supprimer" onclick="deleteValidationFile(event,'+files[i].id+');"'+
+									'class="fas fa-minus-circle text-danger cursor-pointer text-decoration-none"></a>'+
+								'</div>'+
+							'</div>'+
+						'</div>'+
+					'</div>'
+		    );
+		}
+	}
+};
+
+function deleteValidationFile(event, fileId){
+	event.preventDefault();
+	$.ajax({
+		url : '/Task/deleteFileValidationFile/',
+		method : 'get',
+		data : {fid : fileId},
+		success : function(res){
+			console.log(res);
+			showTaksValidationFilesOnModal("#validationFilesMainRow",res);
+		},
+		error : function(e){
+			console.log(e);
+		}
+	});
+};
+function deleteDescriptionFile(triggerElement,event){
+	 event.preventDefault();
+	 taskId = $(triggerElement).attr('data-taskId');
+	 fileId = $(triggerElement).attr('data-fileId');
+	 filesContainerSelector = $(triggerElement).attr('data-parentSelector');
+	 if(typeof taskId !== typeof undefined && typeof fileId !== typeof undefined && typeof filesContainerSelector !== typeof undefined){
+		 $.ajax({
+	        method: "get",
+	        url: "/Task/deleteFile/",
+	        data : {fid : fileId},
+	        success: function(res) {
+	        	$.ajax({
+	        		url : '/Task/getTaskValidationFiles',
+	        	    method :'get',
+	        	    data : {tid : taskId},
+	        	    success : function(task){
+	        	    	if(task != null){
+	        	    		$(filesContainerSelector).html("");
+	        	    		var files = task.descriptionsFiles;
+	        	    		if(files.length>0){
+	        	    			for(var i=0; i<files.length;i++){
+	        	    				$(filesContainerSelector).append(
+									   		'<div class="col-sm-6 col-md-3 m-1">'+
+											'<div class="card shadow p-1">'+
+												'<div class="card-body p-0">'+
+													'<div class="row no-gutters align-items-center">'+
+														'<div class="col mr-2">'+
+															'<a href="/Task/Show/FileDescription/'+files[i].id+'" '+
+															   'target="_blank" class="'+getFileFontAwesomeTextClass(files[i].name)+' fa-2x" '+
+															   'title="visualisez '+files[i].name+'"></a> '+
+														'</div>'+
+														'<div class="col-auto">'+
+															'<a href="#" title="Supprimer" data-parentSelector=".tdFiles'+taskId+'"'+
+															   'data-taskId="'+taskId+'" data-fileId="'+files[i].id+'" onClick="deleteDescriptionFile(this,event);"'+
+															   'class="fas fa-minus-circle text-danger cursor-pointer text-decoration-none"></a>'+
+														'</div>'+
+													'</div>'+
+												'</div>'+
+											'</div>'+
+								   		'</div>'
+	        	    			    );
+	        	    			}
+	        	    		}
+	        	    	}
+	        	    },
+	        	    error : function(e){
+	        	    	console.log(e);
+	        	    }
+	        	}) ;
+	        },
+	        error: function(e) {  
+	 			console.log(e);
+	        }
+		});
+	 }
+	 //validationFilesMainRow
+}; 

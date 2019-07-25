@@ -31,6 +31,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import sn.cperf.config.Helpers;
+import sn.cperf.dao.DBFileRepository;
 import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.ProcessRepository;
 import sn.cperf.dao.ProcessSectionRepository;
@@ -65,18 +67,30 @@ public class TaskController {
 	NotificationService notifService;
 	@Autowired
 	ProcessRepository processRepository;
-	@Autowired DBFileService dbFileService;
-	@Autowired GroupRepository groupRepository;
-	@Autowired ProcessSectionRepository processSectionRepository;
-	@Autowired ProcessService processService;
-	@Autowired TaskService taskService;
+	@Autowired
+	DBFileService dbFileService;
+	@Autowired
+	GroupRepository groupRepository;
+	@Autowired
+	ProcessSectionRepository processSectionRepository;
+	@Autowired
+	ProcessService processService;
+	@Autowired
+	TaskService taskService;
+	@Autowired
+	DBFileRepository dBFileRepository;
+
 	@GetMapping("/")
 	public String getListTaskView(Model model) {
-		User loged =  cperfService.getLoged();
-		model.addAttribute("loged",loged);
+		User loged = cperfService.getLoged();
+		model.addAttribute("loged", loged);
 		boolean logedIsAdmin = false;
-		try { logedIsAdmin = loged.hasRole("admin") ? true : false;} catch (Exception e) {}
-		model.addAttribute("logedIsAdmin",logedIsAdmin);
+		try {
+			logedIsAdmin = loged.hasRole("admin") ? true : false;
+		} catch (Exception e) {
+		}
+		model.addAttribute("logedIsAdmin", logedIsAdmin);
+		model.addAttribute("validationTask", new Task());
 		return "tasks";
 	}
 
@@ -97,8 +111,11 @@ public class TaskController {
 			datas.put("loged", loged);
 			if (loged != null) {
 				boolean logedIsAdmin = false;
-				try { logedIsAdmin = loged.hasRole("admin") ? true : false;} catch (Exception e) {}
-				datas.put("logedIsAdmin",logedIsAdmin);
+				try {
+					logedIsAdmin = loged.hasRole("admin") ? true : false;
+				} catch (Exception e) {
+				}
+				datas.put("logedIsAdmin", logedIsAdmin);
 				status = (status.toLowerCase().equals(TaskStatus.CANCELED.toString()) && !loged.hasRole("admin"))
 						? "valid"
 						: status;
@@ -156,23 +173,38 @@ public class TaskController {
 		headers.add("Content-Disposition", "inline; filename=procedure.pdf");
 		try {
 			Task task = taskRepository.getOne(taskId);
-			if(task.getDbFileDescription() != null) {
+			if (task.getDbFileDescription() != null) {
 				// show if file exist on db
 				System.err.println("c'est avec la base");
-				return  dbFileService.readStreamOnBrowser(task.getDbFileDescription());
-			}else {
+				return dbFileService.readStreamOnBrowser(task.getDbFileDescription());
+			} else {
 				// show if file exist on disk
 				InputStream is = new FileInputStream(
 						storageService.getFilePathInUploadDir(task.getFileDescriptionPath()).toFile());
-	
+
 				return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF)
-					.body(new InputStreamResource(is));
+						.body(new InputStreamResource(is));
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			// e.printStackTrace();
 		}
 		System.out.println("Fichier introuvable");
+		return null;
+	}
+
+	@RequestMapping(value = "/Show/FileDescription/{fid}", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<InputStreamResource> showTaskFile(@PathVariable(name = "fid") Long fileId) {
+		try {
+			DBFile file = dBFileRepository.getOne(fileId);
+			if (file != null) {
+				return dbFileService.readStreamOnBrowser(file);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		}
 		return null;
 	}
 
@@ -184,9 +216,9 @@ public class TaskController {
 		headers.add("Content-Disposition", "inline; filename=procedure.pdf");
 		try {
 			Task task = taskRepository.getOne(taskId);
-			if(task.getValidationFileDescription() != null) {
+			if (task.getValidationFileDescription() != null) {
 				// show if file exist on db
-				return  dbFileService.readStreamOnBrowser(task.getValidationFileDescription());
+				return dbFileService.readStreamOnBrowser(task.getValidationFileDescription());
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -212,28 +244,27 @@ public class TaskController {
 					task.setStatusValid(false);
 					// seting finish date
 					if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
-						if(task.getFinishAt() == null)
+						if (task.getFinishAt() == null)
 							task.setFinishAt(new Date());
-					}
-					else {
+					} else {
 						task.setFinishAt(null);
 					}
 					// set staring task date
 					if (!task.getStatus().toLowerCase().equals(TaskStatus.STARTED.toString().toLowerCase())) {
-						if(task.getStartAt() == null)
+						if (task.getStartAt() == null)
 							task.setStartAt(new Date());
-					}
-					else {
+					} else {
 						task.setStartAt(null);
 					}
 					// en setting start task date
 					if (taskRepository.save(task) != null) {
-						
+
 						// lunching task chirlds if is necessary
 						processService.startChirldTaskStatusWhenIsNecessary(task);
-						// lancement des autres tâches qui doivent être démarrées une fois celle ci démarrées
+						// lancement des autres tâches qui doivent être démarrées une fois celle ci
+						// démarrées
 						taskService.startStartupTasks(task, new Date());
-						
+
 						// store process finisAt date if is laste task completed
 						processService.finishProcessWhenIsTime(task.getSection().getProcess());
 						// storing notifications
@@ -327,22 +358,23 @@ public class TaskController {
 					}
 					// seting finish date
 					if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
-						if(task.getFinishAt() == null)
+						if (task.getFinishAt() == null)
 							task.setFinishAt(new Date());
-					}
-					else {
+					} else {
 						task.setFinishAt(null);
 					}
 					// set staring task date
 					if (!task.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
-						if(task.getStartAt() == null)
+						if (task.getStartAt() == null)
 							task.setStartAt(new Date());
-					}
-					else {
+					} else {
 						task.setStartAt(null);
 					}
 					// affect calendar and holidays wtih task if exists
-					 try { task = taskService.associateCalanderAndHoildays(task);} catch (Exception e1) {}
+					try {
+						task = taskService.associateCalanderAndHoildays(task);
+					} catch (Exception e1) {
+					}
 					// en setting start task date
 					if (taskRepository.save(task) != null) {
 						// finish process op
@@ -356,14 +388,14 @@ public class TaskController {
 						String textStatus = "";
 						if (task.getStatus().equals(TaskStatus.STARTED.toString())) {
 							textStatus = "En état de traitement";
-						}
-						else if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
+						} else if (task.getStatus().equals(TaskStatus.COMPLETED.toString())) {
 							textStatus = "Traitée";
 							try {
 								// lunch started
-								if(task.getChirlds() != null && !task.getChirlds().isEmpty()) {
-									for(Task chirld : task.getChirlds()) {
-										if(chirld.getStatus().toLowerCase().equals(TaskStatus.VALID.toString().toLowerCase())) {
+								if (task.getChirlds() != null && !task.getChirlds().isEmpty()) {
+									for (Task chirld : task.getChirlds()) {
+										if (chirld.getStatus().toLowerCase()
+												.equals(TaskStatus.VALID.toString().toLowerCase())) {
 											chirld.setStatus(TaskStatus.STARTED.toString().toLowerCase());
 											chirld.setStartAt(new Date());
 											taskRepository.save(chirld);
@@ -372,8 +404,7 @@ public class TaskController {
 								}
 							} catch (Exception e) {
 							}
-						}
-						else {
+						} else {
 							textStatus = "Traitement annulé";
 						}
 						data.put("textStatus", textStatus);
@@ -385,56 +416,71 @@ public class TaskController {
 		}
 		return data;
 	}
-	
+
 	@GetMapping("/LoadTaskInModel")
 	public String LoadTaskInModel(@RequestParam("tid") Long taskId, Model model, HttpSession session) {
 		try {
 			// suppression des section vide
 			deleteAllProcessSectionsWithoutTask();
-			
-		  Task t = taskRepository.getOne(taskId);
-		  if(t != null) {
-			    Processus process = processRepository.getOne(t.getProcessId());
-			  	List<ProcessSection> sections = new ArrayList<>();
-			  	if(t.getParent() != null && t.getParent().getSection() != null && 
-			  		t.getSection() != null && t.getParent().getSection().getId() != t.getSection().getId()) {
-			  		ProcessSection parentSection = t.getParent().getSection();
-			  		parentSection.setName("Section précédente");
-			  		sections.add(parentSection);
-			  	}
-			  	if(t.getParent() != null && t.getParent().getSection() != null && t.getSection().getId() == t.getParent().getSection().getId()) {
-			  		ProcessSection newSection = new ProcessSection();
-			  		newSection.setName("Nouvelle section");
-			  		sections.add(newSection);
-			  	}
-			  	sections.add(t.getSection());
-			  	if(sections.isEmpty())
-			  		sections = process.getSections();
+
+			Task t = taskRepository.getOne(taskId);
+			if (t != null) {
+				Processus process = processRepository.getOne(t.getProcessId());
+				List<ProcessSection> sections = new ArrayList<>();
+				if (t.getParent() != null && t.getParent().getSection() != null && t.getSection() != null
+						&& t.getParent().getSection().getId() != t.getSection().getId()) {
+					ProcessSection parentSection = t.getParent().getSection();
+					parentSection.setName("Section précédente");
+					sections.add(parentSection);
+				}
+				if (t.getParent() != null && t.getParent().getSection() != null
+						&& t.getSection().getId() == t.getParent().getSection().getId()) {
+					ProcessSection newSection = new ProcessSection();
+					newSection.setName("Nouvelle section");
+					sections.add(newSection);
+				}
+				sections.add(t.getSection());
+				if (sections.isEmpty())
+					sections = process.getSections();
 				model.addAttribute("sections", sections);
 				model.addAttribute("tasks", taskRepository.getByProcessAndTaskIdIsNot(process.getId(), t.getId()));
 				model.addAttribute("users", userRepository.findAll());
-			    model.addAttribute("task", t);
+				model.addAttribute("task", t);
 				model.addAttribute("groups", groupRepository.findAll());
 				model.addAttribute("process", process);
-				if(session.getAttribute("errorMsg") != null && !session.getAttribute("errorMsg").equals("")) {
+				if (session.getAttribute("errorMsg") != null && !session.getAttribute("errorMsg").equals("")) {
 					model.addAttribute("errorMsg", session.getAttribute("errorMsg"));
 					session.removeAttribute("errorMsg");
 				}
-				if(session.getAttribute("successMsg") != null && !session.getAttribute("successMsg").equals("")) {
+				if (session.getAttribute("successMsg") != null && !session.getAttribute("successMsg").equals("")) {
 					model.addAttribute("successMsg", session.getAttribute("successMsg"));
 					session.removeAttribute("successMsg");
 				}
-			  return "logigramme_with_raphael :: #taskForm";
-		  }
+				return "logigramme_with_raphael :: #taskForm";
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
+	@GetMapping("/getTaskValidationFiles")
+	@ResponseBody
+	public Task getTaskValidationFiles(@RequestParam("tid") Long taskId) {
+		Task task = null;
+		if (taskId != null) {
+			try {
+				task = taskRepository.getOne(taskId);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return task;
+	}
+
 	@GetMapping("/loadTasksChronoData")
 	@ResponseBody
-	public Map<String,Object> LoadTaskInModel(@RequestParam("tid") Long taskId) {
+	public Map<String, Object> LoadTaskInModel(@RequestParam("tid") Long taskId) {
 		Map<String, Object> datas = new HashMap<>();
 		String startAt = "";
 		String maxDate = "";
@@ -442,11 +488,11 @@ public class TaskController {
 		boolean finishState = false;
 		try {
 			Task t = taskRepository.getOne(taskId);
-			if(t != null  && t.getStartAt() != null) {
+			if (t != null && t.getStartAt() != null) {
 				SimpleDateFormat tf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 				startAt = tf.format(t.getStartAt());
 				maxDate = tf.format(t.getMaxDate());
-				if(t.getFinishAt() != null) {
+				if (t.getFinishAt() != null) {
 					finishState = true;
 					finishAt = tf.format(t.getFinishAt());
 				}
@@ -456,11 +502,11 @@ public class TaskController {
 		}
 		datas.put("startAt", startAt);
 		datas.put("maxDate", maxDate);
-		datas.put("finishAt",finishAt);
+		datas.put("finishAt", finishAt);
 		datas.put("finishState", finishState);
 		return datas;
 	}
-	
+
 	@GetMapping("/relunchTask")
 	@ResponseBody
 	@Transactional
@@ -473,7 +519,8 @@ public class TaskController {
 			task.setFinishAt(null);
 			process.setFinishDate(null);
 			taskRepository.save(task);
-			// lancement des autres tâches qui doivent être démarrées une fois celle ci démarrées
+			// lancement des autres tâches qui doivent être démarrées une fois celle ci
+			// démarrées
 			taskService.startStartupTasks(task, new Date());
 			// notify childs tasks if is task lunching
 			taskService.notifyChilrdIfThisParentTaskIsLunched(task);
@@ -482,39 +529,52 @@ public class TaskController {
 			e.printStackTrace();
 		}
 	}
-	
-	@PostMapping("/EditValidationFile")
+
+	@PostMapping("/StoreValidationFiles")
 	@ResponseBody
-	public Map<String, Object> EditValidationFile(@RequestParam("taskId") Long taskId, @RequestParam("file") MultipartFile file){
+	public Map<String, Object> EditValidationFile(@RequestParam("taskId") Long taskId,
+			@RequestParam("file") List<MultipartFile> files) {
 		Map<String, Object> response = new HashMap<String, Object>();
 		boolean status = false;
 		String msg = "Echèc de l'opération fichier non enregistrée";
+		int filesCount = files.size();
 		try {
 			Task task = taskRepository.getOne(taskId);
-			if(task != null) {
-				if(task.getStatus().toLowerCase().trim().equals(TaskStatus.COMPLETED.toString().toLowerCase().trim())) {
-					if(file !=null) {
-						DBFile dbFile = dbFileService.storeOrUpdateFile(file, task.getValidationFileDescription() != null ? task.getValidationFileDescription().getId() : null, false);
-						if(dbFile != null) {
-							task.setValidationFileDescription(dbFile);
-							if(taskRepository.save(task) != null) {
-								status = true;
-								msg = "Fichié associé à la validation de la tâche avec succès !";
-							}else {
-								status = false;
-								msg = "Echèc de l'association du fichier à la tâche !";
+			if (task != null) {
+				if (task.getStatus().toLowerCase().trim()
+						.equals(TaskStatus.COMPLETED.toString().toLowerCase().trim())) {
+					List<DBFile> validationFiles = task.getValidationFiles() != null ? task.getValidationFiles() : new ArrayList<>();
+					filesCount = filesCount + task.getValidationFiles().size();
+					if (files != null && !files.isEmpty()) {
+						for (MultipartFile file : files) {
+							if (dbFileService.checkExtensions(file.getOriginalFilename(),
+									Helpers.getAFileExtensions())) {
+								DBFile dbFile = dbFileService.storeOrUpdateFile(file, null, false);
+								if (dbFile != null) {
+									validationFiles.add(dbFile);
+								}
 							}
+						}
+						task.setValidationFiles(validationFiles);
+						task = taskRepository.save(task);
+						if(task != null) {
+							status = true;
+							if(task.getValidationFiles().size()< filesCount)
+								msg = "Tous les fichiers ne sont pas enregistrés, verifiez si tous vos fichiers ont une de ces extensions : "+Helpers.getHtmlInputFileExentions();
+							else
+								msg = "Fichier(e) de validation associé(s) avec succès !";
+							response.put("files", task.getValidationFiles());
 						}else {
 							status = false;
-							msg = "Erreur de stockage du fichier dans la base de donnée !";
+							msg = "Echèc de l'assosiation des fichiers à la tâche !";
 						}
-					}else {
+					} else {
 						status = false;
 						msg = "Aucun fichier valide choisie !";
 					}
-				}else {
+				} else {
 					status = false;
-					msg = "Ce tache n'est pas finie vous ne pouvez pas joindre un fichier de validation !";
+					msg = "Cette tâche n'est pas finie vous ne pouvez pas joindre un fichier de validation !";
 				}
 			}
 		} catch (Exception e) {
@@ -524,16 +584,16 @@ public class TaskController {
 		response.put("msg", msg);
 		return response;
 	}
-	
+
 	@GetMapping("/CheckTaskvalidationFile")
 	@ResponseBody
 	public Map<String, Object> CheckTaskvalidationFile(@RequestParam("tid") Long taskId) {
 		Map<String, Object> data = new HashMap<>();
 		boolean result = false;
-		System.err.println("task id " +taskId);
+		System.err.println("task id " + taskId);
 		try {
 			Task task = taskRepository.getOne(taskId);
-			if(task.getValidationFileDescription() != null)
+			if (task.getValidationFileDescription() != null)
 				result = true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -541,11 +601,61 @@ public class TaskController {
 		data.put("result", result);
 		return data;
 	}
+
+	@GetMapping("/deleteFile/")
+	@ResponseBody
+	public void deleteFile(@RequestParam("fid") Long fileId) {
+		try {
+			DBFile file = dBFileRepository.getOne(fileId);
+			if(file != null) {
+				List<Task> tasks = taskRepository.findByDescriptionsFilesContaining(file);
+				for(Task t : tasks) {
+					List<DBFile> descriptionFiles = new ArrayList<DBFile>();
+					for(DBFile f : t.getDescriptionsFiles()) {
+						if(f.getId() != file.getId())
+							descriptionFiles.add(f);
+					}
+					t.setDescriptionsFiles(descriptionFiles);
+					taskRepository.save(t);
+				}
+				dBFileRepository.delete(file);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@GetMapping("/deleteFileValidationFile/")
+	@ResponseBody
+	public List<DBFile> deleteFileValidationFile(@RequestParam("fid") Long fileId) {
+		List<DBFile> files = new ArrayList<DBFile>();
+		try {
+			DBFile file = dBFileRepository.getOne(fileId);
+			if(file != null) {
+				List<Task> tasks = taskRepository.findByValidationFilesContaining(file);
+				for(Task t : tasks) {
+					List<DBFile> validationFiles = new ArrayList<DBFile>();
+					for(DBFile f : t.getValidationFiles()) {
+						if(f.getId() != file.getId())
+							validationFiles.add(f);
+					}
+					t.setValidationFiles(validationFiles);
+					t = taskRepository.save(t);
+					files = t.getValidationFiles();
+				}
+				dBFileRepository.delete(file);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		files.forEach(f->System.err.println(f.getName()));
+		return files;
+	}
 	private void deleteAllProcessSectionsWithoutTask() {
 		try {
 			List<ProcessSection> emptySections = processSectionRepository.findByTasksIsNullOrProcessIsNull();
-			if(!emptySections.isEmpty()) {
-				emptySections.forEach(ps->{
+			if (!emptySections.isEmpty()) {
+				emptySections.forEach(ps -> {
 					processSectionRepository.delete(ps);
 				});
 			}

@@ -215,12 +215,19 @@ public class ProcessServiceImpl implements ProcessService {
 		task.setFileDescriptionPath(model.getFileDescriptionPath());
 		task.setGroup(model.getGroup());
 
+		// task.setHolidays(model.getHolidays());
 		List<Holiday> holidays = new ArrayList<>();
 		for (Holiday h : model.getHolidays())
 			holidays.add(h);
 		task.setHolidays(holidays);
-		// task.setHolidays(model.getHolidays());
-
+		
+		// task setDescriptionFiles
+		List<DBFile> descriptionsFiles = new ArrayList<DBFile>();
+		List<DBFile> files = model.getDescriptionsFiles();
+		for(DBFile file : files)
+			descriptionsFiles.add(file);
+		task.setDescriptionsFiles(descriptionsFiles);
+        task.setValidationFiles(null);
 		task.setLastStatus(model.getLastStatus());
 		task.setLunchingByProcess(model.isLunchingByProcess());
 		task.setStatus(TaskStatus.VALID.toString());

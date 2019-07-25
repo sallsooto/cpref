@@ -54,7 +54,7 @@ public class Task implements Serializable {
 	@Column(length = 100)
 	private String status;
 	private String lastStatus;
-	@Type(type="text")
+	@Type(type = "text")
 	private String description;
 	private String fileDescriptionPath;
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
@@ -71,13 +71,12 @@ public class Task implements Serializable {
 	@JsonBackReference
 	private List<Task> chirlds;
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinTable(name = "startup_tasks",
-			joinColumns = { @JoinColumn(name = "task_id") },
-			inverseJoinColumns = {@JoinColumn(name = "startup_id") })
-	 @JsonBackReference
+	@JoinTable(name = "startup_tasks", joinColumns = { @JoinColumn(name = "task_id") }, inverseJoinColumns = {
+			@JoinColumn(name = "startup_id") })
+	@JsonBackReference
 	private List<Task> startupTasks;
 	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "startupTasks")
-	 @JsonBackReference
+	@JsonBackReference
 	private List<Task> taskStatups;
 	@ManyToOne
 	@JoinColumn(name = "section_id")
@@ -87,6 +86,14 @@ public class Task implements Serializable {
 	@JoinColumn(name = "group_id")
 	@JsonBackReference
 	private Group group;
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	@JoinTable(name = "tasks_description_files", joinColumns = { @JoinColumn(name = "task_id") }, inverseJoinColumns = {
+			@JoinColumn(name = "file_id") })
+	private List<DBFile> descriptionsFiles;
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	@JoinTable(name = "tasks_validation_files", joinColumns = { @JoinColumn(name = "task_id") }, inverseJoinColumns = {
+			@JoinColumn(name = "file_id") })
+	private List<DBFile> validationFiles;
 	@Column(columnDefinition = "int(11) default 0")
 	private int nbYears = 0;
 	@Column(columnDefinition = "int(11) default 0")
@@ -194,8 +201,9 @@ public class Task implements Serializable {
 	public String getProcessLabel() {
 		if (this.getSection() != null && this.getSection().getProcess() != null) {
 			String label = this.getSection().getProcess().getLabel();
-			if(this.getSection().getProcess().getDossier() != null && !this.getSection().getProcess().getDossier().equals(""))
-				label = label + " ( "+this.getSection().getProcess().getDossier() + " )";
+			if (this.getSection().getProcess().getDossier() != null
+					&& !this.getSection().getProcess().getDossier().equals(""))
+				label = label + " ( " + this.getSection().getProcess().getDossier() + " )";
 			return label;
 		}
 		return null;
@@ -217,7 +225,7 @@ public class Task implements Serializable {
 			calendar.add(GregorianCalendar.HOUR, Math.abs(nbHours));
 			calendar.add(GregorianCalendar.MINUTE, Math.abs(nbMinuites));
 		}
-		if(maxTimeWithUnWorkTime)
+		if (maxTimeWithUnWorkTime)
 			return addUnWorkTimeOnMaxDate(calendar.getTime());
 		return calendar.getTime();
 	}
@@ -234,8 +242,8 @@ public class Task implements Serializable {
 	private Date addUnWorkTimeOnMaxDate(Date endDate) {
 		// adding no wroks time on max date currentCalendar
 		Date startDate = new Date();
-		if (endDate != null && (endDate.compareTo(startDate)>=0)
-				&& daysWorkTimes != null && !daysWorkTimes.isEmpty()) {
+		if (endDate != null && (endDate.compareTo(startDate) >= 0) && daysWorkTimes != null
+				&& !daysWorkTimes.isEmpty()) {
 			int addMinutes = 0;
 			Calendar startCalendar = Calendar.getInstance();
 			startCalendar.setTime(startDate);
@@ -243,9 +251,9 @@ public class Task implements Serializable {
 			endCalendar.setTime(endDate);
 			Map<Integer, WorkCalendar> dataCalendars = new HashMap<>();
 			daysWorkTimes.forEach(wc -> dataCalendars.put(wc.getDayIndex(), wc));
-			while (endCalendar.getTime().compareTo(startCalendar.getTime()) >=0) {
+			while (endCalendar.getTime().compareTo(startCalendar.getTime()) >= 0) {
 				WorkCalendar wc = dataCalendars.get(startCalendar.get(Calendar.DAY_OF_WEEK));
-					addMinutes = addMinutes + getUnWorkSumMinutes(wc,endDate);
+				addMinutes = addMinutes + getUnWorkSumMinutes(wc, endDate);
 				startCalendar.add(Calendar.DATE, 1);
 			}
 			endCalendar.set(Calendar.MINUTE, endCalendar.get(Calendar.MINUTE) + addMinutes);
@@ -254,31 +262,32 @@ public class Task implements Serializable {
 		return endDate;
 	}
 
-	private int getUnWorkSumMinutes(WorkCalendar wc,Date endDate) {
+	private int getUnWorkSumMinutes(WorkCalendar wc, Date endDate) {
 		int wcTotalMinutes = 0;
 		if (wc != null) {
-			if(wc.getStartHour() == null) {
-				wcTotalMinutes = wcTotalMinutes + (24*60);
-			}else {
-				Calendar  currentCalendar = Calendar.getInstance();
-				Calendar  maxCalendar = Calendar.getInstance();
+			if (wc.getStartHour() == null) {
+				wcTotalMinutes = wcTotalMinutes + (24 * 60);
+			} else {
+				Calendar currentCalendar = Calendar.getInstance();
+				Calendar maxCalendar = Calendar.getInstance();
 				maxCalendar.setTime(endDate);
 				maxCalendar.add(Calendar.HOUR, wc.getWorkHours());
 				maxCalendar.add(Calendar.MINUTE, wc.getWorkMinutes());
 				maxCalendar.add(Calendar.HOUR, wc.getPauseHours());
 				maxCalendar.add(Calendar.MINUTE, wc.getPauseMinutes());
-				if(currentCalendar.get(Calendar.YEAR) == maxCalendar.get(Calendar.YEAR) 
-					&& currentCalendar.get(Calendar.MONTH) == maxCalendar.get(Calendar.MONTH) && 
-					currentCalendar.get(Calendar.DAY_OF_MONTH) == maxCalendar.get(Calendar.DAY_OF_MONTH) && !isHoliday(currentCalendar.getTime())) {
-					 maxCalendar = Calendar.getInstance();
+				if (currentCalendar.get(Calendar.YEAR) == maxCalendar.get(Calendar.YEAR)
+						&& currentCalendar.get(Calendar.MONTH) == maxCalendar.get(Calendar.MONTH)
+						&& currentCalendar.get(Calendar.DAY_OF_MONTH) == maxCalendar.get(Calendar.DAY_OF_MONTH)
+						&& !isHoliday(currentCalendar.getTime())) {
+					maxCalendar = Calendar.getInstance();
 					maxCalendar.add(Calendar.HOUR, wc.getWorkHours());
 					maxCalendar.add(Calendar.MINUTE, wc.getWorkMinutes());
 					maxCalendar.add(Calendar.HOUR, wc.getPauseHours());
-					maxCalendar.add(Calendar.MINUTE, wc.getPauseMinutes()); 
-					if(currentCalendar.get(Calendar.HOUR) < maxCalendar.get(Calendar.HOUR)) {
+					maxCalendar.add(Calendar.MINUTE, wc.getPauseMinutes());
+					if (currentCalendar.get(Calendar.HOUR) < maxCalendar.get(Calendar.HOUR)) {
 						wcTotalMinutes = wcTotalMinutes + (wc.getPauseHours() * 60) + wc.getPauseMinutes();
 					}
-				}else {
+				} else {
 					if (wc.getWorkHours() != null && wc.getWorkHours() > 0)
 						wcTotalMinutes = wcTotalMinutes + Math.abs((24 * 60) - (wc.getWorkHours() * 60));
 					if (wc.getWorkMinutes() != null && wc.getWorkMinutes() > 0)
@@ -294,13 +303,13 @@ public class Task implements Serializable {
 	}
 
 	private boolean isHoliday(Date date) {
-		if(this.getHolidays() != null && date != null) {
+		if (this.getHolidays() != null && date != null) {
 			Calendar dateCalendar = Calendar.getInstance();
 			Calendar holidayCalendar = Calendar.getInstance();
 			dateCalendar.setTime(date);
-			for(Holiday holiday : this.getHolidays()) {
+			for (Holiday holiday : this.getHolidays()) {
 				holidayCalendar.setTime(holiday.getDte());
-				if(holidayCalendar.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
+				if (holidayCalendar.get(Calendar.DAY_OF_MONTH) == dateCalendar.get(Calendar.DAY_OF_MONTH)
 						&& holidayCalendar.get(Calendar.MONTH) == dateCalendar.get(Calendar.MONTH)
 						&& holidayCalendar.get(Calendar.YEAR) == dateCalendar.get(Calendar.YEAR))
 					return true;
@@ -308,27 +317,28 @@ public class Task implements Serializable {
 		}
 		return false;
 	}
-	
+
 	public double getDynamicPerformance() {
 		double performance = 0;
 		try {
 			List<Objectif> objectifs = this.getObjectifs();
-			if(objectifs != null && !objectifs.isEmpty()) {
+			if (objectifs != null && !objectifs.isEmpty()) {
 				int nbObjectif = objectifs.size();
-				for(Objectif obj : objectifs) {
+				for (Objectif obj : objectifs) {
 					performance = performance + obj.getPerformPercente();
 				}
-				if(performance>0){
-					performance = (performance/nbObjectif);
+				if (performance > 0) {
+					performance = (performance / nbObjectif);
 				}
-				// formattage du nombre 
+				// formattage du nombre
 				BigDecimal bdec, bdec2;
 				bdec = new BigDecimal(Double.toString(performance));
-				bdec2 = bdec.setScale(2,RoundingMode.FLOOR);
+				bdec2 = bdec.setScale(2, RoundingMode.FLOOR);
 				performance = bdec2.doubleValue();
 				return performance;
-			}else {
-				if(this.getStatus().toLowerCase().trim().equals("completed") || this.getStatus().toLowerCase().trim().equals("canceled"))
+			} else {
+				if (this.getStatus().toLowerCase().trim().equals("completed")
+						|| this.getStatus().toLowerCase().trim().equals("canceled"))
 					performance = 100;
 //			else if(this.getStatus().toLowerCase().trim().equals("started"))
 //				performance = 50;
@@ -341,5 +351,5 @@ public class Task implements Serializable {
 		}
 		return performance;
 	}
-	
+
 }

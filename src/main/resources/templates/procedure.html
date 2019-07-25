@@ -35,6 +35,7 @@
 							</h5>
 						</div>
 						<div class="card-body pb-0">
+							<!--<i th:class="${@helpers.getFileFontAwesomeTextClass('.xls') + ' mr-1'}"></i>-->
 							<form th:action="@{/Procedure/Edit/(pid=${param.pid})}" th:object="${procedure}" method="post" 
 							 enctype="multipart/form-data" class="mshz-form-validate pb-0">
 								<input type="hidden" th:field="*{id}"/>
@@ -54,16 +55,14 @@
 												<div class="invalid-feedback">Donnez un nom au procedure !</div>
 											</div>
 											<div class="form-group col-sm-12 descriptionFileContainer">
-												<label>Fichier (PDF) :</span></label>
-												<input type="hidden" th:field="*{filePath}" id="photo"/>
-												<input type="file" id="file" name="filePath" accept="application/pdf,
-														application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,application/msword,
-														application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
-														application/vnd.ms-powerpoint,.pptx,text/plain,image/*" class="form-control form-control-sm  d-none"/>
+												<label>Fichier(s) :</label>
+												<input type="hidden" th:field="*{files}" id="photo"/>
+												<input type="file" id="file" name="filePaths" multiple th:accept="${@helpers.getHtmlInputFileExentions()}" class="form-control form-control-sm  d-none"/>
 												<a href="#" class="form-control form-control-sm btn btn-sm d-inline-block in_edition file_filed_trigger">
-													<span class="photo-loader-label d-inline-block" style="width:90%; overflow:auto; height:20px;"
-													   th:text="${procedure.dbFile != null ? procedure.dbFile.name : (procedure.filePath != null && procedure.filePath != '' ) ? procedure.filePath : 'Charger un fichier pdf descripteur.. '}">
-														Charger une fichier pdf contenant le procedure 
+													<span class="photo-loader-label d-inline-block" style="width:90%; overflow:auto; height:20px;">
+													    <span th:if="${procedure.files != null and procedure.files.size()>0}" th:text="${procedure.files.size()+' fichier(d) : ' }"></span>
+														<span th:each="file : ${procedure.files}" th:text="${file.name + ' ; '}"></span>
+													   	<span th:if="${procedure.files == null or procedure.files.size()<=0}">Chargez les fichiers de desctiptions</span>
 													</span>
 													<i class="fas fa-file float-right text-primary"  style="font-size:15px;"></i>
 												</a>

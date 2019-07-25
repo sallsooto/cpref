@@ -95,9 +95,23 @@
 											data-modalTitle="{{task.name}}" data-description="{{task.description}}"
 											class="fas fa-font cursor-pointer text-primary modalDescriptionShower"
 											 title="Description textuelle" onClick="showDescription(this);"></i>
-											<span data-ng-if="task.description == null || task.description == ''">Aucune description</span>
-											<a data-ng-if="task.dbFileDescription != null" th:href="@{/Task/File/Description/Show/{{task.id}}}" 
-											   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file-pdf"></i></a>
+											<span data-ng-if="(task.descriptionsFiles == null || task.descriptionsFiles.length<=0) && (task.description == null || task.description=='')">Aucune description</span>
+											<div data-ng-if="task.descriptionsFiles != null && task.descriptionsFiles.length>0" class="d-inline-block">
+												<div class="card shadow p-1 m-1 d-inline-block" data-ng-repeat="file in task.descriptionsFiles">
+													<div class="card-body p-0">
+														<div class="row no-gutters align-items-center">
+															<div class="col">
+																<a target="_blank" title="Ouvrir le fichier {{file.name}}"
+																   th:href="@{/Task/Show/FileDescription/{{file.id}}}" data-ng-class="getFileFontAwesomeTextClass(file.name)+ ' fa-2x'">
+																 </a>
+															</div>
+														</div>
+													</div>
+												</div>
+											<!-- <a data-ng-repeat="file in task.descriptionsFiles" th:href="@{/Task/Show/FileDescription/{{file.id}}}" 
+											   target="_blank" data-ng-class="'ml-2 ' + getFileFontAwesomeTextClass(file.name)" 
+											   title="visualiser le fichier {{file.name}}"></a> -->
+											</div>
 										</td>
 										<td class="text-center">
 											{{replaceWithNullOrBlank(task.processLabel,"Process introuvable")}}
@@ -212,63 +226,7 @@
 			 element = $(element);
 			 taskId = element.attr('data-taskId');
 			 $("#validationFormtaskId").val(taskId);
-			 $("#modalTaskValidationFileTile").text(element.attr("data-taskModalTile"));
-			 $("#taskValidationFileBtnShower").attr("href", "/Task/File/validation/Show/"+taskId);
-			 showOrHideTaskvalidationFileBtnShower(taskId);
-			$("#modalTaskValidationFile").modal('show');
-		 };
-		 
-		 function submitTaskValidationFileForm(form){
-		    var taskid = $("#validationFormtaskId").val();
-		    var form = $("#taskValidationFileForm")[0];
-		    var data = new FormData(form);
-		    $.ajax({
-		        type: "POST",
-		        enctype: 'multipart/form-data',
-		        url: "/Task/EditValidationFile",
-		        data: data,
-		 
-		        // prevent jQuery from automatically transforming the data into a query string
-		        processData: false,
-		        contentType: false,
-		        cache: false,
-		        timeout: 1000000,
-		        dataType : 'json',
-		        success: function(result) {
-		        	if(result.status == true){
-						 $("#taskValidationFileBtnShower").removeClass('d-none');
-						 $(".modalErrorContainer").removeClass('text-danger').addClass("text-success").text(result.msg);
-		        	}else{
-		        		 $("#taskValidationFileBtnShower").addClass('d-none');
-		        		$(".modalErrorContainer").removeClass('text-success').addClass("text-danger").text(result.msg);
-		        	}
-		        	setInterval(function(){
-		        		$(".modalErrorContainer").text("");
-		        	},5000);
-		        },
-		        error: function(e) {  
-		 			console.log(e);
-		        }
-	 		});
-		 };
-		 
-		 function showOrHideTaskvalidationFileBtnShower(taskId){
-		    $.ajax({
-		        type: "get",
-		        enctype: 'multipart/form-data',
-		        url: "/Task/CheckTaskvalidationFile",
-		        data : {tid : taskId},
-		        dataType :'json',
-		        success: function(data) {
-			        if(data.result == true)
-						 $("#taskValidationFileBtnShower").removeClass('d-none');
-				 	else
-					 	$("#taskValidationFileBtnShower").addClass('d-none');
-		        },
-		        error: function(e) {  
-		 			console.log(e);
-		        }
-	 		});
+			 loadTaskValidationModalData(taskId);
 		 };
 		</script>
 	</div>

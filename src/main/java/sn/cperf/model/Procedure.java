@@ -2,6 +2,7 @@ package sn.cperf.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -10,7 +11,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -34,6 +37,11 @@ public class Procedure implements Serializable{
 	@ManyToOne(cascade=CascadeType.PERSIST, fetch=FetchType.LAZY)
 	@JoinColumn(name="file_id")
 	private DBFile dbFile;
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+	@JoinTable(name = "procedures_files", 
+	joinColumns = {@JoinColumn(name="procedure_id")},
+	inverseJoinColumns = {@JoinColumn(name="file_id")})
+	private List<DBFile> files;
 	@DateTimeFormat(pattern="dd/MM/yyyy")
 	@Temporal(TemporalType.DATE)
 	private Date storeAt;

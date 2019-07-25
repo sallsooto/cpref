@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import sn.cperf.config.Helpers;
 import sn.cperf.dao.GroupRepository;
 import sn.cperf.dao.IndicateurRepository;
 import sn.cperf.dao.ObjectifRepository;
@@ -479,7 +480,7 @@ public class ProcessController {
 
 	@PostMapping("/Task/Edit")
 	public String editTask(@RequestParam("pid") Long processId,
-			@RequestParam("fileDescription") MultipartFile fileDescription,
+			@RequestParam("filesDescriptions") List<MultipartFile> filesDescriptions,
 			@RequestParam(name = "tid", defaultValue = "0") Long taskId,
 			@RequestParam(name = "isTheFirstProcessTask", defaultValue = "true") boolean isTheFirstProcessTask,
 			@RequestParam(name = "grouprodio", defaultValue = "3") int withGroup,
@@ -536,17 +537,17 @@ public class ProcessController {
 				if (withGroup == 3)
 					task.setGroup(null);
 				// traitement du fichier
-				if (fileDescription != null) {
+				if (filesDescriptions != null) {
+					List<DBFile> fileDescriptions = task.getDescriptionsFiles();
 					try {
-						if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),
-								new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" })) {
-							task.setDbFileDescription(dbFileService.storeOrUpdateFile(fileDescription,
-									task.getDbFileDescription() != null ? task.getDbFileDescription().getId() : null,
-									false));
-							if (task.getDbFileDescription() == null)
-								task.setFileDescriptionPath(
-										storageService.storeFile(fileDescription, new String[] { "pdf","doc","docx","ppt","pptx","xls","xlsx","text","txt","png","jpeg","jif","ico","jpg","svg" }));
+						for(MultipartFile file : filesDescriptions) {
+							if (dbFileService.checkExtensions(file.getOriginalFilename(),Helpers.getAFileExtensions())) {
+								DBFile dbFile = dbFileService.storeOrUpdateFile(file, null , false);
+								if(dbFile != null)
+									fileDescriptions.add(dbFile);
+							}
 						}
+						task.setDescriptionsFiles(fileDescriptions);
 					} catch (Exception e) {
 						// e.printStackTrace();
 					}
@@ -643,8 +644,8 @@ public class ProcessController {
 						notificationMsg = "Vous avez une nouvelle tâche nomée " + task.getName() + " du process \" "
 								+ task.getSection().getProcess().getLabel() + " \"";
 					}
-					if (fileDescription != null && task.getFileDescriptionPath() == null)
-						successMsg = successMsg + " sans le fichier de description(extension autorisée : pdf) !";
+					if (filesDescriptions != null && (task.getDescriptionsFiles() == null || task.getDescriptionsFiles().isEmpty()))
+						successMsg = successMsg + " sans le(s) fichier(s) de description(extensions autorisées : "+Helpers.getHtmlInputFileExentions()+") !";
 					else
 						successMsg = successMsg + " !";
 					model.addAttribute("successMsg", successMsg);
@@ -773,7 +774,7 @@ public class ProcessController {
 
 	@PostMapping("/Logigramme")
 	public String editTaskInLogigramme(@RequestParam(name = "pid", defaultValue = "0") Long processId,
-			@RequestParam("fileDescription") MultipartFile fileDescription, @Valid @ModelAttribute("task") Task task,
+			@RequestParam("filesDescriptions") List<MultipartFile> filesDescriptions, @Valid @ModelAttribute("task") Task task,
 			BindingResult bind, Model model, HttpSession session) {
 		List<Task> tasks = new ArrayList<>();
 		List<ProcessSection> sections = new ArrayList<>();
@@ -812,28 +813,23 @@ public class ProcessController {
 								&& dbTask.getStatus().toLowerCase().equals(TaskStatus.STARTED.toString().toLowerCase()))
 							dbTask.setStartAt(new Date());
 						// traitement du fichier
-						if (fileDescription != null) {
+						if (filesDescriptions != null) {
+							filesDescriptions.forEach(f->System.err.println(" f :"+f.getOriginalFilename()));
+							List<DBFile> descriptionsFiles = dbTask.getDescriptionsFiles();
 							try {
-								if (dbFileService.checkExtensions(fileDescription.getOriginalFilename(),
-										new String[] { "pdf" })) {
-									task.setDbFileDescription(dbFileService.storeOrUpdateFile(fileDescription,
-											task.getDbFileDescription() != null ? task.getDbFileDescription().getId()
-													: null,
-											false));
-									if (task.getDbFileDescription() == null)
-										task.setFileDescriptionPath(
-												storageService.storeFile(fileDescription, new String[] { "pdf" }));
+								for(MultipartFile file : filesDescriptions) {
+									if (dbFileService.checkExtensions(file.getOriginalFilename(),Helpers.getAFileExtensions())) {
+										DBFile f = dbFileService.storeOrUpdateFile(file,null,false);
+										if (f != null)
+											descriptionsFiles.add(f);
+									}
 								}
 							} catch (Exception e) {
 								// e.printStackTrace();
 							}
+							dbTask.setDescriptionsFiles(descriptionsFiles);
 						}
 						// section description traitements
-						dbTask.setDbFileDescription(task.getDbFileDescription() != null ? task.getDbFileDescription()
-								: dbTask.getDbFileDescription());
-						dbTask.setFileDescriptionPath(
-								task.getFileDescriptionPath() != null ? task.getFileDescriptionPath()
-										: dbTask.getFileDescriptionPath());
 						if (task.getSection() == null) {
 							try {
 								ProcessSection section = new ProcessSection();
@@ -893,10 +889,9 @@ public class ProcessController {
 							String notificationMsg = "La tâche \" " + dbTask.getName() + " \" du process \" "
 									+ dbTask.getSection().getProcess().getLabel() + " \" est mise à jour";
 
-							if (fileDescription != null && dbTask.getFileDescriptionPath() == null
-									&& dbTask.getDbFileDescription() == null)
+							if (filesDescriptions != null && !filesDescriptions.isEmpty() && dbTask.getDescriptionsFiles().isEmpty())
 								successMsg = successMsg
-										+ " sans le fichier de description(extension autorisée : pdf) !";
+										+ " sans le(s) fichier(s) de description (extensions autorisées : "+Helpers.getHtmlInputFileExentions()+") !";
 							else
 								successMsg = successMsg + " !";
 							session.setAttribute("successMsg", successMsg);

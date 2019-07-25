@@ -70,7 +70,7 @@
 								</tr>
 									<tr>
 										<th class="text-left pl-3">Nom du procédure</th>
-										<th>Fichier assosié</th>
+										<th>Fichier(s) de description assosié(s)</th>
 										<th class="text-center" sec:authorize="hasRole('ROLE_admin')">Action</th>
 									</tr>
 								</thead>
@@ -78,10 +78,30 @@
 									<tr data-ng-if="procedures.content.length>0"
 										data-ng-repeat="procedure in procedures.content | orderBy:orderFieldReverse+orderField">
 										<td class="text-left pl-3">{{replaceWithNullOrBlank(procedure.name,"Sans nom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
-										<td data-ng-if="procedure.filePath != null || procedure.dbFile != null">
-										<a th:href="@{/Procedure/Show/{{procedure.id}}/}" target="_blank" title="Lire fichier">
-										 {{replaceWithNullOrBlank(procedure.filePath,"")}} {{replaceWithNullOrBlank(procedure.dbFile.name,"")}}</a></td>
-										<td data-ng-if="procedure.filePath == null && procedure.dbFile == null">Sans fichier</td>
+										<td data-ng-if="procedure.files == null || procedure.files.length<=0" class="text-center">Aucun fichier de description</td>
+										<td data-ng-if="procedure.files != null && procedure.files.length>0" class="text-center">
+										   <div class="row no-gutters">
+										   		<div data-ng-repeat="file in procedure.files" class="col-sm-2 col-md-1 m-1">
+													<div class="card shadow p-1">
+														<div class="card-body p-0">
+															<div class="row no-gutters align-items-center">
+																<div class="col mr-2">
+																	<a target="_blank" title="Ouvrir le fichier {{file.name}}"
+																	   th:href="@{/Procedure/Show/File/{{file.id}}/}" data-ng-class="getFileFontAwesomeTextClass(file.name)+ ' fa-2x'">
+																	 </a>
+																</div>
+																<div class="col-auto">
+																	<a href="#" title="Supprimer" data-fileId = "{{file.id}}" data-procedureId = "{{procedure.id}}"
+																	 data-ng-click="deleteFile($event);"
+																	class="fas fa-minus-circle text-danger cursor-pointer text-decoration-none"></a>
+																</div>
+															</div>
+														</div>
+													</div>
+										   		</div>
+										   </div>
+										</td>
+										<td data-ng-if="procedure.files == null && procedure.files.length<=0">Sans fichier</td>
 										<td sec:authorize="hasRole('ROLE_admin')" class="text-center">
 											<a th:href="@{/Procedure/Edit?pid={{procedure.id}}}" title="Modfier" class="text-decoration-none mr-3">
 												 <i class="fas fa-edit fa_table_link text-info p-1"></i>
@@ -119,7 +139,6 @@
 			</div>
 		<!-- content -->
 	</div>
-	<div layout:fragment="addon-scripts-content">
-	</div>
+	<div layout:fragment="addon-scripts-content"></div>
 </body>
 </html>

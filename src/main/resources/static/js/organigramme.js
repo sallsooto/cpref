@@ -35,7 +35,7 @@ var loadDatas = function(hierarchy_link){
         	for(var i=0; i< data.length; i++){
         		datas[i] = {
         				id: data[i].id, parentId: data[i].parentId,Prenom:data[i].prenom, Nom:data[i].nom,
-        				"Supérieur": data[i].hierarchySuperior, Fonction: data[i].fonction,Objectifs:data[i].objectif,
+        				"Supérieur hiérarchique": data[i].hierarchySuperior, Fonction: data[i].fonction,Objectifs:data[i].objectif,
         				Telephone: data[i].telephone, Email: data[i].email, Adresse: data[i].adresse,image: data[i].image 
         		};
         	}
@@ -114,8 +114,9 @@ function updateNodeEvent(sender,args){
 	my_object.image = args.data.image;
 	my_object.parentId = args.pid;
 	my_object.objectif = args.data.Objectifs;
-	console.log(args.data.Supérieur);
-	my_object.hierarchySuperior = args.data.Supérieur;
+	//Supérieur-hiérarchique
+	hierarchySuperiorValue = Object.values(args.data)[2];
+	my_object.hierarchySuperior = hierarchySuperiorValue;
 	$.ajax({
 		url : "/Organigramme/Hierarchy/update",
         type : 'POST',

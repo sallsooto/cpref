@@ -122,9 +122,32 @@
 														th:data-modalTitle="${task.name}" th:data-description="${task.description}"
 														class="fas fa-font cursor-pointer text-primary modalDescriptionShower"
 														 title="Description textuelle" onClick="showDescription(this);"></i>
-														<span th:if="${task.description == null or task.description == ''}">Aucune description</span>
-														<a th:if="${task.dbFileDescription != null}" th:href="@{/Task/File/Description/Show/{tid}(tid=${task.id})}" 
-														   target="_blank" class="ml-3" title="voir la description en fichier"><i class="fas fa-file"></i></a>
+													   <div th:if="${task.descriptionsFiles != null and task.descriptionsFiles.size()>0}" th:class="${'row no-gutters tdFiles'+task.id}">
+													   		<div th:each="file : ${task.descriptionsFiles}" class="col-sm-6 col-md-3 m-1">
+																<div class="card shadow p-1">
+																	<div class="card-body p-0">
+																		<div class="row no-gutters align-items-center">
+																			<div class="col mr-2">
+																				<a th:href="@{/Task/Show/FileDescription/{fid}(fid=${file.id})}" 
+																				   target="_blank" th:class="${@helpers.getFileFontAwesomeTextClass(file.name)+' fa-2x'}" 
+																				   th:title="${'visualisez '+file.name}"></a>
+																			</div>
+																			<div class="col-auto">
+																				<a href="#" title="Supprimer" th:data-parentSelector="${'.tdFiles'+task.id}"
+																				   th:data-taskId="${task.id}" th:data-fileId="${file.id}" onClick="deleteDescriptionFile(this,event);"
+																				   class="fas fa-minus-circle text-danger cursor-pointer text-decoration-none"></a>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+													   		</div>
+													   </div>
+														<span th:if="${(task.description == null or task.description == '') and (task.descriptionsFiles == null or task.descriptionsFiles.size()<=0)}">Aucune description</span>
+														<!-- <span th:if="${task.descriptionsFiles != null and task.descriptionsFiles.size()>0}" class="d-inline-block">
+															<a th:each="file : ${task.descriptionsFiles}" th:href="@{/Task/Show/FileDescription/{fid}(fid=${file.id})}" 
+															   target="_blank" th:class="${@helpers.getFileFontAwesomeTextClass(file.name)+' ml-3'}" 
+															   th:title="${'visialisez '+file.name}"></a>
+														</span> -->
 													</td>
 													<td class="text-center">
 														<span th:text="${(task.status == 'valid') ? 'Non démarrée' : (task.status == 'started') ? 'Démarrée et non terminée' : (task.status == 'completed') ? 'Traitée' : 'Traitement annulé'}" th:id="${'textStausContainer'+task.id}"></span>
@@ -143,9 +166,9 @@
 													<td class="text-center">
 														<small><a th:href="@{/Process/Task/Edit(pid=${p.id},tid=${task.id})}">Modfier</a></small>
 														<span th:if="${task.status == 'completed'}">
-														    <i class="fas fa-file text-info cursor-pointer ml-3" 
-														       th:data-taskModalTile="${'Fichier de validation de la tâche : '+task.name}"
-														        title="Fichier de validation" th:data-taskId = "${task.id}" onClick="showModalTaskValidationFile(this);"></i>
+														    <i class="fas fa-file text-info cursor-pointer ml-3" title="Fichier(s) de validation" 
+														    	th:data-taskId = "${task.id}" onClick="showModalTaskValidationFile(this);">
+														     </i>
 														</span>
 													</td>
 												</tr>
@@ -178,6 +201,10 @@
 				</div>
 			</div>
 		</div>
+		<!-- Modal task file validation form-->
+		<div id="modalTaskValidationContainer">
+	  		<div th:replace="fragments/taskValidationFileModal::modalTaskValidationFile"></div>
+	  	</div>
 		<!-- Modal process description-->
 			<div class="modal fade" id="modalDescription" tabindex="-1" role="dialog" aria-labelledby="modaldefaultUserPhoto" aria-hidden="true">
 			  <div class="modal-dialog" role="document">
@@ -195,8 +222,6 @@
 			    </div>
 			  </div>
 			</div>
-		<!-- Modal task file validation form-->
-	  <div th:replace="fragments/taskValidationFileModal::modalTaskValidationFile"></div>
 	</div>
 	<div layout:fragment="addon-scripts-content">
 		<!-- manager play or stop proccess script -->
@@ -308,45 +333,8 @@
 		 function showModalTaskValidationFile(element){
 			 element = $(element);
 			 taskId = element.attr('data-taskId');
-			 $("#validationFormtaskId").val(taskId);
-			 $("#modalTaskValidationFileTile").text(element.attr("data-taskModalTile"));
-			 $("#taskValidationFileBtnShower").attr("href", "/Task/File/validation/Show/"+taskId);
-			 showOrHideTaskvalidationFileBtnShower(taskId);
-			$("#modalTaskValidationFile").modal('show');
-		 };
-		 
-		 function submitTaskValidationFileForm(form){
-		    var taskid = $("#validationFormtaskId").val();
-		    var form = $("#taskValidationFileForm")[0];
-		    var data = new FormData(form);
-		    $.ajax({
-		        type: "POST",
-		        enctype: 'multipart/form-data',
-		        url: "/Task/EditValidationFile",
-		        data: data,
-		 
-		        // prevent jQuery from automatically transforming the data into a query string
-		        processData: false,
-		        contentType: false,
-		        cache: false,
-		        timeout: 1000000,
-		        dataType : 'json',
-		        success: function(result) {
-		        	if(result.status == true){
-						 $("#taskValidationFileBtnShower").removeClass('d-none');
-						 $(".modalErrorContainer").removeClass('text-danger').addClass("text-success").text(result.msg);
-		        	}else{
-		        		 $("#taskValidationFileBtnShower").addClass('d-none');
-		        		$(".modalErrorContainer").removeClass('text-success').addClass("text-danger").text(result.msg);
-		        	}
-		        	setInterval(function(){
-		        		$(".modalErrorContainer").text("");
-		        	},5000);
-		        },
-		        error: function(e) {  
-		 			console.log(e);
-		        }
-	 		});
+		     $("#validationFormtaskId").val(taskId);
+			 loadTaskValidationModalData(taskId);
 		 };
 		 
 		 function showOrHideTaskvalidationFileBtnShower(taskId){
@@ -367,7 +355,7 @@
 		        }
 	 		});
 		 };
-			</script>
+		</script>
 		<!-- end manager play or stop proccess script -->
 	</div>
 </body>

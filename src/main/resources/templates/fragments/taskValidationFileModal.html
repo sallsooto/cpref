@@ -12,28 +12,29 @@
 	  <div class="modal-dialog" role="document">
 	    <div class="modal-content">
 	      <div class="modal-header">
-	        <h5 class="modal-title" id="modalTaskValidationFileTile">Fichier de validation</h5>
+	        <h5 class="modal-title" id="modalTaskValidationFileTitle">Tâche introuvable</h5>
 	        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 	          <span aria-hidden="true">&times;</span>
 	        </button>
 	      </div>
-	      <div class="modal-body text-center insc_avatar">
+	      <div class="modal-body text-center">
 			<div class="row">
 				<div class="col-sm-12 text-center border-0">
-					<a id="taskValidationFileBtnShower" href="#" target="_blank" class="text-decoration-none">
-						<i class="fa fa-file fa-lg" title="voire le fichier ajouté"></i><br/><small class="text-info"> Un fichier trouvé</small>
-					</a>
+					 <div class="row no-gutters" id="validationFilesMainRow">
+					 	<!-- <a th:each="file : ${validationTask.descriptionsFiles}" 
+					     th:href="@{/Task/Show/FileDescription/{fid}(fid=${file.id})}" target="_blank" 
+					     th:class="text-decoration-none">
+						<i th:class="${@helpers.getFileFontAwesomeTextClass(file.name)}" th:title="${file.name}"></i>
+						</a>-->
+					 </div>
 				</div>
 				<div class="col-sm-12 text-center border-0 border-top">
 			       	<form method="post" enctype="multipart/form-data" class="form-control border-0 mshz-form-validate" id="taskValidationFileForm">
 			       		<div class="form-group text-center text-danger modalErrorContainer"></div>
 			       		<div class="form-group">
 			       			<input type="hidden" name="taskId" id="validationFormtaskId"/>
-		       				<input type="file" name="file" class="float-left w-75 img_field_trigger"
-		       				 accept="application/pdf,
-		       				 		application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,application/msword,
-									application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,
-									application/vnd.ms-powerpoint,.pptx,text/plain,image/*" data-mshz-required="true"/>
+		       				<input type="file" name="file" multiple class="float-left w-75 img_field_trigger"
+		       				 th:accept="${@helpers.getHtmlInputFileExentions()}" data-mshz-required="true"/>
 		       				<button type="submit" class="btn btn-sm btn-outline-info float-right w-25">Envoyez</button>
 			       		</div>
 			       	</form>

@@ -76,6 +76,23 @@
 													<small class="result_finish_task_container text-info font-weight-bold"></small>
   										    </li>
 							    			<!-- end compte à rebours column -->
+							    			
+  										    <li class="list-group-item font-weight-bold align-items-center">
+  										        <div class="row">
+  										        	<div class="col-sm-12 col-md-6 border-right-primary text-primary text-center">
+														Fichier(s) de description assossié(s)<hr/>
+														<a th:each="file : ${task.descriptionsFiles}" th:href="@{/Task/Show/FileDescription/{fid}(fid=${file.id})}" 
+														   target="_blank" th:class="${@helpers.getFileFontAwesomeTextClass(file.name)+' fa-2x mr-2 shadow'}" 
+														   th:title="${'visualisez '+file.name}"></a>
+  										        	</div>
+  										        	<div class="col-sm-12 col-md-6 border-left-success text-success text-center">
+														Fichier(s) de validation assossié(s)<hr/>
+														<a th:each="file : ${task.validationFiles}" th:href="@{/Task/Show/FileDescription/{fid}(fid=${file.id})}" 
+														   target="_blank" th:class="${@helpers.getFileFontAwesomeTextClass(file.name)+' fa-2x mr-2 shadow text-success'}" 
+														   th:title="${'visualisez '+file.name}"></a>
+  										        	</div>
+  										        </div>
+  										    </li>
   										    <li class="list-group-item text-success font-weight-bold d-flex justify-content-between align-items-center">
 												Utilisateurs assossié(e)
  												<span class="badge badge-success badge-pill" th:text="${task.users.size()}"></span>
@@ -175,11 +192,11 @@
 											</div>
 											<div class="form-group col-sm-12 descriptionFileContainer">
 												<label class="control-label"> <small>
-														Fichier de description : <span class="text-info"
-														th:text="${task.dbFileDescription != null ? task.dbFileDescription.name : task.fileDescriptionPath}"></span>
+														Fichier(s) de description : <span class="text-info"
+														th:text="${task.descriptionsFiles != null and !task.descriptionsFiles.isEmpty() ? task.descriptionsFiles.size() : ''}"></span>
 												</small>
-												</label> <input type="file" id="file" name="fileDescription"
-													accept="application/pdf"
+												</label> <input type="file" multiple id="file" name="filesDescriptions"
+													th:accept="${@helpers.getHtmlInputFileExentions()}"
 													class="form-control form-control-sm" value="file.pdf" />
 												<div class="invalid-feedback">Le fichier n'est pas
 													valide!</div>

@@ -320,6 +320,44 @@ cperfModule.controller("ProcedureCtrl", function($scope, $http, $timeout) {
 			$scope.page = selectedPageIndex;
 		$scope.getProcedures();
 	};
+	$scope.deleteFile = function($event){
+		$event.preventDefault();
+		var element = angular.element($event.target)
+		var fileId = element[0].attributes['data-fileId'].value;
+		var procedureId  = element[0].attributes['data-procedureId'].value;
+		$http({
+			url : '/Procedure/deleteFile/',
+			method : 'get',
+			params : { fid : fileId, procid : procedureId }
+		}).then(function(response) {
+		});
+		$scope.getProcedures();
+	};
+	$scope.getFileFontAwesomeTextClass = function(filename){
+		if(typeof filename !== typeof undefined && filename !== null && filename.length>0) {
+			var ext = "";
+			try { ext = filename.substring(filename.lastIndexOf("."), filename.length).toLowerCase();} catch (e) {}
+			ext = (ext != null && typeof ext !== typeof undefined) ? ext : "";
+			if(ext == ".xls" || ext == ".xlsx")
+				return "fas fa-file-excel";
+			else if(ext == ".csv" || ext == ".csvx")
+				return "fas fa-file-csv";
+			else if(ext == ".doc" || ext == ".docx")
+				return "fas fa-file-word";
+			else if(ext == ".ppt" || ext == ".pptx")
+				return "fas fa-file-powerpoint";
+			else if(ext == ".png" || ext == ".jpg" || ext == ".jpeg"  || ext == ".ico"
+					|| ext == ".gif" || ext == ".svg"  || ext == ".svgz"  || ext == ".bmp")
+				return "fas fa-file-image";
+			else if(ext == ".pdf")
+				return "fas fa-file-pdf";
+			else if(ext == ".text" || ext == ".txt")
+				return "fas fa-file";
+			else
+				return "fas fa-file";
+		}
+		return "";
+	};
 });
 
 // Tâches controller
@@ -412,6 +450,45 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 		}).then(function(response) {
 			$scope.getTasks();
 		});
+	};
+	
+	$scope.deleteFile = function($event){
+		$event.preventDefault();
+		var element = angular.element($event.target)
+		var fileId = element[0].attributes['data-fileId'].value;
+		$http({
+			url : '/Task/deleteFile/',
+			method : 'get',
+			params : { fid : fileId}
+		}).then(function(response) {
+			$scope.getTasks();
+		});
+	};
+	
+	$scope.getFileFontAwesomeTextClass = function(filename){
+		if(typeof filename !== typeof undefined && filename !== null && filename.length>0) {
+			var ext = "";
+			try { ext = filename.substring(filename.lastIndexOf("."), filename.length).toLowerCase();} catch (e) {}
+			ext = (ext != null && typeof ext !== typeof undefined) ? ext : "";
+			if(ext == ".xls" || ext == ".xlsx")
+				return "fas fa-file-excel";
+			else if(ext == ".csv" || ext == ".csvx")
+				return "fas fa-file-csv";
+			else if(ext == ".doc" || ext == ".docx")
+				return "fas fa-file-word";
+			else if(ext == ".ppt" || ext == ".pptx")
+				return "fas fa-file-powerpoint";
+			else if(ext == ".png" || ext == ".jpg" || ext == ".jpeg"  || ext == ".ico"
+					|| ext == ".gif" || ext == ".svg"  || ext == ".svgz"  || ext == ".bmp")
+				return "fas fa-file-image";
+			else if(ext == ".pdf")
+				return "fas fa-file-pdf";
+			else if(ext == ".text" || ext == ".txt")
+				return "fas fa-file";
+			else
+				return "fas fa-file";
+		}
+		return "";
 	};
 });
 
