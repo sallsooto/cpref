@@ -228,6 +228,7 @@
 		 // show file validation task modal from editor
 		 function showModalTaskValidationFile(element){
 			 element = $(element);
+			 $(".showValidationFilesLaodingImage").removeClass('d-none');
 			 taskId = element.attr('data-taskId');
 			 $("#validationFormtaskId").val(taskId);
 			 loadTaskValidationModalData(taskId);

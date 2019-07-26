@@ -137,6 +137,9 @@
      });
      
      replaceElement("data-replace",".");
+     $('#modalTaskValidationFile').on('shown.bs.modal', function (e) {
+		 $(".showValidationFilesLaodingImage").addClass('d-none');
+     });
 })(jQuery);
 
 function seenAllUsersNotifications(url){
@@ -324,11 +327,9 @@ function loadTaskValidationModalData(taskId){
 	    		showTaksValidationFilesOnModal("#validationFilesMainRow",task.validationFiles);
 				$("#modalTaskValidationFile").modal('show');
 	    	}
-			 $(".showValidationFilesLaodingImage").addClass('d-none');
 	    },
 	    error : function(e){
 	    	console.log(e);
-			 $(".showValidationFilesLaodingImage").addClass('d-none');
 	    }
 	}) ;
 };
