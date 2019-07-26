@@ -175,6 +175,8 @@
 												data-userId="{{user.id}}" data-status="false"
 												data-ng-click="chageUserStatus($event)"></i>
 										</a>
+										  <img data-ng-if="$parent.showLoadingImage==true" alt="loading..."  th:src="@{/images/loading.gif}"
+										  		 class="ml-1" style="height:25px; width:25px;"/>
 										</td>
 									</tr>
 									<tr data-ng-if="users.content.length<=0">

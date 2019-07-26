@@ -132,6 +132,7 @@
 
      $(".dialogShower").on('click',function(e){
     	e.preventDefault(); 
+    	$(".confirmDialogLoading").addClass('d-none');
     	showConfirmDialog($(this),"#modalConfirmDialog");
      });
      
@@ -346,14 +347,19 @@ function submitTaskValidationFileForm(form){
        cache: false,
        timeout: 1000000,
        dataType : 'json',
+       beforeSend : function(){
+    	 $(".validationLaodingImage").removeClass('d-none');  
+       },
        success: function(result) {
        	if(result.status == true){
 				 $("#taskValidationFileBtnShower").removeClass('d-none');
 				 $(".modalErrorContainer").removeClass('text-danger').addClass("text-success").text(result.msg);
 				 showTaksValidationFilesOnModal("#validationFilesMainRow",result.files);
+		    	 $(".validationLaodingImage").addClass('d-none');  
        	}else{
        		 $("#taskValidationFileBtnShower").addClass('d-none');
        		$(".modalErrorContainer").removeClass('text-success').addClass("text-danger").text(result.msg);
+	    	 $(".validationLaodingImage").addClass('d-none');  
        	}
        	setInterval(function(){
        		$(".modalErrorContainer").text("");
@@ -368,6 +374,7 @@ function submitTaskValidationFileForm(form){
 function showTaksValidationFilesOnModal(containerSelector,files){
 	//validationFilesMainRow
 	$(containerSelector).html("");
+	console.log(files);
 	if(files.length>0){
 		for(var i=0; i<files.length;i++){
 			$(containerSelector).append(
@@ -398,12 +405,17 @@ function deleteValidationFile(event, fileId){
 		url : '/Task/deleteFileValidationFile/',
 		method : 'get',
 		data : {fid : fileId},
+		beforeSend : function(){
+	    	 $(".validationLaodingImage").removeClass('d-none');  
+		},
 		success : function(res){
 			console.log(res);
 			showTaksValidationFilesOnModal("#validationFilesMainRow",res);
+	    	 $(".validationLaodingImage").addClass('d-none');  
 		},
 		error : function(e){
 			console.log(e);
+	    	 $(".validationLaodingImage").addClass('d-none');  
 		}
 	});
 };
@@ -422,6 +434,9 @@ function deleteDescriptionFile(triggerElement,event){
 	        		url : '/Task/getTaskValidationFiles',
 	        	    method :'get',
 	        	    data : {tid : taskId},
+	        	    beforeSend : function(){
+	        	    	$(".deletFileDescriptionLaodingImage").removeClass('d-none');
+	        	    },
 	        	    success : function(task){
 	        	    	if(task != null){
 	        	    		$(filesContainerSelector).html("");
@@ -451,9 +466,11 @@ function deleteDescriptionFile(triggerElement,event){
 	        	    			}
 	        	    		}
 	        	    	}
+	        	    	$(".deletFileDescriptionLaodingImage").addClass('d-none');
 	        	    },
 	        	    error : function(e){
 	        	    	console.log(e);
+	        	    	$(".deletFileDescriptionLaodingImage").addClass('d-none');
 	        	    }
 	        	}) ;
 	        },

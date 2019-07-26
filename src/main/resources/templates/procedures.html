@@ -18,6 +18,9 @@
 		<div th:replace="fragments/main_content_heading::heading(heading_text='Procedures',heading_link='/Procedure/',heading_link_text='Actualiser',heading_ico='fas fa-sync')"></div>
 		<!-- content -->
 			<div class="class row " data-ng-controller="ProcedureCtrl" data-ng-init="getProcedures();">
+				<div class="col-sm-12 text-center col-md-4 offset-md-4">
+				  <img data-ng-if="$parent.showLoadingImage==true" alt="loading..."  th:src="@{/images/loading.gif}" class="" style="height:50px; width:50px;"/>
+				</div>
 				<div class="col-sm-12">
 					<div class="card border-0 p-0 bg-transparent">
 						<div class="card-body p-0 bg-info">
@@ -80,6 +83,7 @@
 										<td class="text-left pl-3">{{replaceWithNullOrBlank(procedure.name,"Sans nom") + ' '+reoplaceWithNullOrBlank(user.lastname,"Sans pom")}}</td>
 										<td data-ng-if="procedure.files == null || procedure.files.length<=0" class="text-center">Aucun fichier de description</td>
 										<td data-ng-if="procedure.files != null && procedure.files.length>0" class="text-center">
+										   <img data-ng-if="$parent.showLoadingImage==true" alt="loading..."  th:src="@{/images/loading.gif}" class="" style="height:25px; width:25px;"/>
 										   <div class="row no-gutters">
 										   		<div data-ng-repeat="file in procedure.files" class="col-sm-2 col-md-1 m-1">
 													<div class="card shadow p-1">

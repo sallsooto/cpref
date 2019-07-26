@@ -144,9 +144,11 @@ cperfModule.controller("AdminCtrl", function($scope, $http, $timeout) {
 	$scope.orderField = "firstname";
 	$scope.orderFieldReverse = "-";
 	$scope.selectedUser = null;
+	$scope.showLoadingImage=false;
 	$scope.userProcess = [];
 
 	$scope.getUsers = function() {
+		$scope.showLoadingImage=true;
 		$http({
 			url : '/Admin/getUsersJson/',
 			method : 'get',
@@ -163,6 +165,7 @@ cperfModule.controller("AdminCtrl", function($scope, $http, $timeout) {
 					$scope.pages[i] = i;
 			}
 		});
+		$scope.showLoadingImage=false;
 	};
 	
 	$scope.getUserProcess = function(id){
@@ -201,6 +204,7 @@ cperfModule.controller("AdminCtrl", function($scope, $http, $timeout) {
 		console.log(element);
 		var userId = element[0].attributes['data-userId'].value;
 		var status = element[0].attributes['data-status'].value;
+		$scope.showLoadingImage=true;
 		$http({
 			url : '/Admin/User/Statut',
 			method : 'get',
@@ -288,8 +292,9 @@ cperfModule.controller("ProcedureCtrl", function($scope, $http, $timeout) {
 	$scope.pages = [];
 	$scope.orderField = "storeAt";
 	$scope.orderFieldReverse = "-";
+	$scope.showLoadingImage=false;
 	$scope.getProcedures = function() {
-
+		$scope.showLoadingImage=true;
 		$http({
 			url : '/Procedure/getProceduresJson/',
 			method : 'get',
@@ -305,6 +310,7 @@ cperfModule.controller("ProcedureCtrl", function($scope, $http, $timeout) {
 				for (var i = 0; i < response.data.totalPages; i++)
 					$scope.pages[i] = i;
 			}
+			$scope.showLoadingImage=false;
 		});
 	};
 	$scope.replaceWithNullOrBlank = function(current_value, repalce_value) {
@@ -325,6 +331,7 @@ cperfModule.controller("ProcedureCtrl", function($scope, $http, $timeout) {
 		var element = angular.element($event.target)
 		var fileId = element[0].attributes['data-fileId'].value;
 		var procedureId  = element[0].attributes['data-procedureId'].value;
+		$scope.showLoadingImage=true;
 		$http({
 			url : '/Procedure/deleteFile/',
 			method : 'get',
@@ -373,10 +380,12 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 	$scope.processLunshed = "true";
 	$scope.loged = null;
 	$scope.logedIsAdmin = false;
+	$scope.showLoadingImage=false;
 	$scope.getTasks = function() {
 		var processLunshed = $scope.processLunshed == "true" ? true : false;
 		console.log(" status" + $scope.status + " processLunched "+$scope.processLunshed)
 		$scope.status = !processLunshed ? "all" : $scope.status;
+		$scope.showLoadingImage=true;
 		$http({
 			url : '/Task/userTasksJson/',
 			method : 'get',
@@ -396,6 +405,7 @@ cperfModule.controller("TaskCtrl", function($scope, $http, $timeout) {
 			$scope.loged = response.data.loged;
 			$scope.logedIsAdmin = response.data.logedIsAdmin;
 		});
+		$scope.showLoadingImage=false;
 	};
 	$scope.replaceWithNullOrBlank = function(current_value, repalce_value) {
 		if (current_value == null || current_value == "")

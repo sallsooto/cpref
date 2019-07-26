@@ -96,6 +96,7 @@
 									 th:data-maxDateContentClassName="${'maxDateContent'+p.id}"  th:data-startAtContentClassName="${'startAtContent'+p.id}"> 
 										<i class="fas fa-play fa_table_link text-success p-1"></i>
 								   	</a>
+									 <img alt="loading..."  th:src="@{/images/loading.gif}" class="processStarterOrStoperLoading d-none" style="height:20px; width:20px;"/>
 									<a  th:href="@{/Process/{id}/del(id=${p.id})}" title="Supprimer"
 									        class="text-decoration-none mr-3" onclick="showconfirmDialog(event, this);"
 										     th:data-dialogConfirmTitle="${p.startAt == null ? 'Confirmation' : 'Info'}" 
@@ -121,7 +122,8 @@
 														<i th:if="${task.description != null and task.description != ''}" 
 														th:data-modalTitle="${task.name}" th:data-description="${task.description}"
 														class="fas fa-font cursor-pointer text-primary modalDescriptionShower"
-														 title="Description textuelle" onClick="showDescription(this);"></i>
+														 title="Description textuelle" onClick="showDescription(this);"></i> 
+														 <img alt="loading..."  th:src="@{/images/loading.gif}" class="deletFileDescriptionLaodingImage d-none" style="height:25px; width:7%;"/>
 													   <div th:if="${task.descriptionsFiles != null and task.descriptionsFiles.size()>0}" th:class="${'row no-gutters tdFiles'+task.id}">
 													   		<div th:each="file : ${task.descriptionsFiles}" class="col-sm-6 col-md-3 m-1">
 																<div class="card shadow p-1">
@@ -268,6 +270,9 @@
 							url : '/Process/playOrStop/?pid='+processId+'&play='+playStat,
 							mathod : 'get',
 							contentType : 'json',
+							beforeSend : function(){
+								$(".processStarterOrStoperLoading").removeClass("d-none");
+							},
 							success : function(res){
 								if(res.success == true && replaceElement.length>0){
 									triggerElement.addClass('d-none');
@@ -275,9 +280,11 @@
 									startAtContent.text(res.startAt);
 									maxDateContent.text(res.maxDate);
 								}
+								$(".processStarterOrStoperLoading").addClass("d-none");
 							},
 							error : function(e){
 								console.log(e);
+								$(".processStarterOrStoperLoading").addClass("d-none");
 							}
 						});
 					}
