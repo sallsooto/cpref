@@ -324,9 +324,11 @@ function loadTaskValidationModalData(taskId){
 	    		showTaksValidationFilesOnModal("#validationFilesMainRow",task.validationFiles);
 				$("#modalTaskValidationFile").modal('show');
 	    	}
+			 $(".showValidationFilesLaodingImage").addClass('d-none');
 	    },
 	    error : function(e){
 	    	console.log(e);
+			 $(".showValidationFilesLaodingImage").addClass('d-none');
 	    }
 	}) ;
 };
@@ -450,7 +452,7 @@ function deleteDescriptionFile(triggerElement,event){
 													'<div class="row no-gutters align-items-center">'+
 														'<div class="col mr-2">'+
 															'<a href="/Task/Show/FileDescription/'+files[i].id+'" '+
-															   'target="_blank" class="'+getFileFontAwesomeTextClass(files[i].name)+' fa-2x" '+
+															   'target="_blank" class="'+getFileFontAwesomeTextClass(files[i].name)+' " '+
 															   'title="visualisez '+files[i].name+'"></a> '+
 														'</div>'+
 														'<div class="col-auto">'+

@@ -105,7 +105,7 @@
 														<div class="row no-gutters align-items-center">
 															<div class="col">
 																<a target="_blank" title="Ouvrir le fichier {{file.name}}"
-																   th:href="@{/Task/Show/FileDescription/{{file.id}}}" data-ng-class="getFileFontAwesomeTextClass(file.name)+ ' fa-2x'">
+																   th:href="@{/Task/Show/FileDescription/{{file.id}}}" data-ng-class="getFileFontAwesomeTextClass(file.name)+ ' '">
 																 </a>
 															</div>
 														</div>
@@ -147,6 +147,7 @@
 											    <i class="fas fa-file text-info cursor-pointer ml-3" 
 											       data-taskModalTile="Fichier de validation de la tâche : {{task.name}}"
 											        title="Fichier de validation" data-taskId = "{{task.id}}" onClick="showModalTaskValidationFile(this);"></i>
+												  <img alt="loading..."  th:src="@{/images/loading.gif}" class="showValidationFilesLaodingImage d-none" style="height:20px; width:20px;"/>
 											</span>
 											<span data-ng-if="task.status == 'canceled'" class="text-danger"> Tâche annulée</span>
 											<!-- validate status control -->

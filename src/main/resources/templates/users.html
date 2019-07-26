@@ -21,6 +21,10 @@
 		<div th:replace="fragments/main_content_heading::heading(heading_text='Gestion des comptes utilisateurs')"></div>
 		<!-- content -->
 			<div class="class row">
+				<div class="col-sm-12 col-md-4 offset-md-4 text-center">
+					  <img data-ng-if="$parent.showLoadingImage==true" alt="loading..." 
+					   th:src="@{/images/loading.gif}" class="ml-1" style="height:50px; width:50px;"/>
+				</div>
 				<div class="col-sm-12">
 				<!-- Modal default user photo editor-->
 					<div class="modal fade" id="modaldefaultUserPhoto" tabindex="-1" role="dialog" aria-labelledby="modaldefaultUserPhoto" aria-hidden="true">
